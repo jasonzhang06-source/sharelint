@@ -1,0 +1,59 @@
+name: Feature request
+description: Propose a focused improvement to ShareLint
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Explain the sharing workflow and privacy surface, not just the proposed implementation. Use synthetic examples only. Roadmap items are not delivery commitments.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What disclosure risk or workflow limitation are you trying to address?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe inputs, outputs, expected findings, and fail-closed behavior.
+    validations:
+      required: true
+  - type: input
+    id: formats
+    attributes:
+      label: Formats or workflows
+      description: Which file types, embedded surfaces, platforms, or integrations are involved?
+      placeholder: PPTX speaker notes inside a ZIP handoff bundle
+  - type: textarea
+    id: safety
+    attributes:
+      label: Privacy and safety considerations
+      description: Note possible false positives, false negatives, resource limits, or sensitive output risks.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What existing ShareLint behavior or external tool did you try?
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - I can submit a pull request
+        - I can help with synthetic fixtures or review
+        - I am proposing the idea only
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and the roadmap.
+          required: true
+        - label: Any examples in this request are synthetic and contain no confidential data.
+          required: true

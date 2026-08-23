@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/jasonzhang25-ship-it/sharelint/v0.1.0/schemas/receipt.schema.json",
+  "title": "ShareLint pack receipt",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "receipt_type",
+    "status",
+    "tool",
+    "created_at",
+    "source",
+    "policy",
+    "summary",
+    "report_sha256",
+    "reasons",
+    "claim"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "receipt_type": {"const": "sharelint.pack"},
+    "status": {"enum": ["packed", "blocked"]},
+    "tool": {"$ref": "#/$defs/tool"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "source": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "hash_status", "sha256"],
+          "properties": {
+            "kind": {"enum": ["file", "directory", "symlink"]},
+            "hash_status": {"const": "complete"},
+            "sha256": {"$ref": "#/$defs/sha256"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "hash_status"],
+          "properties": {
+            "kind": {"enum": ["file", "directory", "symlink"]},
+            "hash_status": {"const": "unavailable"}
+          },
+          "not": {"required": ["sha256"]},
+          "additionalProperties": false
+        }
+      ]
+    },
+    "policy": {
+      "type": "object",
+      "required": [
+        "sha256",
+        "ruleset_sha256",
+        "fail_on",
+        "require_complete_coverage",
+        "limits"
+      ],
+      "properties": {
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "ruleset_sha256": {"$ref": "#/$defs/sha256"},
+        "fail_on": {"$ref": "#/$defs/severity"},
+        "require_complete_coverage": {"const": true},
+        "limits": {"$ref": "#/$defs/limits"}
+      },
+      "additionalProperties": false
+    },
+    "summary": {"$ref": "#/$defs/summary"},
+    "report_sha256": {"$ref": "#/$defs/sha256"},
+    "reasons": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "blocking_findings",
+          "coverage_incomplete",
+          "source_changed",
+          "pack_write_failed",
+          "artifact_rescan_failed",
+          "artifact_manifest_mismatch"
+        ]
+      }
+    },
+    "archive": {
+      "type": "object",
+      "required": ["format", "size", "sha256", "profile"],
+      "properties": {
+        "format": {"const": "zip"},
+        "size": {"type": "integer", "minimum": 0},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "profile": {"const": "deterministic-zip-v1"}
+      },
+      "additionalProperties": false
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "size", "sha256"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "size": {"type": "integer", "minimum": 0},
+          "sha256": {"$ref": "#/$defs/sha256"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "verification": {
+      "type": "object",
+      "required": ["coverage_complete", "reopened_and_rescanned", "manifest_matched"],
+      "properties": {
+        "coverage_complete": {"const": true},
+        "reopened_and_rescanned": {"const": true},
+        "manifest_matched": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "claim": {"type": "string", "minLength": 1}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "packed"}}, "required": ["status"]},
+      "then": {
+        "required": ["archive", "files", "verification"],
+        "properties": {"reasons": {"maxItems": 0}}
+      },
+      "else": {
+        "properties": {
+          "reasons": {"minItems": 1},
+          "archive": false,
+          "files": false,
+          "verification": false
+        }
+      }
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "severity": {"enum": ["info", "low", "medium", "high", "critical"]},
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"const": "sharelint"},
+        "version": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "limits": {
+      "type": "object",
+      "required": [
+        "max_file_bytes",
+        "max_member_bytes",
+        "max_total_bytes",
+        "max_archive_depth",
+        "max_archive_members",
+        "max_compression_ratio",
+        "max_text_chars",
+        "max_xml_elements",
+        "max_findings"
+      ],
+      "properties": {
+        "max_file_bytes": {"type": "integer", "minimum": 1},
+        "max_member_bytes": {"type": "integer", "minimum": 1},
+        "max_total_bytes": {"type": "integer", "minimum": 1},
+        "max_archive_depth": {"type": "integer", "minimum": 1},
+        "max_archive_members": {"type": "integer", "minimum": 1},
+        "max_compression_ratio": {"type": "number", "exclusiveMinimum": 0},
+        "max_text_chars": {"type": "integer", "minimum": 1},
+        "max_xml_elements": {"type": "integer", "minimum": 1},
+        "max_findings": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "verdict",
+        "fail_on",
+        "blocking_findings",
+        "total_findings",
+        "findings_by_severity",
+        "surface_count",
+        "surfaces_by_status",
+        "bytes_inspected",
+        "error_count",
+        "coverage_complete"
+      ],
+      "properties": {
+        "verdict": {"enum": ["pass", "blocked", "incomplete"]},
+        "fail_on": {"$ref": "#/$defs/severity"},
+        "blocking_findings": {"type": "integer", "minimum": 0},
+        "total_findings": {"type": "integer", "minimum": 0},
+        "findings_by_severity": {
+          "type": "object",
+          "required": ["info", "low", "medium", "high", "critical"],
+          "properties": {
+            "info": {"type": "integer", "minimum": 0},
+            "low": {"type": "integer", "minimum": 0},
+            "medium": {"type": "integer", "minimum": 0},
+            "high": {"type": "integer", "minimum": 0},
+            "critical": {"type": "integer", "minimum": 0}
+          },
+          "additionalProperties": false
+        },
+        "surface_count": {"type": "integer", "minimum": 0},
+        "surfaces_by_status": {
+          "type": "object",
+          "required": ["scanned", "partial", "skipped"],
+          "properties": {
+            "scanned": {"type": "integer", "minimum": 0},
+            "partial": {"type": "integer", "minimum": 0},
+            "skipped": {"type": "integer", "minimum": 0}
+          },
+          "additionalProperties": false
+        },
+        "bytes_inspected": {"type": "integer", "minimum": 0},
+        "error_count": {"type": "integer", "minimum": 0},
+        "coverage_complete": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

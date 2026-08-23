@@ -1,0 +1,68 @@
+name: Bug report
+description: Report reproducible incorrect or unexpected behavior
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Use only synthetic examples and remove sensitive values, usernames, and local paths. If this may be a vulnerability, stop and follow SECURITY.md to report it privately.
+  - type: input
+    id: version
+    attributes:
+      label: ShareLint version
+      description: Output of `sharelint --version`, or the commit hash.
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, architecture, Python version, and installation method.
+      placeholder: Ubuntu 24.04, x86_64, Python 3.12, editable install
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command and configuration
+      description: Provide the exact command and relevant policy settings, with private paths and values replaced.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Synthetic reproduction
+      description: Give the smallest reproducible steps or a link to a clearly synthetic fixture.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include sanitized output or a traceback if useful. Do not include matched values.
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add any other non-sensitive context, screenshots, or suspected regression range.
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues for duplicates.
+          required: true
+        - label: This report contains no real secrets, personal information, or confidential documents.
+          required: true
+        - label: This is not a security vulnerability requiring private reporting.
+          required: true

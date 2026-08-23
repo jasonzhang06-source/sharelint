@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/jasonzhang25-ship-it/sharelint/v0.1.0/schemas/report.schema.json",
+  "title": "ShareLint native scan report",
+  "type": "object",
+  "required": ["schema_version", "tool", "scan", "summary", "findings", "surfaces", "errors"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "tool": {"$ref": "#/$defs/tool"},
+    "scan": {
+      "type": "object",
+      "required": ["target", "fingerprint_scope", "limits"],
+      "properties": {
+        "target": {
+          "type": "object",
+          "required": ["name", "kind", "sha256"],
+          "properties": {
+            "name": {"type": "string", "minLength": 1},
+            "kind": {"enum": ["file", "directory", "symlink"]},
+            "sha256": {"$ref": "#/$defs/sha256"}
+          },
+          "additionalProperties": true
+        },
+        "fingerprint_scope": {"type": "string", "pattern": "^[0-9a-f]{16}$"},
+        "limits": {"$ref": "#/$defs/limits"}
+      },
+      "additionalProperties": true
+    },
+    "summary": {"$ref": "#/$defs/summary"},
+    "findings": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/finding"}
+    },
+    "surfaces": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/surface"}
+    },
+    "errors": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/error"}
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "severity": {"enum": ["info", "low", "medium", "high", "critical"]},
+    "source_chain": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"const": "sharelint"},
+        "version": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "limits": {
+      "type": "object",
+      "required": [
+        "max_file_bytes",
+        "max_member_bytes",
+        "max_total_bytes",
+        "max_archive_depth",
+        "max_archive_members",
+        "max_compression_ratio",
+        "max_text_chars",
+        "max_xml_elements",
+        "max_findings"
+      ],
+      "properties": {
+        "max_file_bytes": {"type": "integer", "minimum": 1},
+        "max_member_bytes": {"type": "integer", "minimum": 1},
+        "max_total_bytes": {"type": "integer", "minimum": 1},
+        "max_archive_depth": {"type": "integer", "minimum": 1},
+        "max_archive_members": {"type": "integer", "minimum": 1},
+        "max_compression_ratio": {"type": "number", "exclusiveMinimum": 0},
+        "max_text_chars": {"type": "integer", "minimum": 1},
+        "max_xml_elements": {"type": "integer", "minimum": 1},
+        "max_findings": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "verdict",
+        "fail_on",
+        "blocking_findings",
+        "total_findings",
+        "findings_by_severity",
+        "surface_count",
+        "surfaces_by_status",
+        "bytes_inspected",
+        "error_count",
+        "coverage_complete"
+      ],
+      "properties": {
+        "verdict": {"enum": ["pass", "blocked", "incomplete"]},
+        "fail_on": {"$ref": "#/$defs/severity"},
+        "blocking_findings": {"type": "integer", "minimum": 0},
+        "total_findings": {"type": "integer", "minimum": 0},
+        "findings_by_severity": {
+          "type": "object",
+          "required": ["info", "low", "medium", "high", "critical"],
+          "additionalProperties": {"type": "integer", "minimum": 0}
+        },
+        "surface_count": {"type": "integer", "minimum": 0},
+        "surfaces_by_status": {
+          "type": "object",
+          "required": ["scanned", "partial", "skipped"],
+          "additionalProperties": {"type": "integer", "minimum": 0}
+        },
+        "bytes_inspected": {"type": "integer", "minimum": 0},
+        "error_count": {"type": "integer", "minimum": 0},
+        "coverage_complete": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "finding": {
+      "type": "object",
+      "required": [
+        "rule_id",
+        "severity",
+        "title",
+        "source_chain",
+        "location",
+        "masked_preview",
+        "evidence_fingerprint",
+        "remediation",
+        "tags"
+      ],
+      "properties": {
+        "rule_id": {"type": "string", "pattern": "^SL\\.[A-Z][A-Z0-9_]*\\.[A-Z][A-Z0-9_]*$"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "title": {"type": "string", "minLength": 1},
+        "source_chain": {"$ref": "#/$defs/source_chain"},
+        "location": {"type": "string", "minLength": 1},
+        "masked_preview": {"type": "string", "minLength": 1, "maxLength": 1024},
+        "evidence_fingerprint": {"type": "string", "pattern": "^hmac-sha256:[0-9a-f]{24}$"},
+        "remediation": {"type": "string", "minLength": 1},
+        "tags": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      },
+      "additionalProperties": true
+    },
+    "surface": {
+      "type": "object",
+      "required": ["source_chain", "kind", "status", "bytes_inspected", "scanner"],
+      "properties": {
+        "source_chain": {"$ref": "#/$defs/source_chain"},
+        "kind": {"type": "string", "minLength": 1},
+        "status": {"enum": ["scanned", "partial", "skipped"]},
+        "bytes_inspected": {"type": "integer", "minimum": 0},
+        "scanner": {"type": "string", "minLength": 1},
+        "note": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "error": {
+      "type": "object",
+      "required": ["source_chain", "code", "message"],
+      "properties": {
+        "source_chain": {"$ref": "#/$defs/source_chain"},
+        "code": {"type": "string", "pattern": "^SL\\.[A-Z][A-Z0-9_]*\\.[A-Z][A-Z0-9_]*$"},
+        "message": {"type": "string", "minLength": 1, "maxLength": 240}
+      },
+      "additionalProperties": true
+    }
+  }
+}

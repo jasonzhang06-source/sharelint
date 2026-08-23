@@ -1,0 +1,46 @@
+name: Question or setup help
+description: Ask about installation, documented behavior, or a sharing workflow
+title: "[Question]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Questions are welcome. Describe the workflow with synthetic names and values only. Never attach a real document, report, secret, personal identifier, or private local path. Possible vulnerabilities belong in the private reporting flow described by SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: ShareLint version
+      description: Output of `sharelint --version`, or the commit hash.
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, Python version, and installation method.
+      placeholder: Ubuntu 24.04, Python 3.14, source checkout
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What are you trying to inspect or automate, and what is unclear?
+    validations:
+      required: true
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What you tried
+      description: Include sanitized commands and output when useful.
+      render: shell
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Privacy checklist
+      options:
+        - label: This question contains only synthetic data and sanitized paths.
+          required: true
+        - label: This is not a suspected security vulnerability requiring private reporting.
+          required: true

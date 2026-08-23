@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sharelint"
+dynamic = ["version"]
+description = "Local, evidence-first privacy preflight for files and share bundles."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = [
+  "privacy",
+  "security",
+  "metadata",
+  "office",
+  "pdf",
+  "pii",
+  "secrets",
+  "cli",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Intended Audience :: End Users/Desktop",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Security",
+  "Topic :: Utilities",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "build>=1.2,<2",
+  "jsonschema>=4.23,<5",
+  "mypy>=1.11,<2",
+  "pytest>=8,<9",
+  "pytest-cov>=5,<7",
+  "ruff>=0.8,<1",
+]
+
+[project.scripts]
+sharelint = "sharelint.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/jasonzhang25-ship-it/sharelint"
+Documentation = "https://github.com/jasonzhang25-ship-it/sharelint#readme"
+Issues = "https://github.com/jasonzhang25-ship-it/sharelint/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+sharelint = ["py.typed"]
+
+[tool.setuptools.dynamic]
+version = {attr = "sharelint._version.__version__"}
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+packages = ["sharelint"]
+
+[tool.coverage.run]
+branch = true
+source = ["sharelint"]
+
+[tool.coverage.report]
+fail_under = 75
+show_missing = true

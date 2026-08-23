@@ -1,0 +1,13 @@
+include CHANGELOG.md
+include CODE_OF_CONDUCT.md
+include CONTRIBUTING.md
+include GOVERNANCE.md
+include LICENSE
+include README.md
+include README.zh-CN.md
+include SECURITY.md
+include SUPPORT.md
+recursive-include .github *.md *.yml
+recursive-include docs *.md *.svg
+recursive-include schemas *.json
+recursive-include tests *.py
