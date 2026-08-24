@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import struct
+import sys
 import unittest
 from collections.abc import Iterator
 from pathlib import Path
@@ -227,7 +228,10 @@ class SecurityRegressionTests(CliTestCase):
         )
         rendered.encode("utf-8")
 
-    @unittest.skipUnless(os.name == "posix", "byte filenames require POSIX surrogateescape")
+    @unittest.skipUnless(
+        sys.platform.startswith("linux"),
+        "arbitrary byte filenames require Linux surrogateescape",
+    )
     def test_invalid_utf8_filename_is_json_safe_and_blocks_pack(self) -> None:
         source = self.root / "byte-names"
         source.mkdir()

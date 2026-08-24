@@ -15,7 +15,7 @@ def metadata_is_reparse_point(metadata: os.stat_result) -> bool:
     remains a dependency-free cross-platform check.
     """
 
-    attributes = getattr(metadata, "st_file_attributes", 0)
+    attributes = getattr(metadata, "st_file_attributes", 0) or 0
     reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
     return bool(attributes & reparse_flag)
 
@@ -24,6 +24,38 @@ def metadata_is_filesystem_link(metadata: os.stat_result) -> bool:
     """Return whether metadata describes a symbolic link or Windows reparse point."""
 
     return stat.S_ISLNK(metadata.st_mode) or metadata_is_reparse_point(metadata)
+
+
+def metadata_matches_open_file(
+    path_metadata: os.stat_result,
+    open_metadata: os.stat_result,
+) -> bool:
+    """Match no-follow path metadata to an opened regular file across platforms.
+
+    Recent Windows runtimes can report unavailable path identities as zero and
+    expose different ``st_ctime`` semantics between path and handle queries.
+    Size and modification time remain part of the comparison, and non-zero
+    identities must agree. POSIX keeps the stronger ctime comparison.
+    """
+
+    if metadata_is_filesystem_link(path_metadata):
+        return False
+    if not stat.S_ISREG(path_metadata.st_mode) or not stat.S_ISREG(open_metadata.st_mode):
+        return False
+    if (path_metadata.st_size, path_metadata.st_mtime_ns) != (
+        open_metadata.st_size,
+        open_metadata.st_mtime_ns,
+    ):
+        return False
+    path_identity = (path_metadata.st_dev, path_metadata.st_ino)
+    open_identity = (open_metadata.st_dev, open_metadata.st_ino)
+    identities_available = all((*path_identity, *open_identity))
+    if identities_available and path_identity != open_identity:
+        return False
+    return not (
+        os.name != "nt"
+        and (not identities_available or path_metadata.st_ctime_ns != open_metadata.st_ctime_ns)
+    )
 
 
 def _directory_identity(metadata: os.stat_result) -> tuple[int, int]:

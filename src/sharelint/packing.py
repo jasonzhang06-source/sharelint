@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import IO, Any
 
 from .extended_attributes import ExtendedAttributeStatus, probe_extended_attributes
-from .filesystem import bounded_directory_items
+from .filesystem import bounded_directory_items, metadata_matches_open_file
 from .models import ScanLimits, ScanReport, Severity
 from .reporters import canonical_json, render_json
 from .rules import RULES
@@ -119,10 +119,7 @@ def _read_regular(path: Path, limit: int) -> bytes:
     try:
         with os.fdopen(descriptor, "rb") as stream:
             opened = os.fstat(stream.fileno())
-            if not stat.S_ISREG(opened.st_mode) or (opened.st_dev, opened.st_ino) != (
-                before.st_dev,
-                before.st_ino,
-            ):
+            if not metadata_matches_open_file(before, opened):
                 raise PackError("an input file changed before it could be packed")
             data = _read_bounded(stream, limit)
             after = os.fstat(stream.fileno())

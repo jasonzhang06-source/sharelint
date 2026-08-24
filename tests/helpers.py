@@ -41,6 +41,11 @@ def _zip_bytes(members: Mapping[str, str | bytes]) -> bytes:
     with ZipFile(buffer, "w") as archive:
         for name in sorted(members):
             info = ZipInfo(name, date_time=_ZIP_EPOCH)
+            # ZipInfo normalizes the host path separator during construction.
+            # Restore the logical archive name so Windows-backslash traversal
+            # fixtures remain byte-for-byte cross-platform.
+            info.filename = name
+            info.orig_filename = name
             info.compress_type = ZIP_DEFLATED
             info.create_system = 3
             info.external_attr = 0o100644 << 16

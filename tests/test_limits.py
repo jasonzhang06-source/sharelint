@@ -15,6 +15,7 @@ from sharelint.filesystem import (
     bounded_directory_tree,
     metadata_is_filesystem_link,
     metadata_is_reparse_point,
+    metadata_matches_open_file,
 )
 from sharelint.models import ScanLimits
 from sharelint.scanner import scan
@@ -60,6 +61,40 @@ class ScanLimitTests(unittest.TestCase):
         self.assertFalse(metadata_is_filesystem_link(ordinary))  # type: ignore[arg-type]
         self.assertTrue(metadata_is_filesystem_link(reparse))  # type: ignore[arg-type]
         self.assertTrue(metadata_is_filesystem_link(symbolic_link))  # type: ignore[arg-type]
+
+    def test_windows_missing_identity_and_ctime_variance_keep_regular_files_readable(self) -> None:
+        path_metadata = SimpleNamespace(
+            st_file_attributes=None,
+            st_mode=stat.S_IFREG,
+            st_dev=0,
+            st_ino=0,
+            st_size=23,
+            st_mtime_ns=101,
+            st_ctime_ns=202,
+        )
+        open_metadata = SimpleNamespace(
+            st_mode=stat.S_IFREG,
+            st_dev=71,
+            st_ino=83,
+            st_size=23,
+            st_mtime_ns=101,
+            st_ctime_ns=303,
+        )
+
+        with patch("sharelint.filesystem.os.name", "nt"):
+            self.assertTrue(
+                metadata_matches_open_file(  # type: ignore[arg-type]
+                    path_metadata,
+                    open_metadata,
+                )
+            )
+        with patch("sharelint.filesystem.os.name", "posix"):
+            self.assertFalse(
+                metadata_matches_open_file(  # type: ignore[arg-type]
+                    path_metadata,
+                    open_metadata,
+                )
+            )
 
     def test_filesystem_entry_limit_is_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory(prefix="sharelint-limits-") as directory:

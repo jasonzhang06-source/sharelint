@@ -13,7 +13,11 @@ from .extended_attributes import (
     ExtendedAttributeStatus,
     probe_extended_attributes,
 )
-from .filesystem import bounded_directory_tree, metadata_is_filesystem_link
+from .filesystem import (
+    bounded_directory_tree,
+    metadata_is_filesystem_link,
+    metadata_matches_open_file,
+)
 from .models import ScanLimits, ScanReport, SurfaceStatus
 from .scanners.detect import decode_text, detect_kind
 from .scanners.image import scan_image
@@ -356,10 +360,7 @@ def _read_regular_file(
     try:
         with os.fdopen(descriptor, "rb") as handle:
             opened = os.fstat(handle.fileno())
-            if not stat.S_ISREG(opened.st_mode) or (opened.st_dev, opened.st_ino) != (
-                before.st_dev,
-                before.st_ino,
-            ):
+            if not metadata_matches_open_file(before, opened):
                 context.add_error(
                     source_chain,
                     "SL.SCAN.READ_ERROR",
@@ -374,11 +375,7 @@ def _read_regular_file(
                 is_directory=False,
             )
             current = path.stat(follow_symlinks=False)
-            if (
-                metadata_is_filesystem_link(current)
-                or not stat.S_ISREG(current.st_mode)
-                or _file_state(current) != _file_state(opened)
-            ):
+            if not metadata_matches_open_file(current, opened):
                 context.add_error(
                     source_chain,
                     "SL.SCAN.READ_ERROR",
