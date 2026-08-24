@@ -8,6 +8,11 @@
 </p>
 
 <p align="center">
+  <a href="https://pypi.org/project/sharelint/"><img src="https://img.shields.io/pypi/v/sharelint.svg" alt="PyPI 版本"></a>
+  <a href="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml"><img src="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml/badge.svg" alt="持续集成"></a>
+</p>
+
+<p align="center">
   <a href="#快速开始">快速开始</a> ·
   <a href="#检查范围">检查范围</a> ·
   <a href="docs/threat-model.md">威胁模型</a> ·
@@ -16,7 +21,7 @@
 
 > [!IMPORTANT]
 > **Alpha 软件。** ShareLint 已有可运行、零第三方运行时依赖的核心，但规则和格式覆盖仍在扩展。
-> 有可用的带标签软件包时请优先使用，否则可从源码安装；无论哪种方式，都应独立复核重要结果。
+> 日常使用请安装 PyPI 上的带标签软件包；无论哪种方式，都应独立复核重要结果。
 
 你正准备发送一个 ZIP：代码没有问题，但演示文稿还留着演讲者备注，工作簿里藏着
 `veryHidden` 工作表，PDF 暴露了作者姓名，图片则记录了位置。专注 Git 仓库的密钥扫描器
@@ -41,19 +46,19 @@
 
 ## 快速开始
 
-ShareLint 需要 Python 3.11 或更高版本。源码检出无需任何第三方运行时依赖：
+ShareLint 需要 Python 3.11 或更高版本。从 PyPI 安装并运行合成演示：
+
+```bash
+python -m pip install sharelint
+sharelint demo
+```
+
+开发时可从源码检出安装：
 
 ```bash
 git clone https://github.com/jasonzhang06-source/sharelint.git
 cd sharelint
 python -m pip install -e .
-sharelint demo
-```
-
-带标签的软件包发布后，可使用等价的一行安装命令：
-
-```bash
-python -m pip install sharelint
 ```
 
 演示命令会在临时目录创建一个完全由合成数据组成、用完即弃的交付包。它会展示嵌套 Office 内容、

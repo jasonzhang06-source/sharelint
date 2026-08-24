@@ -10,6 +10,7 @@
 <p align="center">
   <a href="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml"><img src="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/jasonzhang06-source/sharelint/actions/workflows/codeql.yml"><img src="https://github.com/jasonzhang06-source/sharelint/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
+  <a href="https://pypi.org/project/sharelint/"><img src="https://img.shields.io/pypi/v/sharelint.svg" alt="PyPI version"></a>
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/runtime_dependencies-0-38F2C2" alt="Zero runtime dependencies">
   <a href="https://github.com/jasonzhang06-source/sharelint/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-54A9FF" alt="MIT license"></a>
@@ -24,25 +25,25 @@
 
 ## Quick start
 
-ShareLint requires Python 3.11 or newer. A source checkout works without runtime dependencies:
+ShareLint requires Python 3.11 or newer. Install the published package and run the synthetic demo:
+
+```bash
+python -m pip install sharelint
+sharelint demo
+```
+
+For development, install from a source checkout:
 
 ```bash
 git clone https://github.com/jasonzhang06-source/sharelint.git
 cd sharelint
 python -m pip install -e .
-sharelint demo
-```
-
-After a tagged package is published, the equivalent installation is:
-
-```bash
-python -m pip install sharelint
 ```
 
 > [!IMPORTANT]
 > **Alpha software.** ShareLint already has a working, dependency-free core, but its rules and
-> format coverage are still growing. Use a tagged package when one is available or install from
-> source, and independently review important results.
+> format coverage are still growing. Install a tagged package from PyPI for normal use, and
+> independently review important results.
 
 You are about to send a ZIP. The code is clean, but the deck still has speaker notes, the workbook
 contains a very-hidden sheet, the PDF names its author, and an image records a location. Git-focused
