@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "sharelint"
 dynamic = ["version"]
-description = "Local, evidence-first privacy preflight for files and share bundles."
+description = "Local, fail-closed privacy preflight for files, folders, and nested archives."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
@@ -18,6 +18,11 @@ keywords = [
   "pdf",
   "pii",
   "secrets",
+  "data-loss-prevention",
+  "document-security",
+  "local-first",
+  "pii-detection",
+  "secret-scanning",
   "cli",
 ]
 classifiers = [
@@ -50,9 +55,11 @@ dev = [
 sharelint = "sharelint.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/jasonzhang25-ship-it/sharelint"
-Documentation = "https://github.com/jasonzhang25-ship-it/sharelint#readme"
-Issues = "https://github.com/jasonzhang25-ship-it/sharelint/issues"
+Homepage = "https://github.com/jasonzhang06-source/sharelint"
+Documentation = "https://github.com/jasonzhang06-source/sharelint#readme"
+Source = "https://github.com/jasonzhang06-source/sharelint"
+Issues = "https://github.com/jasonzhang06-source/sharelint/issues"
+Changelog = "https://github.com/jasonzhang06-source/sharelint/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -21,5 +21,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A branch-aware 75% coverage floor enforced in CI and release verification.
 - CodeQL analysis, dependency update automation, and a Trusted Publishing release workflow.
 
-[Unreleased]: https://github.com/jasonzhang25-ship-it/sharelint/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/jasonzhang25-ship-it/sharelint/releases/tag/v0.1.0
+[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/jasonzhang06-source/sharelint/releases/tag/v0.1.0

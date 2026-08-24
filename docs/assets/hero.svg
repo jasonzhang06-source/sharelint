@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="-40 -60 1280 640" role="img" aria-labelledby="title desc">
   <title id="title">ShareLint local privacy preflight</title>
   <desc id="desc">A ShareLint shield checks nested files locally, hides matched evidence, and allows packaging only after the policy gate passes.</desc>
   <defs>
@@ -23,6 +23,7 @@
     </pattern>
   </defs>
 
+  <rect x="-40" y="-60" width="1280" height="640" fill="#07111f"/>
   <rect width="1200" height="520" rx="24" fill="url(#bg)"/>
   <rect width="1200" height="520" rx="24" fill="url(#grid)"/>
   <circle cx="103" cy="83" r="116" fill="#2be3bd" opacity=".08" filter="url(#glow)"/>
@@ -37,7 +38,7 @@
 
   <g font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
     <text x="265" y="118" fill="#f1f8ff" font-size="62" font-weight="740" letter-spacing="-1.5">ShareLint</text>
-    <text x="267" y="160" fill="#94abc0" font-size="21" letter-spacing=".3">Gitleaks for everything you share.</text>
+    <text x="267" y="160" fill="#94abc0" font-size="21" letter-spacing=".3">Scan before you share.</text>
 
     <g transform="translate(79 293)">
       <rect width="1042" height="153" rx="15" fill="#050b13" stroke="#263c50"/>

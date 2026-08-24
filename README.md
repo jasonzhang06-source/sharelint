@@ -1,18 +1,43 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/jasonzhang25-ship-it/sharelint/main/docs/assets/hero.svg" alt="ShareLint — local privacy preflight for everything you share" width="100%">
+  <img src="https://raw.githubusercontent.com/jasonzhang06-source/sharelint/main/docs/assets/hero.svg" alt="ShareLint — local privacy preflight for everything you share" width="100%">
 </div>
 
 <p align="center">
-  <strong>Gitleaks for everything you share.</strong><br>
-  Inspect the whole handoff boundary—locally—before a file, folder, or archive leaves your machine.
+  <strong>Scan before you share.</strong><br>
+  A local, fail-closed privacy preflight for files, folders, and nested archives.
+</p>
+
+<p align="center">
+  <a href="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml"><img src="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/jasonzhang06-source/sharelint/actions/workflows/codeql.yml"><img src="https://github.com/jasonzhang06-source/sharelint/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
+  <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB" alt="Python 3.11+">
+  <img src="https://img.shields.io/badge/runtime_dependencies-0-38F2C2" alt="Zero runtime dependencies">
+  <a href="https://github.com/jasonzhang06-source/sharelint/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-54A9FF" alt="MIT license"></a>
 </p>
 
 <p align="center">
   <a href="#quick-start">Quick start</a> ·
   <a href="#what-it-checks">Coverage</a> ·
-  <a href="https://github.com/jasonzhang25-ship-it/sharelint/blob/main/docs/threat-model.md">Threat model</a> ·
-  <a href="https://github.com/jasonzhang25-ship-it/sharelint/blob/main/README.zh-CN.md">简体中文</a>
+  <a href="https://github.com/jasonzhang06-source/sharelint/blob/main/docs/threat-model.md">Threat model</a> ·
+  <a href="https://github.com/jasonzhang06-source/sharelint/blob/main/README.zh-CN.md">简体中文</a>
 </p>
+
+## Quick start
+
+ShareLint requires Python 3.11 or newer. A source checkout works without runtime dependencies:
+
+```bash
+git clone https://github.com/jasonzhang06-source/sharelint.git
+cd sharelint
+python -m pip install -e .
+sharelint demo
+```
+
+After a tagged package is published, the equivalent installation is:
+
+```bash
+python -m pip install sharelint
+```
 
 > [!IMPORTANT]
 > **Alpha software.** ShareLint already has a working, dependency-free core, but its rules and
@@ -41,22 +66,7 @@ supported nested container as one disclosure boundary:
 
 It is intentionally composable with those controls rather than a replacement for all of them.
 
-## Quick start
-
-ShareLint requires Python 3.11 or newer. A source checkout works without runtime dependencies:
-
-```bash
-git clone https://github.com/jasonzhang25-ship-it/sharelint.git
-cd sharelint
-python -m pip install -e .
-sharelint demo
-```
-
-After a tagged package is published, the equivalent installation is:
-
-```bash
-python -m pip install sharelint
-```
+## Demo output
 
 The demo builds a disposable, entirely synthetic handoff bundle in a temporary directory. It shows
 nested Office content, PDF metadata, active content, redacted evidence, and an explicit PDF coverage
@@ -150,7 +160,7 @@ sharelint explain SL.OFFICE.NOTES
 | Text | Common credentials, private-key markers, emails, US SSNs, payment cards, and revealing local paths | Pattern-based detection can have false positives and false negatives. |
 
 Run `sharelint rules` for the installed rule registry and read
-[Rules and identifiers](https://github.com/jasonzhang25-ship-it/sharelint/blob/main/docs/rules.md) for stability and severity semantics.
+[Rules and identifiers](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/rules.md) for stability and severity semantics.
 
 ## Designed around the share boundary
 
@@ -203,16 +213,16 @@ on the surfaces listed in that report under that policy.
 - Unsupported, encrypted, malformed, or budget-limited content remains a visible coverage gap.
 
 The security boundary and residual risks are documented in the
-[threat model](https://github.com/jasonzhang25-ship-it/sharelint/blob/main/docs/threat-model.md). Machine-output consumers should use the
-[report and receipt contract](https://github.com/jasonzhang25-ship-it/sharelint/blob/main/docs/report-format.md), not parse console text.
-JSON Schema files for automated validation live in [`schemas/`](https://github.com/jasonzhang25-ship-it/sharelint/tree/main/schemas).
+[threat model](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/threat-model.md). Machine-output consumers should use the
+[report and receipt contract](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/report-format.md), not parse console text.
+JSON Schema files for automated validation live in [`schemas/`](https://github.com/jasonzhang06-source/sharelint/tree/main/schemas).
 
 ## Project status and direction
 
 ShareLint is at `0.1.0` **Alpha**. The current priority is to harden hostile-input handling, expand
 synthetic fixtures, measure detector quality, and make release artifacts reproducible. Local OCR,
 more regional PII rules, turnkey pre-send hooks, signed releases, and a desktop review experience
-are later directions—not shipped claims. See the date-free [roadmap](https://github.com/jasonzhang25-ship-it/sharelint/blob/main/docs/roadmap.md).
+are later directions—not shipped claims. See the date-free [roadmap](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/roadmap.md).
 
 The project stays useful by keeping three promises measurable: input remains local, evidence remains
 hidden, and incomplete coverage never masquerades as a clean scan.
@@ -221,12 +231,12 @@ hidden, and incomplete coverage never masquerades as a clean scan.
 
 Issues and pull requests are welcome, especially for narrowly scoped format coverage, synthetic
 regression fixtures, false-positive reductions, and hostile-input tests. Start with
-[CONTRIBUTING.md](https://github.com/jasonzhang25-ship-it/sharelint/blob/main/CONTRIBUTING.md) and never attach real secrets or personal documents.
+[CONTRIBUTING.md](https://github.com/jasonzhang06-source/sharelint/blob/main/CONTRIBUTING.md) and never attach real secrets or personal documents.
 
 Report a possible vulnerability privately through GitHub's **Security → Report a vulnerability**
-flow, as described in [SECURITY.md](https://github.com/jasonzhang25-ship-it/sharelint/blob/main/SECURITY.md). General help is covered by
-[SUPPORT.md](https://github.com/jasonzhang25-ship-it/sharelint/blob/main/SUPPORT.md); project decisions follow [GOVERNANCE.md](https://github.com/jasonzhang25-ship-it/sharelint/blob/main/GOVERNANCE.md).
+flow, as described in [SECURITY.md](https://github.com/jasonzhang06-source/sharelint/blob/main/SECURITY.md). General help is covered by
+[SUPPORT.md](https://github.com/jasonzhang06-source/sharelint/blob/main/SUPPORT.md); project decisions follow [GOVERNANCE.md](https://github.com/jasonzhang06-source/sharelint/blob/main/GOVERNANCE.md).
 
 ## License
 
-[MIT](https://github.com/jasonzhang25-ship-it/sharelint/blob/main/LICENSE) © ShareLint contributors.
+[MIT](https://github.com/jasonzhang06-source/sharelint/blob/main/LICENSE) © ShareLint contributors.

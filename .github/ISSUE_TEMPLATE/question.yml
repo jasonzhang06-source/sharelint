@@ -10,8 +10,8 @@ body:
     id: version
     attributes:
       label: ShareLint version
-      description: Output of `sharelint --version`, or the commit hash.
-      placeholder: 0.1.0
+      description: Output of `sharelint --version`, a commit hash, or `not installed` if setup failed.
+      placeholder: 0.1.0 / not installed
     validations:
       required: true
   - type: input

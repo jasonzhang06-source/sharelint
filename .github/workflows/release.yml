@@ -49,6 +49,12 @@ jobs:
         run: python -m build
       - name: Check distribution metadata
         run: python -m twine check dist/*
+      - name: Smoke-test the built wheel in a clean environment
+        run: |
+          python -m venv "$RUNNER_TEMP/sharelint-wheel-smoke"
+          "$RUNNER_TEMP/sharelint-wheel-smoke/bin/python" -m pip install --no-deps dist/*.whl
+          "$RUNNER_TEMP/sharelint-wheel-smoke/bin/sharelint" --version
+          "$RUNNER_TEMP/sharelint-wheel-smoke/bin/sharelint" rules > /dev/null
       - name: Upload distributions
         uses: actions/upload-artifact@v4
         with:

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/jasonzhang25-ship-it/sharelint/v0.1.0/schemas/report.schema.json",
+  "$id": "https://raw.githubusercontent.com/jasonzhang06-source/sharelint/v0.1.0/schemas/report.schema.json",
   "title": "ShareLint native scan report",
   "type": "object",
   "required": ["schema_version", "tool", "scan", "summary", "findings", "surfaces", "errors"],

@@ -65,6 +65,9 @@ New scanners should document supported surfaces, known blind spots, resource
 limits, and stable finding identifiers. Include nominal, malformed-input, and
 false-positive regression tests where practical.
 
+Rule changes should also follow the checklist in
+[Adding or changing a rule](docs/rules.md#adding-or-changing-a-rule).
+
 ## Pull request review
 
 The maintainer may ask for changes to scope, tests, privacy behavior, or public

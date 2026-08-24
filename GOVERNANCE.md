@@ -31,6 +31,7 @@ costly to maintain.
 Releases follow semantic versioning where practical. Security fixes may be
 released without waiting for unrelated roadmap work. Only the maintainer, or a
 delegate explicitly granted release access, may publish official artifacts.
+The repeatable release procedure is documented in [docs/releasing.md](docs/releasing.md).
 
 ## Adding maintainers
 

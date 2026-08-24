@@ -196,7 +196,7 @@ def render_sarif(report: ScanReport, threshold: Severity = Severity.HIGH) -> str
                     "driver": {
                         "name": "ShareLint",
                         "semanticVersion": report.tool_version,
-                        "informationUri": "https://github.com/jasonzhang25-ship-it/sharelint",
+                        "informationUri": "https://github.com/jasonzhang06-source/sharelint",
                         "rules": rules,
                     }
                 },

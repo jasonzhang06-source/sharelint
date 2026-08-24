@@ -27,6 +27,7 @@ mypy
 - [ ] Originals remain untouched unless the behavior is explicit and documented.
 - [ ] No scanning-path network behavior was added.
 - [ ] User-facing behavior and known blind spots are documented.
+- [ ] English and Chinese user-facing docs were updated together, or the difference is explained above.
 - [ ] Tests and quality checks pass, or exceptions are explained above.
 - [ ] The change is focused enough to maintain over time.
 

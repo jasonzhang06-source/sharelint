@@ -3,8 +3,8 @@
 </div>
 
 <p align="center">
-  <strong>为你分享的一切而生的 Gitleaks。</strong><br>
-  文件、目录或压缩包离开电脑前，在本地检查完整的交付边界。
+  <strong>分享之前，先扫描。</strong><br>
+  面向文件、文件夹和嵌套压缩包的本地隐私预检；覆盖不完整就不放行。
 </p>
 
 <p align="center">
@@ -44,7 +44,7 @@
 ShareLint 需要 Python 3.11 或更高版本。源码检出无需任何第三方运行时依赖：
 
 ```bash
-git clone https://github.com/jasonzhang25-ship-it/sharelint.git
+git clone https://github.com/jasonzhang06-source/sharelint.git
 cd sharelint
 python -m pip install -e .
 sharelint demo
