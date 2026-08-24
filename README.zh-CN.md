@@ -23,15 +23,21 @@
 
 ## 快速开始
 
-ShareLint 需要 Python 3.11 或更高版本。推荐使用
-[pipx](https://pipx.pypa.io/stable/) 隔离安装命令行工具：
+ShareLint 需要 Python 3.11 或更高版本。如果已经安装
+[uv](https://docs.astral.sh/uv/guides/tools/)，无需安装 ShareLint 即可试用合成数据演示：
+
+```bash
+uvx sharelint demo
+```
+
+日常使用推荐通过 [pipx](https://pipx.pypa.io/stable/) 隔离安装命令行工具：
 
 ```bash
 pipx install sharelint
 sharelint demo
 ```
 
-如果你已在使用 [uv](https://docs.astral.sh/uv/guides/tools/)，等价命令是：
+使用 uv 持久安装的等价命令是：
 
 ```bash
 uv tool install sharelint
@@ -98,6 +104,10 @@ Coverage gaps
 Original untouched · 0 bytes uploaded · matched values hidden
 A pass means no configured blocker was found on the listed surfaces; it is not a safety guarantee.
 ```
+
+> 觉得有用？可以给 [ShareLint 一个 Star](https://github.com/jasonzhang06-source/sharelint)、
+> [报告误报](https://github.com/jasonzhang06-source/sharelint/issues/new?template=bug_report.yml)，
+> 或[申请支持新格式](https://github.com/jasonzhang06-source/sharelint/issues/new?template=feature_request.yml)。
 
 ## 使用方法
 

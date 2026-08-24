@@ -27,7 +27,14 @@
 
 ## Quick start
 
-ShareLint requires Python 3.11 or newer. Install it as an isolated CLI with
+ShareLint requires Python 3.11 or newer. Try the synthetic demo without installing
+ShareLint if you already have [uv](https://docs.astral.sh/uv/guides/tools/):
+
+```bash
+uvx sharelint demo
+```
+
+Install it for regular use as an isolated CLI with
 [pipx](https://pipx.pypa.io/stable/):
 
 ```bash
@@ -35,7 +42,7 @@ pipx install sharelint
 sharelint demo
 ```
 
-If you already use [uv](https://docs.astral.sh/uv/guides/tools/), the equivalent install is:
+The equivalent persistent install with uv is:
 
 ```bash
 uv tool install sharelint
@@ -106,6 +113,10 @@ Coverage gaps
 Original untouched · 0 bytes uploaded · matched values hidden
 A pass means no configured blocker was found on the listed surfaces; it is not a safety guarantee.
 ```
+
+> Found it useful? [Star ShareLint](https://github.com/jasonzhang06-source/sharelint),
+> [report a false positive](https://github.com/jasonzhang06-source/sharelint/issues/new?template=bug_report.yml),
+> or [request a format](https://github.com/jasonzhang06-source/sharelint/issues/new?template=feature_request.yml).
 
 ## Use it
 
