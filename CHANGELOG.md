@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-08-24
+
 ### Added
 
 - Added native Ubuntu, Windows, and macOS CI coverage at the minimum and latest
@@ -23,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Treat Windows reparse points as filesystem links and never traverse them.
 - Re-evaluate policy and coverage on the final source scan before publishing a
   packed artifact, so newly added hidden metadata blocks publication.
+- Bind packed-file receipts to the bytes actually read during publication, and
+  reject filesystem identity or metadata changes detected during that read.
 
 ## [0.1.1] - 2026-08-24
 
@@ -50,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A branch-aware 75% coverage floor enforced in CI and release verification.
 - CodeQL analysis, dependency update automation, and a Trusted Publishing release workflow.
 
-[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/jasonzhang06-source/sharelint/releases/tag/v0.1.0

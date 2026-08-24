@@ -100,7 +100,7 @@ Windows 和 macOS 上配置了完整的单元测试与 CLI 契约测试；请查
 PDF 元数据、主动内容、脱敏证据，以及一个明确的 PDF 覆盖缺口，不会操作你的文件。以下为节选输出：
 
 ```text
-ShareLint 0.1.1 · local privacy preflight
+ShareLint 0.1.2 · local privacy preflight
 INCOMPLETE · 5 policy-blocking finding(s) · 9 total · 13 surface(s)
 Coverage · 12 scanned · 1 partial · 0 skipped · 0 error(s)
 
@@ -245,7 +245,7 @@ ShareLint 是预检工具，不是证明系统。一次通过只表示：在该�
 
 ## 项目状态与方向
 
-ShareLint 当前为 `0.1.1` **Alpha**。近期重点是强化恶意输入处理、扩充合成测试夹具、量化检测质量，
+ShareLint 当前为 `0.1.2` **Alpha**。近期重点是强化恶意输入处理、扩充合成测试夹具、量化检测质量，
 以及建立可复现发布流程。本地 OCR、更多地区的 PII 规则、开箱即用的发送前钩子、签名发布和桌面审阅体验
 属于后续方向，而不是已交付能力。详见不承诺日期的[路线图](docs/roadmap.md)。
 

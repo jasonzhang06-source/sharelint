@@ -112,7 +112,7 @@ nested Office content, PDF metadata, active content, redacted evidence, and an e
 gap without touching your files. Abridged output:
 
 ```text
-ShareLint 0.1.1 · local privacy preflight
+ShareLint 0.1.2 · local privacy preflight
 INCOMPLETE · 5 policy-blocking finding(s) · 9 total · 13 surface(s)
 Coverage · 12 scanned · 1 partial · 0 skipped · 0 error(s)
 
@@ -266,7 +266,7 @@ JSON Schema files for automated validation live in [`schemas/`](https://github.c
 
 ## Project status and direction
 
-ShareLint is at `0.1.1` **Alpha**. The current priority is to harden hostile-input handling, expand
+ShareLint is at `0.1.2` **Alpha**. The current priority is to harden hostile-input handling, expand
 synthetic fixtures, measure detector quality, and make release artifacts reproducible. Local OCR,
 more regional PII rules, turnkey pre-send hooks, signed releases, and a desktop review experience
 are later directions—not shipped claims. See the date-free [roadmap](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/roadmap.md).
