@@ -18,9 +18,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
           cache: pip
@@ -56,7 +56,7 @@ jobs:
           "$RUNNER_TEMP/sharelint-wheel-smoke/bin/sharelint" --version
           "$RUNNER_TEMP/sharelint-wheel-smoke/bin/sharelint" rules > /dev/null
       - name: Upload distributions
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-distributions
           path: dist/
@@ -76,7 +76,7 @@ jobs:
       id-token: write
     steps:
       - name: Download distributions
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release-distributions
           path: dist/
