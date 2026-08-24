@@ -100,7 +100,7 @@ class SyntheticHelperTests(unittest.TestCase):
     def test_adversarial_archives_are_small_and_purpose_built(self) -> None:
         traversal = write_traversal_zip(self.root / "traversal.zip")
         with ZipFile(traversal) as archive:
-            names = archive.namelist()
+            names = [info.orig_filename for info in archive.infolist()]
         self.assertTrue(any("../" in name for name in names))
         self.assertTrue(any("..\\" in name for name in names))
 
