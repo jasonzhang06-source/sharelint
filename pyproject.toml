@@ -60,6 +60,8 @@ Documentation = "https://github.com/jasonzhang06-source/sharelint#readme"
 Source = "https://github.com/jasonzhang06-source/sharelint"
 Issues = "https://github.com/jasonzhang06-source/sharelint/issues"
 Changelog = "https://github.com/jasonzhang06-source/sharelint/blob/main/CHANGELOG.md"
+Security = "https://github.com/jasonzhang06-source/sharelint/security/policy"
+Support = "https://github.com/jasonzhang06-source/sharelint/blob/main/SUPPORT.md"
 
 [tool.setuptools.packages.find]
 where = ["src"]

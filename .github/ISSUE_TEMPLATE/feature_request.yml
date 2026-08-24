@@ -1,6 +1,7 @@
 name: Feature request
 description: Propose a focused improvement to ShareLint
 title: "[Feature]: "
+labels: ["enhancement"]
 body:
   - type: markdown
     attributes:

@@ -49,11 +49,12 @@ and [trusted publishing security model](https://docs.pypi.org/trusted-publishers
 5. Create and push an annotated tag that exactly matches the package version:
 
    ```bash
-   git tag -a v0.1.0 -m "ShareLint 0.1.0"
-   git push origin v0.1.0
+   sharelint_version=0.1.1
+   git tag -a "v${sharelint_version}" -m "ShareLint ${sharelint_version}"
+   git push origin "v${sharelint_version}"
    ```
 
-   Replace `0.1.0` with the version being released. Never tag an unverified commit.
+   Set `sharelint_version` to the version being released. Never tag an unverified commit.
 
 ## Publish and verify
 
@@ -66,8 +67,9 @@ and [trusted publishing security model](https://docs.pypi.org/trusted-publishers
 4. Install from PyPI in a new virtual environment and smoke-test the public commands:
 
    ```bash
+   sharelint_version=0.1.1
    python -m venv /tmp/sharelint-release-check
-   /tmp/sharelint-release-check/bin/python -m pip install --no-cache-dir sharelint==0.1.0
+   /tmp/sharelint-release-check/bin/python -m pip install --no-cache-dir "sharelint==${sharelint_version}"
    /tmp/sharelint-release-check/bin/sharelint --version
    /tmp/sharelint-release-check/bin/sharelint rules
    /tmp/sharelint-release-check/bin/sharelint demo

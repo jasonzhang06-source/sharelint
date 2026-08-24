@@ -72,7 +72,19 @@ def _parser() -> argparse.ArgumentParser:
     pack_parser.add_argument("--no-color", action="store_true")
 
     demo_parser = subparsers.add_parser("demo", help="scan a synthetic nested handoff bundle")
-    demo_parser.add_argument("-o", "--output", type=Path)
+    demo_parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        metavar="BUNDLE",
+        help="write the synthetic demo ZIP here",
+    )
+    demo_parser.add_argument(
+        "--report",
+        type=Path,
+        metavar="REPORT",
+        help="write the rendered demo report here",
+    )
     demo_parser.add_argument("--format", choices=FORMATS, default="console")
     demo_parser.add_argument("--no-color", action="store_true")
 
@@ -204,6 +216,17 @@ def _pack_command(arguments: argparse.Namespace) -> int:
 
 
 def _demo_command(arguments: argparse.Namespace) -> int:
+    if arguments.report is not None:
+        if arguments.report.exists() or arguments.report.is_symlink():
+            raise ScanInputError("refusing to overwrite an existing report output")
+        if not arguments.report.parent.is_dir():
+            raise ScanInputError("report output directory does not exist")
+    if (
+        arguments.output is not None
+        and arguments.report is not None
+        and arguments.output.resolve() == arguments.report.resolve()
+    ):
+        raise ScanInputError("demo bundle and report output must use different paths")
     if arguments.output is not None:
         if arguments.output.exists() or arguments.output.is_symlink():
             raise ScanInputError("refusing to overwrite an existing demo bundle")
@@ -214,16 +237,26 @@ def _demo_command(arguments: argparse.Namespace) -> int:
         path = arguments.output
         report = scan(path)
         _write_or_print(
-            render(report, arguments.format, Severity.HIGH, color=_use_color(arguments.no_color)),
-            None,
+            render(
+                report,
+                arguments.format,
+                Severity.HIGH,
+                color=_use_color(arguments.no_color) and arguments.report is None,
+            ),
+            arguments.report,
         )
         return 0
     with tempfile.TemporaryDirectory(prefix="sharelint-demo-") as directory:
         path = create_demo_bundle(Path(directory) / "client-handoff.zip")
         report = scan(path)
         _write_or_print(
-            render(report, arguments.format, Severity.HIGH, color=_use_color(arguments.no_color)),
-            None,
+            render(
+                report,
+                arguments.format,
+                Severity.HIGH,
+                color=_use_color(arguments.no_color) and arguments.report is None,
+            ),
+            arguments.report,
         )
     return 0
 

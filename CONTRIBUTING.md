@@ -3,6 +3,26 @@
 Thanks for helping make ShareLint more useful and trustworthy. Small, focused
 changes with tests are easiest to review and maintain.
 
+For changes that cross module boundaries, start with the
+[architecture guide](docs/architecture.md). Rule work should also follow the
+[rule contribution checklist](docs/rules.md#adding-or-changing-a-rule).
+
+## Ways to contribute
+
+Useful contributions do not need to start with a new detector:
+
+- clarify installation, limits, or a sharing workflow in the documentation;
+- add a clearly fictional fixture for a supported document surface;
+- reduce a reproducible false positive without weakening real detections;
+- add malformed-input, resource-limit, privacy, or platform regression tests;
+- propose a stable rule with safe masking and documented blind spots;
+- extend a scanner after agreeing on format boundaries and fail-closed behavior.
+
+Look for open [`good first issue`](https://github.com/jasonzhang06-source/sharelint/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+or [`help wanted`](https://github.com/jasonzhang06-source/sharelint/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
+tasks. Comment before starting a larger change so two contributors do not solve
+the same problem in incompatible ways.
+
 ## Before opening an issue
 
 - Search existing issues and the roadmap for related work.
@@ -65,7 +85,7 @@ New scanners should document supported surfaces, known blind spots, resource
 limits, and stable finding identifiers. Include nominal, malformed-input, and
 false-positive regression tests where practical.
 
-Rule changes should also follow the checklist in
+Rule changes should follow the checklist in
 [Adding or changing a rule](docs/rules.md#adding-or-changing-a-rule).
 
 ## Pull request review

@@ -4,7 +4,8 @@
 
 <p align="center">
   <strong>Scan before you share.</strong><br>
-  A local, fail-closed privacy preflight for files, folders, and nested archives.
+  A local, fail-closed privacy preflight for files, folders, and nested archives.<br>
+  Catch secrets, PII, speaker notes, hidden sheets, and location metadata without uploading them.
 </p>
 
 <p align="center">
@@ -19,18 +20,36 @@
 <p align="center">
   <a href="#quick-start">Quick start</a> ·
   <a href="#what-it-checks">Coverage</a> ·
+  <a href="https://github.com/jasonzhang06-source/sharelint/blob/main/docs/README.md">Docs</a> ·
   <a href="https://github.com/jasonzhang06-source/sharelint/blob/main/docs/threat-model.md">Threat model</a> ·
   <a href="https://github.com/jasonzhang06-source/sharelint/blob/main/README.zh-CN.md">简体中文</a>
 </p>
 
 ## Quick start
 
-ShareLint requires Python 3.11 or newer. Install the published package and run the synthetic demo:
+ShareLint requires Python 3.11 or newer. Install it as an isolated CLI with
+[pipx](https://pipx.pypa.io/stable/):
 
 ```bash
-python -m pip install sharelint
+pipx install sharelint
 sharelint demo
 ```
+
+If you already use [uv](https://docs.astral.sh/uv/guides/tools/), the equivalent install is:
+
+```bash
+uv tool install sharelint
+```
+
+Preview the same synthetic scan as a self-contained local HTML report:
+
+```bash
+sharelint demo --format html --report sharelint-demo.html
+```
+
+A standard virtual environment and `pip` also work. See
+[installation and troubleshooting](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/troubleshooting.md)
+for those commands, upgrades, PATH fixes, and externally managed Python environments.
 
 For development, install from a source checkout:
 
@@ -40,7 +59,6 @@ cd sharelint
 python -m pip install -e .
 ```
 
-> [!IMPORTANT]
 > **Alpha software.** ShareLint already has a working, dependency-free core, but its rules and
 > format coverage are still growing. Install a tagged package from PyPI for normal use, and
 > independently review important results.
@@ -74,7 +92,7 @@ nested Office content, PDF metadata, active content, redacted evidence, and an e
 gap without touching your files. Abridged output:
 
 ```text
-ShareLint 0.1.0 · local privacy preflight
+ShareLint 0.1.1 · local privacy preflight
 INCOMPLETE · 5 policy-blocking finding(s) · 9 total · 13 surface(s)
 Coverage · 12 scanned · 1 partial · 0 skipped · 0 error(s)
 
@@ -106,7 +124,8 @@ sharelint scan ./client-handoff --format html  -o sharelint.html
 ```
 
 Report outputs are owner-only where supported, never overwrite an existing path, and must sit
-outside a scanned directory. `demo -o` follows the same non-overwrite rule.
+outside a scanned directory. `demo --report` follows the same rule; `demo -o` writes the reusable
+synthetic ZIP bundle and also refuses to overwrite an existing path.
 
 Make coverage gaps fail a normal scan in automation:
 
@@ -191,6 +210,9 @@ The core scan path has no network feature, telemetry, or runtime dependency outs
 library. It does not execute macros or JavaScript, invoke Office/PDF applications, follow external
 relationships, or extract archive members to disk.
 
+The [architecture guide](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/architecture.md)
+maps these guarantees to module boundaries and documents safe extension points for contributors.
+
 Findings carry a nested logical source chain such as:
 
 ```text
@@ -220,13 +242,21 @@ JSON Schema files for automated validation live in [`schemas/`](https://github.c
 
 ## Project status and direction
 
-ShareLint is at `0.1.0` **Alpha**. The current priority is to harden hostile-input handling, expand
+ShareLint is at `0.1.1` **Alpha**. The current priority is to harden hostile-input handling, expand
 synthetic fixtures, measure detector quality, and make release artifacts reproducible. Local OCR,
 more regional PII rules, turnkey pre-send hooks, signed releases, and a desktop review experience
 are later directions—not shipped claims. See the date-free [roadmap](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/roadmap.md).
 
 The project stays useful by keeping three promises measurable: input remains local, evidence remains
 hidden, and incomplete coverage never masquerades as a clean scan.
+
+### Help shape the next release
+
+The most useful early feedback is a real sharing workflow described with synthetic data: a format
+that ShareLint cannot inspect yet, a false positive that can be reproduced safely, or a report that
+was hard to act on. Open a focused [feature request](https://github.com/jasonzhang06-source/sharelint/issues/new?template=feature_request.yml)
+or [bug report](https://github.com/jasonzhang06-source/sharelint/issues/new?template=bug_report.yml).
+If ShareLint fits a problem you care about, starring the repository helps more people discover it.
 
 ## Contributing and security
 

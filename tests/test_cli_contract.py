@@ -166,6 +166,52 @@ class CliContractTests(CliTestCase):
         if os.name == "posix":
             self.assertEqual(stat.S_IMODE(created.stat().st_mode), 0o600)
 
+    def test_demo_writes_a_report_without_printing_or_overwriting(self) -> None:
+        report = self.root / "synthetic-demo.html"
+
+        success = self.run_cli(
+            "demo",
+            "--format",
+            "html",
+            "--report",
+            report,
+        )
+
+        self.assertEqual(success.returncode, 0, success.stderr)
+        self.assertEqual(success.stdout, "")
+        rendered = report.read_text(encoding="utf-8")
+        self.assertTrue(rendered.startswith("<!doctype html>"))
+        self.assertIn("Coverage ledger", rendered)
+        if os.name == "posix":
+            self.assertEqual(stat.S_IMODE(report.stat().st_mode), 0o600)
+
+        sentinel = "FICTITIOUS_EXISTING_REPORT\n"
+        report.write_text(sentinel, encoding="utf-8")
+        refused = self.run_cli("demo", "--format", "html", "--report", report)
+        self.assertEqual(refused.returncode, 2)
+        self.assertEqual(report.read_text(encoding="utf-8"), sentinel)
+
+        bundle = self.root / "reusable-demo.zip"
+        bundle_report = self.root / "reusable-demo.json"
+        combined = self.run_cli(
+            "demo",
+            "-o",
+            bundle,
+            "--format",
+            "json",
+            "--report",
+            bundle_report,
+        )
+        self.assertEqual(combined.returncode, 0, combined.stderr)
+        self.assertEqual(combined.stdout, "")
+        self.assertTrue(bundle.read_bytes().startswith(b"PK"))
+        self.assertEqual(bundle_report.read_text(encoding="utf-8")[0], "{")
+
+        shared_path = self.root / "same-output"
+        same_output = self.run_cli("demo", "-o", shared_path, "--report", shared_path)
+        self.assertEqual(same_output.returncode, 2)
+        self.assertFalse(shared_path.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

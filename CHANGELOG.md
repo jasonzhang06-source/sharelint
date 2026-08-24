@@ -7,9 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-08-24
+
+### Added
+
+- Added `demo --report` for atomically writing a rendered synthetic-demo report.
+- Added an architecture guide, documentation index, and installation troubleshooting guide.
+
 ### Changed
 
-- Made the published PyPI package the primary installation path in both READMEs.
+- Made isolated PyPI installation the primary path in both READMEs.
+- Clarified the first-run experience, feedback paths, contribution options, and issue triage.
 
 ## [0.1.0] - 2026-08-24
 
@@ -25,5 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A branch-aware 75% coverage floor enforced in CI and release verification.
 - CodeQL analysis, dependency update automation, and a Trusted Publishing release workflow.
 
-[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/jasonzhang06-source/sharelint/releases/tag/v0.1.0

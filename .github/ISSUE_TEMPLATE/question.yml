@@ -1,6 +1,7 @@
 name: Question or setup help
 description: Ask about installation, documented behavior, or a sharing workflow
 title: "[Question]: "
+labels: ["question"]
 body:
   - type: markdown
     attributes:

@@ -4,7 +4,8 @@
 
 <p align="center">
   <strong>分享之前，先扫描。</strong><br>
-  面向文件、文件夹和嵌套压缩包的本地隐私预检；覆盖不完整就不放行。
+  面向文件、文件夹和嵌套压缩包的本地隐私预检；覆盖不完整就不放行。<br>
+  在嵌套交付包中发现密钥、个人信息、演讲者备注、隐藏工作表和位置元数据，全程无需上传。
 </p>
 
 <p align="center">
@@ -15,11 +16,44 @@
 <p align="center">
   <a href="#快速开始">快速开始</a> ·
   <a href="#检查范围">检查范围</a> ·
+  <a href="docs/README.md">文档</a> ·
   <a href="docs/threat-model.md">威胁模型</a> ·
   <a href="README.md">English</a>
 </p>
 
-> [!IMPORTANT]
+## 快速开始
+
+ShareLint 需要 Python 3.11 或更高版本。推荐使用
+[pipx](https://pipx.pypa.io/stable/) 隔离安装命令行工具：
+
+```bash
+pipx install sharelint
+sharelint demo
+```
+
+如果你已在使用 [uv](https://docs.astral.sh/uv/guides/tools/)，等价命令是：
+
+```bash
+uv tool install sharelint
+```
+
+还可以把同一组合成扫描生成为完全本地、可直接打开的 HTML 报告：
+
+```bash
+sharelint demo --format html --report sharelint-demo.html
+```
+
+也可以使用标准虚拟环境和 `pip`。具体安装、升级、PATH 修复以及系统 Python 被标记为
+externally managed 时的处理方式，见[安装与排错](docs/troubleshooting.md)。
+
+开发时可从源码检出安装：
+
+```bash
+git clone https://github.com/jasonzhang06-source/sharelint.git
+cd sharelint
+python -m pip install -e .
+```
+
 > **Alpha 软件。** ShareLint 已有可运行、零第三方运行时依赖的核心，但规则和格式覆盖仍在扩展。
 > 日常使用请安装 PyPI 上的带标签软件包；无论哪种方式，都应独立复核重要结果。
 
@@ -44,28 +78,13 @@
 
 它适合与这些控制手段组合使用，并不试图取代所有工具。
 
-## 快速开始
-
-ShareLint 需要 Python 3.11 或更高版本。从 PyPI 安装并运行合成演示：
-
-```bash
-python -m pip install sharelint
-sharelint demo
-```
-
-开发时可从源码检出安装：
-
-```bash
-git clone https://github.com/jasonzhang06-source/sharelint.git
-cd sharelint
-python -m pip install -e .
-```
+## 演示输出
 
 演示命令会在临时目录创建一个完全由合成数据组成、用完即弃的交付包。它会展示嵌套 Office 内容、
 PDF 元数据、主动内容、脱敏证据，以及一个明确的 PDF 覆盖缺口，不会操作你的文件。以下为节选输出：
 
 ```text
-ShareLint 0.1.0 · local privacy preflight
+ShareLint 0.1.1 · local privacy preflight
 INCOMPLETE · 5 policy-blocking finding(s) · 9 total · 13 surface(s)
 Coverage · 12 scanned · 1 partial · 0 skipped · 0 error(s)
 
@@ -97,7 +116,7 @@ sharelint scan ./client-handoff --format html  -o sharelint.html
 ```
 
 平台支持时，报告文件仅限当前用户读取；输出不会覆盖既有路径，也不能写入正在扫描的目录。
-`demo -o` 同样遵循不可覆盖规则。
+`demo --report` 遵循相同规则；`demo -o` 用于写出可复用的合成 ZIP，也拒绝覆盖既有路径。
 
 在自动化流程中，让普通扫描也因覆盖缺口失败：
 
@@ -177,6 +196,8 @@ sharelint explain SL.OFFICE.NOTES
 核心扫描路径没有网络功能、遥测或 Python 标准库以外的运行时依赖。它不会执行宏或 JavaScript，
 不会调用 Office/PDF 应用，不会访问外部关系，也不会将压缩包成员解压到磁盘。
 
+[架构说明](docs/architecture.md)把这些保证对应到具体模块边界，并记录了贡献者可安全扩展的位置。
+
 发现项携带嵌套的逻辑来源链，例如：
 
 ```text
@@ -204,11 +225,18 @@ ShareLint 是预检工具，不是证明系统。一次通过只表示：在该�
 
 ## 项目状态与方向
 
-ShareLint 当前为 `0.1.0` **Alpha**。近期重点是强化恶意输入处理、扩充合成测试夹具、量化检测质量，
+ShareLint 当前为 `0.1.1` **Alpha**。近期重点是强化恶意输入处理、扩充合成测试夹具、量化检测质量，
 以及建立可复现发布流程。本地 OCR、更多地区的 PII 规则、开箱即用的发送前钩子、签名发布和桌面审阅体验
 属于后续方向，而不是已交付能力。详见不承诺日期的[路线图](docs/roadmap.md)。
 
 项目以三个可验证承诺保持长期价值：输入留在本地、证据始终隐藏、不完整覆盖绝不伪装成干净扫描。
+
+### 帮助塑造下一个版本
+
+最有价值的早期反馈，是用合成数据描述真实分享流程：ShareLint 尚不能检查的格式、可以安全复现的误报，
+或难以采取行动的报告。你可以提交范围明确的[功能请求](https://github.com/jasonzhang06-source/sharelint/issues/new?template=feature_request.yml)
+或[错误报告](https://github.com/jasonzhang06-source/sharelint/issues/new?template=bug_report.yml)。如果 ShareLint
+解决了你关心的问题，给仓库一个 Star 能帮助更多人发现它。
 
 ## 贡献与安全
 
