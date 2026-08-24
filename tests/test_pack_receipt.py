@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import unittest
+from dataclasses import replace
 from pathlib import Path, PurePosixPath
 from typing import Any
 from unittest.mock import patch
@@ -10,7 +12,9 @@ from zipfile import ZipFile
 
 import tests.bootstrap  # noqa: F401
 from sharelint import packing as packing_module
-from sharelint.packing import PackError, pack
+from sharelint.extended_attributes import ExtendedAttributeStatus
+from sharelint.packing import PackBlocked, PackError, pack
+from sharelint.windows_streams import WindowsStreamStatus
 from tests.cli_harness import CliTestCase
 from tests.helpers import FICTIONAL_SECRET, sha256_file, write_jpeg, write_traversal_zip
 
@@ -366,6 +370,100 @@ class PackReceiptTests(CliTestCase):
         self.assertEqual(output.read_bytes(), output_replacement)
         self.assertEqual(report.read_bytes(), report_replacement)
         self.assertFalse(receipt.exists())
+
+    def test_commit_rejects_hidden_metadata_on_a_published_archive(self) -> None:
+        source = self.root / "public.txt"
+        source.write_text("public synthetic material\n", encoding="utf-8")
+
+        cases = (
+            (
+                "extended-attribute",
+                "probe_extended_attributes",
+                ExtendedAttributeStatus.PRESENT,
+            ),
+            (
+                "alternate-data-stream",
+                "inspect_windows_streams",
+                WindowsStreamStatus.NAMED_STREAM_PRESENT,
+            ),
+        )
+        for label, probe_name, result in cases:
+            with self.subTest(surface=label):
+                output = self.root / f"{label}.zip"
+                with (
+                    patch.object(packing_module, probe_name, return_value=result),
+                    self.assertRaisesRegex(
+                        PackError,
+                        "changed before the pack transaction committed",
+                    ),
+                ):
+                    pack(source, output, write_receipt=False)
+                self.assertFalse(output.exists())
+
+    @unittest.skipUnless(os.name == "posix", "source-swap fixture requires POSIX symlinks")
+    def test_pack_rejects_a_source_swapped_during_the_archive_write(self) -> None:
+        source = self.root / "source"
+        source.mkdir()
+        (source / "payload.txt").write_text("public source A\n", encoding="utf-8")
+        external = self.root / "external"
+        external.mkdir()
+        (external / "payload.txt").write_text("public source B\n", encoding="utf-8")
+        backup = self.root / "source-backup"
+        output = self.root / "must-not-exist.zip"
+        original_read_regular = packing_module._read_regular
+        source_swapped = False
+
+        def swap_before_leaf_read(path: Path, limit: int) -> bytes:
+            nonlocal source_swapped
+            if source_swapped or path != source / "payload.txt":
+                return original_read_regular(path, limit)
+            source_swapped = True
+            source.rename(backup)
+            source.symlink_to(external, target_is_directory=True)
+            try:
+                return original_read_regular(path, limit)
+            finally:
+                source.unlink()
+                backup.rename(source)
+
+        with (
+            patch.object(
+                packing_module,
+                "_read_regular",
+                side_effect=swap_before_leaf_read,
+            ),
+            self.assertRaises(PackBlocked) as caught,
+        ):
+            pack(source, output, write_receipt=False)
+
+        self.assertEqual(caught.exception.reasons, ["source_changed"])
+        self.assertFalse(output.exists())
+        self.assertTrue(source.joinpath("payload.txt").is_file())
+        self.assertTrue(external.joinpath("payload.txt").is_file())
+
+    def test_pack_rejects_a_source_kind_change_even_when_the_digest_matches(self) -> None:
+        source = self.root / "public.txt"
+        source.write_text("ordinary synthetic material\n", encoding="utf-8")
+        output = self.root / "must-not-exist.zip"
+        original_scan = packing_module.scan
+        scan_count = 0
+
+        def change_kind_on_final_scan(*args: Any, **kwargs: Any):
+            nonlocal scan_count
+            scan_count += 1
+            report = original_scan(*args, **kwargs)
+            if scan_count == 3:
+                return replace(report, target_kind="directory")
+            return report
+
+        with (
+            patch.object(packing_module, "scan", side_effect=change_kind_on_final_scan),
+            self.assertRaises(PackBlocked) as caught,
+        ):
+            pack(source, output, write_receipt=False)
+
+        self.assertEqual(caught.exception.reasons, ["source_changed"])
+        self.assertFalse(output.exists())
 
 
 if __name__ == "__main__":

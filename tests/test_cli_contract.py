@@ -3,11 +3,14 @@ from __future__ import annotations
 import json
 import os
 import stat
+import subprocess
 import unittest
 
+import tests.bootstrap  # noqa: F401
+from sharelint.filesystem import metadata_is_reparse_point
 from tests.cli_harness import CliTestCase
 from tests.contract import SEVERITIES, assert_scan_contract
-from tests.helpers import FICTIONAL_NAME, write_jpeg, write_pdf
+from tests.helpers import FICTIONAL_NAME, FICTIONAL_SECRET, write_jpeg, write_pdf
 
 
 class CliContractTests(CliTestCase):
@@ -141,10 +144,15 @@ class CliContractTests(CliTestCase):
         self.assertIn("sl.", output)
         self.assertNotIn("traceback", output)
 
-    def test_demo_output_never_follows_or_overwrites_a_path(self) -> None:
+    def test_demo_output_never_follows_a_symlink(self) -> None:
         escaped = self.root / "escaped.zip"
         dangling = self.root / "dangling.zip"
-        dangling.symlink_to(escaped)
+        try:
+            dangling.symlink_to(escaped)
+        except OSError:
+            if os.name == "nt":
+                self.skipTest("this Windows environment does not permit symbolic-link creation")
+            raise
 
         through_symlink = self.run_cli("demo", "-o", dangling)
 
@@ -152,6 +160,7 @@ class CliContractTests(CliTestCase):
         self.assertTrue(dangling.is_symlink())
         self.assertFalse(escaped.exists())
 
+    def test_demo_output_never_overwrites_a_path(self) -> None:
         existing = self.root / "existing.zip"
         sentinel = b"FICTITIOUS_EXISTING_DEMO\n"
         existing.write_bytes(sentinel)
@@ -165,6 +174,57 @@ class CliContractTests(CliTestCase):
         self.assertTrue(created.read_bytes().startswith(b"PK"))
         if os.name == "posix":
             self.assertEqual(stat.S_IMODE(created.stat().st_mode), 0o600)
+
+    def test_redirected_output_is_utf8_even_under_a_legacy_code_page(self) -> None:
+        target = self.root / "unicode-output"
+        target.mkdir()
+        (target / "finding.txt").write_text(FICTIONAL_SECRET, encoding="utf-8")
+
+        result = self.run_cli(
+            "scan",
+            target,
+            "--format",
+            "html",
+            env_overrides={"PYTHONIOENCODING": "cp1252:strict", "PYTHONUTF8": "0"},
+        )
+
+        self.assertEqual(result.returncode, 1, result.stderr)
+        self.assertIn("→", result.stdout)
+        self.assertNotIn("unicodeencodeerror", result.stderr.lower())
+
+    @unittest.skipUnless(os.name == "nt", "Windows junction contract requires Windows")
+    def test_windows_junction_is_reported_without_leaving_the_boundary(self) -> None:
+        boundary = self.root / "boundary"
+        outside = self.root / "outside"
+        junction = boundary / "linked-directory"
+        boundary.mkdir()
+        outside.mkdir()
+        outside_marker = "FICTITIOUS_JUNCTION_ESCAPE_MARKER"
+        (outside / "outside.txt").write_text(outside_marker, encoding="utf-8")
+
+        created = subprocess.run(
+            ("cmd.exe", "/d", "/c", "mklink", "/J", str(junction), str(outside)),
+            check=False,
+            capture_output=True,
+            timeout=10,
+        )
+        if created.returncode != 0:
+            if os.environ.get("GITHUB_ACTIONS") == "true":
+                self.fail("GitHub Windows runner could not create the junction fixture")
+            self.skipTest("this Windows environment does not permit junction creation")
+        self.assertTrue(
+            metadata_is_reparse_point(junction.stat(follow_symlinks=False)),
+            "the native Windows fixture was not reported as a reparse point",
+        )
+
+        result = self.run_cli("scan", boundary, "--format", "json")
+
+        self.assertEqual(result.returncode, 1, result.stderr)
+        payload = result.json()
+        findings = assert_scan_contract(payload)
+        self.assertTrue(any(item["rule_id"] == "SL.ARCHIVE.SYMLINK" for item in findings))
+        self.assertFalse(payload["summary"]["coverage_complete"])
+        self.assertNotIn(outside_marker, result.stdout + result.stderr)
 
     def test_demo_writes_a_report_without_printing_or_overwriting(self) -> None:
         report = self.root / "synthetic-demo.html"

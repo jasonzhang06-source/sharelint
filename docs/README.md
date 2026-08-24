@@ -9,6 +9,7 @@ sensitive data.
 
 - [Quick start and command examples](../README.md#quick-start)
 - [Installation and troubleshooting](troubleshooting.md)
+- [Platform support and filesystem requirements](platform-support.md)
 - [What ShareLint checks](../README.md#what-it-checks)
 - [Rules and stable identifiers](rules.md)
 - [Project direction and non-goals](roadmap.md)

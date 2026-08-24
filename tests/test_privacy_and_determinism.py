@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import json
+import os
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
+import tests.bootstrap  # noqa: F401
+from sharelint.scanner import _filesystem_name_bytes
 from tests.cli_harness import CliTestCase
 from tests.contract import assert_scan_contract, sarif_results
 from tests.helpers import (
@@ -79,6 +83,16 @@ class PrivacyAndDeterminismTests(CliTestCase):
         self.assert_omits(FICTIONAL_EMAIL, *streams)
         self.assert_omits(FICTIONAL_NAME, *streams)
 
+    def test_manifest_path_uses_the_platform_filesystem_encoder(self) -> None:
+        windows_surrogate_name = "FICTITIOUS_WINDOWS_\ud800.txt"
+        encoded_name = windows_surrogate_name.encode("utf-8", errors="surrogatepass")
+
+        with patch("sharelint.scanner.os.fsencode", return_value=encoded_name) as fsencode:
+            result = _filesystem_name_bytes(windows_surrogate_name)
+
+        self.assertEqual(result, encoded_name)
+        fsencode.assert_called_once_with(windows_surrogate_name)
+
     def test_json_and_human_output_never_echo_sensitive_evidence(self) -> None:
         corpus = self.root / "corpus"
         _write_corpus(corpus)
@@ -97,10 +111,10 @@ class PrivacyAndDeterminismTests(CliTestCase):
             text_result.stderr,
         )
 
-    def test_sensitive_and_control_character_filename_is_never_echoed(self) -> None:
+    def test_sensitive_filename_is_never_echoed(self) -> None:
         corpus = self.root / "filename-corpus"
         corpus.mkdir()
-        hostile_name = f"{FICTIONAL_EMAIL}\nFICTITIOUS_\x1b[31m.txt"
+        hostile_name = f"{FICTIONAL_EMAIL}_FICTITIOUS.txt"
         (corpus / hostile_name).write_text("ordinary synthetic text\n", encoding="utf-8")
 
         json_result = self.run_cli("scan", corpus, "--format", "json")
@@ -114,6 +128,22 @@ class PrivacyAndDeterminismTests(CliTestCase):
         streams = tuple(
             result.stdout + result.stderr for result in (json_result, sarif_result, console_result)
         )
+        self.assert_omits(FICTIONAL_EMAIL, *streams)
+
+    @unittest.skipUnless(os.name == "posix", "control characters are forbidden in Windows names")
+    def test_control_character_filename_is_never_echoed(self) -> None:
+        corpus = self.root / "control-character-filename-corpus"
+        corpus.mkdir()
+        hostile_name = f"{FICTIONAL_EMAIL}\nFICTITIOUS_\x1b[31m.txt"
+        (corpus / hostile_name).write_text("ordinary synthetic text\n", encoding="utf-8")
+
+        results = tuple(
+            self.run_cli("scan", corpus, "--format", format_name)
+            for format_name in ("json", "sarif", "console")
+        )
+        for result in results:
+            self.assertEqual(result.returncode, 1)
+        streams = tuple(result.stdout + result.stderr for result in results)
         self.assert_omits(FICTIONAL_EMAIL, *streams)
         self.assert_omits("\x1b", *streams)
         self.assert_omits("\\u001b", *(stream.lower() for stream in streams))

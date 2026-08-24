@@ -28,6 +28,15 @@ _UNSAFE_TERMINAL_CODEPOINTS = {
 }
 
 
+def _configure_standard_streams() -> None:
+    """Emit stable UTF-8 when output is redirected on every supported platform."""
+
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="backslashreplace")
+
+
 def _severity(value: str) -> Severity:
     try:
         return Severity.parse(value)
@@ -281,6 +290,7 @@ def _explain_command(rule_id: str) -> int:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    _configure_standard_streams()
     parser = _parser()
     arguments = parser.parse_args(argv)
     try:

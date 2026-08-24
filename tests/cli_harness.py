@@ -57,7 +57,12 @@ class CliTestCase(unittest.TestCase):
         self.process_home.mkdir()
         self.process_tmp.mkdir()
 
-    def run_cli(self, *args: object, timeout: float = 15.0) -> CliResult:
+    def run_cli(
+        self,
+        *args: object,
+        timeout: float = 15.0,
+        env_overrides: dict[str, str] | None = None,
+    ) -> CliResult:
         command = (sys.executable, "-m", "sharelint", *(str(arg) for arg in args))
         env = os.environ.copy()
         import_paths = [str(REPO_ROOT / "src"), str(REPO_ROOT)]
@@ -77,6 +82,8 @@ class CliTestCase(unittest.TestCase):
                 "PYTHONHASHSEED": "0",
             }
         )
+        if env_overrides is not None:
+            env.update(env_overrides)
         try:
             completed = subprocess.run(
                 command,

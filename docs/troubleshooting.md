@@ -62,6 +62,11 @@ sharelint --version
 sharelint demo
 ```
 
+The same package targets Linux, Windows, and macOS, but validation is tied to a
+specific CI commit and writable outputs require filesystem hard-link support.
+Read [Platform support](platform-support.md) before using FAT/exFAT, network,
+synchronized, or virtual filesystems.
+
 Do not use `sudo pip install` and do not bypass an
 `externally-managed-environment` error with `--break-system-packages`. That
 message means the operating system protects its Python installation. Use pipx,

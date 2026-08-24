@@ -17,12 +17,14 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import IO, Any
 
+from .extended_attributes import ExtendedAttributeStatus, probe_extended_attributes
 from .filesystem import bounded_directory_items
 from .models import ScanLimits, ScanReport, Severity
 from .reporters import canonical_json, render_json
 from .rules import RULES
 from .scanner import ScanInputError, scan
 from .scanners.archive import has_excessive_central_directory, normalized_member_name
+from .windows_streams import WindowsStreamStatus, inspect_windows_streams
 
 
 class PackError(RuntimeError):
@@ -65,6 +67,15 @@ class _PublishedFile:
     inode: int
     size: int
     sha256: str
+
+
+@dataclass(frozen=True, slots=True)
+class _SourceWriteResult:
+    """Files written plus the exact source snapshot observed while writing them."""
+
+    files: list[dict[str, Any]]
+    target_kind: str
+    target_sha256: str
 
 
 def _zip_info(name: str) -> zipfile.ZipInfo:
@@ -201,10 +212,11 @@ def _write_source(
     archive: zipfile.ZipFile,
     source: Path,
     limits: ScanLimits,
-) -> list[dict[str, Any]]:
+) -> _SourceWriteResult:
     files: list[dict[str, Any]] = []
     total = 0
     if source.is_dir():
+        manifest = hashlib.sha256()
         candidates = _directory_candidates(source, limits.max_archive_members)
         if len(candidates) > limits.max_archive_members:
             raise PackError("source contains more entries than the configured pack limit")
@@ -214,10 +226,15 @@ def _write_source(
                 raise PackError("source contains a path that cannot be represented safely")
             data = _read_regular(item, min(limits.max_member_bytes, limits.max_total_bytes - total))
             total += len(data)
+            manifest.update(os.fsencode(relative))
+            manifest.update(b"\0")
+            manifest.update(len(data).to_bytes(8, "big"))
+            manifest.update(hashlib.sha256(data).digest())
             _write_entry(archive, relative, data, files)
-        return files
+        return _SourceWriteResult(files, "directory", manifest.hexdigest())
 
     source_data = _read_regular(source, limits.max_file_bytes)
+    source_sha256 = hashlib.sha256(source_data).hexdigest()
     if source_data.startswith((b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08")):
         if has_excessive_central_directory(source_data, limits.max_archive_members):
             raise PackError("archive contains more members than the configured pack limit")
@@ -236,14 +253,14 @@ def _write_source(
                     _write_entry(archive, normalized, data, files)
         except zipfile.BadZipFile as exc:
             raise PackError("input ZIP could not be reopened for packing") from exc
-        return files
+        return _SourceWriteResult(files, "file", source_sha256)
 
     if len(source_data) > limits.max_member_bytes:
         raise PackError("input file exceeds the archive-member safety limit")
     if normalized_member_name(source.name) != source.name:
         raise PackError("input filename cannot be represented safely in a ZIP archive")
     _write_entry(archive, source.name, source_data, files)
-    return files
+    return _SourceWriteResult(files, "file", source_sha256)
 
 
 def _sha256_file(path: Path, limit: int) -> tuple[str, int]:
@@ -523,6 +540,22 @@ def _publication_matches(path: Path, publication: _PublishedFile) -> bool:
                     return False
                 digest.update(chunk)
             after = os.fstat(stream.fileno())
+        for published_path in (path, publication.anchor):
+            xattr_status = probe_extended_attributes(published_path)
+            if xattr_status not in {
+                ExtendedAttributeStatus.ABSENT,
+                ExtendedAttributeStatus.NOT_APPLICABLE,
+            }:
+                return False
+            stream_status = inspect_windows_streams(
+                published_path,
+                is_directory=False,
+            )
+            if stream_status not in {
+                WindowsStreamStatus.SCANNED,
+                WindowsStreamStatus.NOT_APPLICABLE,
+            }:
+                return False
         final = path.stat(follow_symlinks=False)
         final_anchor = publication.anchor.stat(follow_symlinks=False)
     except OSError:
@@ -714,7 +747,31 @@ def pack(
             temporary_path = Path(handle.name)
         with zipfile.ZipFile(temporary_path, "w", allowZip64=True) as archive:
             archive.comment = b"ShareLint deterministic-zip-v1"
-            files = _write_source(archive, source, initial.limits)
+            source_write = _write_source(archive, source, initial.limits)
+
+        if (
+            source_write.target_kind != initial.target_kind
+            or source_write.target_sha256 != initial.target_sha256
+        ):
+            reason_codes = ["source_changed"]
+            blocked_receipt = None
+            blocked_report = None
+            if receipt is not None:
+                blocked_receipt, blocked_report = _write_blocked_evidence(
+                    initial,
+                    reason_codes,
+                    fail_on,
+                    receipt_path,
+                    report_path,
+                )
+            raise PackBlocked(
+                initial,
+                reason_codes,
+                receipt=blocked_receipt,
+                report_output=blocked_report,
+            )
+
+        files = source_write.files
 
         archive_sha256, archive_size = _sha256_file(
             temporary_path,
@@ -750,20 +807,26 @@ def pack(
             )
 
         source_after = scan(source, limits=initial.limits)
-        if source_after.target_sha256 != initial.target_sha256:
+        source_after_reasons = _policy_reasons(source_after, fail_on)
+        if (
+            source_after.target_kind != initial.target_kind
+            or source_after.target_sha256 != initial.target_sha256
+            or source_after_reasons
+        ):
+            reason_codes = ["source_changed", *source_after_reasons]
             blocked_receipt = None
             blocked_report = None
             if receipt is not None:
                 blocked_receipt, blocked_report = _write_blocked_evidence(
-                    initial,
-                    ["source_changed"],
+                    source_after,
+                    reason_codes,
                     fail_on,
                     receipt_path,
                     report_path,
                 )
             raise PackBlocked(
-                initial,
-                ["source_changed"],
+                source_after,
+                reason_codes,
                 receipt=blocked_receipt,
                 report_output=blocked_report,
             )

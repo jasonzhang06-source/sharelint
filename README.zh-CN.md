@@ -60,6 +60,16 @@ cd sharelint
 python -m pip install -e .
 ```
 
+### 平台支持
+
+ShareLint 面向 Linux、Windows 和 macOS，要求 Python 3.11 或更高版本。当前源码树在 Ubuntu、
+Windows 和 macOS 上配置了完整的单元测试与 CLI 契约测试；请查看你所使用提交或发布版本对应的
+[CI 结果](https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml)。软件包可移植并不表示
+每一种文件系统和安全配置都已经验证。
+
+写出报告、演示包、压缩包和回执时，目标文件系统必须支持硬链接，ShareLint 才能保持“不覆盖既有
+目标”的安全契约。验证矩阵、Windows 注意事项和文件系统限制见[平台支持说明](docs/platform-support.md)。
+
 > **Alpha 软件。** ShareLint 已有可运行、零第三方运行时依赖的核心，但规则和格式覆盖仍在扩展。
 > 日常使用请安装 PyPI 上的带标签软件包；无论哪种方式，都应独立复核重要结果。
 

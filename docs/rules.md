@@ -175,7 +175,7 @@ Archive path safety is covered by `SL.ARCHIVE.*`, not these privacy rules.
 | ID | Default | Condition |
 | --- | --- | --- |
 | `SL.ARCHIVE.PATH_TRAVERSAL` | critical | Absolute, drive-qualified, NUL-containing, or boundary-escaping member path |
-| `SL.ARCHIVE.SYMLINK` | high | A symbolic-link entry or link crossing the selected share boundary |
+| `SL.ARCHIVE.SYMLINK` | high | A symbolic-link entry, Windows reparse point, or link crossing the selected share boundary |
 | `SL.ARCHIVE.DUPLICATE_PATH` | high | Two entries resolve to the same normalized archive path |
 | `SL.ARCHIVE.ENCRYPTED_MEMBER` | high | A member that cannot be inspected without decryption |
 | `SL.ARCHIVE.LIMIT_EXCEEDED` | high | Depth, member, expanded-byte, per-member, text, XML-element, or compression-ratio budget exceeded |
@@ -247,6 +247,20 @@ preview structures within limits. They do not claim to inspect text visible in
 pixels. OCR, if added later, is a separately named scanner surface and its
 availability and status must be recorded.
 
+### Filesystem metadata
+
+| ID | Default | Condition |
+| --- | --- | --- |
+| `SL.FILESYSTEM.ALTERNATE_DATA_STREAM` | high | A named Windows alternate data stream exists alongside a file or directory |
+| `SL.FILESYSTEM.EXTENDED_ATTRIBUTES` | high | A Linux/macOS file or directory has extended attributes or a resource fork whose values were not inspected |
+
+ShareLint records only whether these hidden filesystem surfaces exist. Windows
+stream names, sizes, and contents and Linux/macOS attribute names and values are
+not exposed in findings or reports. Because the hidden values are not inspected,
+their surfaces are `skipped` and strict packing is blocked. Enumeration failures
+are fixed-message coverage errors. A Windows filesystem that does not implement
+stream enumeration is treated as not applicable.
+
 ### Scan and coverage
 
 | ID | Default | Condition |
@@ -258,8 +272,8 @@ These IDs often accompany a `partial` or `skipped` surface and/or a native
 report error. Their coverage effect takes precedence over default severity.
 Examples include permission errors, malformed/truncated structures, unsupported
 encodings or compression methods, file changes during inspection, and special
-filesystem objects. Error messages describe the class of failure without
-copying raw exception data from untrusted content.
+filesystem objects. Error messages describe the class of failure without copying
+raw exception data from untrusted content.
 
 ## Policy overrides and suppressions
 

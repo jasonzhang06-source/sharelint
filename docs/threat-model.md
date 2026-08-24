@@ -90,7 +90,8 @@ the filesystem.
 | Size headers lie or a stream expands after a precheck | Treat headers as hints and count actual bytes read; stop immediately when a runtime counter crosses a limit | Parser and standard-library defects remain possible |
 | A nested archive evades extension-based detection | Prefer validated magic/container structure over suffix alone and apply the same recursive budgets to nested ZIP/OOXML content | Unsupported or deliberately ambiguous formats remain coverage gaps |
 | A PDF, image, or OOXML parser reaches active content | Inspect bytes as data only; do not resolve external references or execute/render active content | Static inspection cannot model every viewer or application behavior |
-| A symlink, device, FIFO, or socket reaches outside the selected boundary | Do not follow directory symlinks by default; do not pack special files; report the skipped surface | A platform-specific filesystem race may still be possible |
+| A symlink, Windows reparse point, device, FIFO, or socket reaches outside the selected boundary | Do not follow directory links or reparse points; do not pack special files; report the skipped surface | A platform-specific filesystem race may still be possible |
+| Hidden metadata survives in a Windows alternate data stream, Linux/macOS extended attribute, or macOS resource fork | Enumerate only enough to establish presence without reporting names or values; treat presence or probe failure as incomplete coverage and block `pack` | Hidden values are deliberately not classified; filesystem races and privileged kernel behavior remain outside the boundary |
 | The source changes while it is being scanned or packed | Hash the exact byte stream that is inspected and packed, check identity/size changes, and fail on a mismatch; reopen and rescan the completed artifact | A malicious kernel, filesystem, or privileged process is outside the boundary |
 | A partial scan is presented as clean | Keep findings separate from coverage; errors, limits, encryption, and required unsupported surfaces force an incomplete result | A supported detector can still have false negatives |
 | A failed export leaves a misleading artifact | Build in a private temporary file, publish only after all checks pass, and remove partial output on best effort; a requested blocked-attempt receipt is clearly marked and has no artifact fields | Crashes can leave an identifiable temporary file; callers should protect the output directory |
@@ -144,7 +145,11 @@ documented inspector completed within its declared capability; it does not mean
 that every human-visible or application-specific representation was understood.
 
 - **Directories:** regular files are inspected recursively in stable order.
-  Symlinks are not followed by default, and special files are not read.
+  Symlinks are not followed by default, and special files are not read. On
+  Linux and macOS, regular files and directories receive a presence-only
+  extended-attribute probe. On Windows, they receive a presence-only alternate
+  data-stream probe. The probes do not expose hidden names or values; present
+  metadata and probe failures are explicit coverage gaps.
 - **ZIP and OOXML:** members are inspected as bounded streams; archive and entry
   comments are submitted to text rules, and extra fields are framed and scanned.
   Unknown extra-field types remain explicit gaps. OOXML inspectors examine

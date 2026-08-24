@@ -126,9 +126,9 @@ RULES: dict[str, Rule] = {
         ),
         _rule(
             "SL.ARCHIVE.SYMLINK",
-            "Symbolic link in share boundary",
+            "Filesystem link in share boundary",
             Severity.HIGH,
-            "Replace the link with an intentional regular file inside the share boundary.",
+            "Replace the symbolic link or reparse point with an intentional regular file inside the share boundary.",
             "archive",
             "coverage",
         ),
@@ -154,6 +154,15 @@ RULES: dict[str, Rule] = {
             Severity.HIGH,
             "Reduce or split the archive, then scan again without raising safety limits blindly.",
             "archive",
+            "coverage",
+        ),
+        _rule(
+            "SL.FILESYSTEM.EXTENDED_ATTRIBUTES",
+            "Uninspected extended filesystem attributes",
+            Severity.HIGH,
+            "Remove extended attributes or copy the content to a clean regular file, then rescan.",
+            "filesystem",
+            "metadata",
             "coverage",
         ),
         _rule(
@@ -356,6 +365,15 @@ RULES: dict[str, Rule] = {
             "Review and remove free-form image descriptions, comments, and XMP fields.",
             "image",
             "metadata",
+        ),
+        _rule(
+            "SL.FILESYSTEM.ALTERNATE_DATA_STREAM",
+            "Windows alternate data stream",
+            Severity.HIGH,
+            "Remove the alternate data stream, copy only the intended main file content, and scan again.",
+            "filesystem",
+            "hidden-content",
+            "coverage",
         ),
         _rule(
             "SL.SCAN.UNSUPPORTED_CONTENT",

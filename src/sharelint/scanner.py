@@ -8,13 +8,19 @@ import stat
 from pathlib import Path
 
 from .context import ScanContext
-from .filesystem import bounded_directory_items
+from .extended_attributes import (
+    EXTENDED_ATTRIBUTE_ERROR_MESSAGE,
+    ExtendedAttributeStatus,
+    probe_extended_attributes,
+)
+from .filesystem import bounded_directory_tree, metadata_is_filesystem_link
 from .models import ScanLimits, ScanReport, SurfaceStatus
 from .scanners.detect import decode_text, detect_kind
 from .scanners.image import scan_image
 from .scanners.path import scan_name
 from .scanners.pdf import scan_pdf
 from .scanners.text import scan_text
+from .windows_streams import record_windows_stream_coverage
 
 
 class ScanInputError(ValueError):
@@ -31,6 +37,125 @@ def _surface(
     note: str = "",
 ) -> None:
     context.add_surface(source_chain, kind, status, size, scanner, note)
+
+
+def _record_extended_attribute_coverage(
+    path: Path,
+    source_chain: tuple[str, ...],
+    context: ScanContext,
+) -> None:
+    status = probe_extended_attributes(path)
+    if status is ExtendedAttributeStatus.NOT_APPLICABLE:
+        return
+    if status is ExtendedAttributeStatus.ABSENT:
+        _surface(
+            context,
+            source_chain,
+            "filesystem-extended-attributes",
+            SurfaceStatus.SCANNED,
+            0,
+            "filesystem-xattrs",
+        )
+        return
+    if status is ExtendedAttributeStatus.PRESENT:
+        context.add_finding(
+            "SL.FILESYSTEM.EXTENDED_ATTRIBUTES",
+            source_chain,
+            "extended filesystem metadata",
+            "extended attributes present",
+        )
+        _surface(
+            context,
+            source_chain,
+            "filesystem-extended-attributes",
+            SurfaceStatus.SKIPPED,
+            0,
+            "filesystem-xattrs",
+            "extended attribute values and resource forks were not inspected",
+        )
+        return
+    context.add_error(source_chain, "SL.SCAN.READ_ERROR", EXTENDED_ATTRIBUTE_ERROR_MESSAGE)
+    _surface(
+        context,
+        source_chain,
+        "filesystem-extended-attributes",
+        SurfaceStatus.SKIPPED,
+        0,
+        "filesystem-xattrs",
+        "extended attribute enumeration failed",
+    )
+
+
+def _record_platform_filesystem_coverage(
+    path: Path,
+    source_chain: tuple[str, ...],
+    context: ScanContext,
+    *,
+    is_directory: bool,
+) -> None:
+    _record_extended_attribute_coverage(path, source_chain, context)
+    record_windows_stream_coverage(
+        path,
+        source_chain,
+        context,
+        is_directory=is_directory,
+    )
+
+
+def _file_state(metadata: os.stat_result) -> tuple[int, int, int, int, int]:
+    return (
+        metadata.st_dev,
+        metadata.st_ino,
+        metadata.st_size,
+        metadata.st_mtime_ns,
+        metadata.st_ctime_ns,
+    )
+
+
+def _filesystem_name_bytes(name: str) -> bytes:
+    """Encode a manifest path with the host filesystem's lossless error handler."""
+
+    return os.fsencode(name)
+
+
+def _record_directory_platform_coverage(
+    path: Path,
+    source_chain: tuple[str, ...],
+    context: ScanContext,
+    metadata: os.stat_result,
+) -> bool:
+    _record_platform_filesystem_coverage(
+        path,
+        source_chain,
+        context,
+        is_directory=True,
+    )
+    try:
+        current = path.stat(follow_symlinks=False)
+    except OSError:
+        current = None
+    if (
+        current is None
+        or metadata_is_filesystem_link(current)
+        or not stat.S_ISDIR(current.st_mode)
+        or _file_state(current) != _file_state(metadata)
+    ):
+        context.add_error(
+            source_chain,
+            "SL.SCAN.READ_ERROR",
+            "Directory identity changed during metadata inspection",
+        )
+        _surface(
+            context,
+            source_chain,
+            "directory",
+            SurfaceStatus.SKIPPED,
+            0,
+            "filesystem",
+            "directory identity changed during metadata inspection",
+        )
+        return False
+    return True
 
 
 def scan_blob(
@@ -242,6 +367,25 @@ def _read_regular_file(
                 )
                 _surface(context, source_chain, "file", SurfaceStatus.SKIPPED, 0, "filesystem")
                 return None
+            _record_platform_filesystem_coverage(
+                path,
+                source_chain,
+                context,
+                is_directory=False,
+            )
+            current = path.stat(follow_symlinks=False)
+            if (
+                metadata_is_filesystem_link(current)
+                or not stat.S_ISREG(current.st_mode)
+                or _file_state(current) != _file_state(opened)
+            ):
+                context.add_error(
+                    source_chain,
+                    "SL.SCAN.READ_ERROR",
+                    "File identity changed during metadata inspection",
+                )
+                _surface(context, source_chain, "file", SurfaceStatus.SKIPPED, 0, "filesystem")
+                return None
             size = opened.st_size
             if size > context.limits.max_file_bytes:
                 context.add_finding(
@@ -284,7 +428,7 @@ def _read_regular_file(
         context.add_error(source_chain, "SL.SCAN.READ_ERROR", "File content could not be read")
         _surface(context, source_chain, "file", SurfaceStatus.SKIPPED, 0, "filesystem")
         return None
-    if (after.st_size, after.st_mtime_ns) != (opened.st_size, opened.st_mtime_ns):
+    if _file_state(after) != _file_state(opened):
         context.add_error(
             source_chain, "SL.SCAN.READ_ERROR", "File changed while it was being read"
         )
@@ -323,15 +467,22 @@ def scan(
     logical_name: str | None = None,
 ) -> ScanReport:
     path = Path(target)
-    if not path.exists() and not path.is_symlink():
-        raise ScanInputError("target does not exist")
+    try:
+        target_metadata = path.stat(follow_symlinks=False)
+    except FileNotFoundError as exc:
+        raise ScanInputError("target does not exist") from exc
+    except OSError as exc:
+        raise ScanInputError("target metadata could not be read safely") from exc
+    supported_kind = stat.S_ISREG(target_metadata.st_mode) or stat.S_ISDIR(target_metadata.st_mode)
+    if not supported_kind and not metadata_is_filesystem_link(target_metadata):
+        raise ScanInputError("target is not a regular file or directory")
     context = ScanContext(limits or ScanLimits())
     raw_target_name = logical_name or path.name or "share-boundary"
     target_name = context.display_path(raw_target_name)
     scan_name(raw_target_name, (target_name,), context)
     manifest = hashlib.sha256()
 
-    if path.is_symlink():
+    if metadata_is_filesystem_link(target_metadata):
         context.add_finding(
             "SL.ARCHIVE.SYMLINK",
             (target_name,),
@@ -342,15 +493,15 @@ def scan(
         _surface(
             context,
             (target_name,),
-            "symlink",
+            "filesystem-link",
             SurfaceStatus.SKIPPED,
             0,
             "filesystem",
-            "symbolic links are not followed",
+            "symbolic links and Windows reparse points are not followed",
         )
         manifest.update(b"symlink\0")
         target_kind = "symlink"
-    elif path.is_file():
+    elif stat.S_ISREG(target_metadata.st_mode):
         data = _read_regular_file(path, (target_name,), context)
         if data is not None:
             manifest.update(data)
@@ -362,12 +513,21 @@ def scan(
                 already_counted=True,
             )
         target_kind = "file"
-    elif path.is_dir():
+    elif stat.S_ISDIR(target_metadata.st_mode):
         target_kind = "directory"
-        items, traversal_errors, entry_limit_reached = bounded_directory_items(
+        root_is_stable = _record_directory_platform_coverage(
             path,
-            context.limits.max_archive_members,
+            (target_name,),
+            context,
+            target_metadata,
         )
+        if root_is_stable:
+            items, directories, traversal_errors, entry_limit_reached = bounded_directory_tree(
+                path,
+                context.limits.max_archive_members,
+            )
+        else:
+            items, directories, traversal_errors, entry_limit_reached = [], [], 0, False
         for index in range(traversal_errors):
             error_chain = (target_name, f"<unreadable-directory:{index + 1}>")
             context.add_error(
@@ -403,14 +563,80 @@ def scan(
                 "filesystem entry-count limit reached",
             )
             manifest.update(b"filesystem-entry-limit\0")
+        for directory in directories:
+            relative = directory.relative_to(path).as_posix()
+            display_relative = context.display_path(relative)
+            source_chain = (target_name, display_relative)
+            scan_name(relative, source_chain, context)
+            try:
+                directory_metadata = directory.stat(follow_symlinks=False)
+            except OSError:
+                context.add_error(
+                    source_chain,
+                    "SL.SCAN.READ_ERROR",
+                    "Directory metadata could not be read safely",
+                )
+                _surface(
+                    context,
+                    source_chain,
+                    "directory",
+                    SurfaceStatus.SKIPPED,
+                    0,
+                    "filesystem",
+                    "directory metadata could not be inspected",
+                )
+                continue
+            if metadata_is_filesystem_link(directory_metadata) or not stat.S_ISDIR(
+                directory_metadata.st_mode
+            ):
+                context.add_error(
+                    source_chain,
+                    "SL.SCAN.READ_ERROR",
+                    "Directory identity changed before metadata inspection",
+                )
+                _surface(
+                    context,
+                    source_chain,
+                    "directory",
+                    SurfaceStatus.SKIPPED,
+                    0,
+                    "filesystem",
+                    "directory identity changed during traversal",
+                )
+                continue
+            _record_directory_platform_coverage(
+                directory,
+                source_chain,
+                context,
+                directory_metadata,
+            )
         for item in items:
             relative = item.relative_to(path).as_posix()
             display_relative = context.display_path(relative)
             source_chain = (target_name, display_relative)
             scan_name(relative, source_chain, context)
-            manifest.update(relative.encode("utf-8", errors="surrogateescape"))
+            manifest.update(_filesystem_name_bytes(relative))
             manifest.update(b"\0")
-            if item.is_symlink():
+            try:
+                item_metadata = item.stat(follow_symlinks=False)
+            except OSError:
+                context.add_error(
+                    source_chain,
+                    "SL.SCAN.READ_ERROR",
+                    "Filesystem object metadata could not be read safely",
+                )
+                _surface(
+                    context,
+                    source_chain,
+                    "filesystem-object",
+                    SurfaceStatus.SKIPPED,
+                    0,
+                    "filesystem",
+                    "filesystem object metadata could not be inspected",
+                )
+                manifest.update(b"unreadable-metadata\0")
+                continue
+            if metadata_is_filesystem_link(item_metadata):
                 context.add_finding(
                     "SL.ARCHIVE.SYMLINK",
                     source_chain,
@@ -421,11 +647,11 @@ def scan(
                 _surface(
                     context,
                     source_chain,
-                    "symlink",
+                    "filesystem-link",
                     SurfaceStatus.SKIPPED,
                     0,
                     "filesystem",
-                    "symbolic links are not followed",
+                    "symbolic links and Windows reparse points are not followed",
                 )
                 manifest.update(b"symlink\0")
                 continue

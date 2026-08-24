@@ -66,6 +66,19 @@ cd sharelint
 python -m pip install -e .
 ```
 
+### Platform support
+
+ShareLint targets Linux, Windows, and macOS on Python 3.11 or newer. The current
+source tree configures its complete unit and CLI contract suites on Ubuntu,
+Windows, and macOS; check the [CI result](https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml)
+for the exact commit or release you use. Package portability does not imply that
+every filesystem and security configuration has been verified.
+
+Writing reports, bundles, archives, and receipts requires hard-link support in
+the destination filesystem so ShareLint can preserve its no-overwrite contract.
+See [platform support](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/platform-support.md)
+for the validation matrix, Windows notes, and filesystem limitations.
+
 > **Alpha software.** ShareLint already has a working, dependency-free core, but its rules and
 > format coverage are still growing. Install a tagged package from PyPI for normal use, and
 > independently review important results.

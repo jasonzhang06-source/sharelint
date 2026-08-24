@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added native Ubuntu, Windows, and macOS CI coverage at the minimum and latest
+  supported Python versions, plus wheel installation smoke tests on all three.
+- Added fail-closed presence checks for Windows alternate data streams,
+  Linux/macOS extended attributes, and macOS resource forks without disclosing
+  hidden names or values.
+- Added native regression contracts for Windows junctions, Windows data streams,
+  and Linux/macOS extended attributes.
+
+### Changed
+
+- Made redirected CLI output consistently UTF-8 across legacy Windows code pages.
+- Treat Windows reparse points as filesystem links and never traverse them.
+- Re-evaluate policy and coverage on the final source scan before publishing a
+  packed artifact, so newly added hidden metadata blocks publication.
+
 ## [0.1.1] - 2026-08-24
 
 ### Added
