@@ -113,6 +113,28 @@ def verify(executable: Path) -> None:
         _expect(rules, 0, "rules")
         if "SL.SECRET.AWS_ACCESS_KEY" not in rules.stdout:
             raise VerificationError("frozen rule catalog is incomplete")
+
+        configuration = output_dir / "policy.toml"
+        _expect(
+            _run(executable, work, environment, "config", "init", "-o", str(configuration)),
+            0,
+            "config init",
+        )
+        configured = _run(
+            executable,
+            work,
+            environment,
+            "config",
+            "show",
+            "--config",
+            str(configuration),
+            "--profile",
+            "client",
+        )
+        _expect(configured, 0, "config show")
+        settings = _json(configured, "config show")
+        if settings.get("fail_on") != "medium" or settings.get("strict") is not True:
+            raise VerificationError("frozen configuration policy is inconsistent")
         explained = _run(executable, work, environment, "explain", "SL.SECRET.AWS_ACCESS_KEY")
         _expect(explained, 0, "explain")
 

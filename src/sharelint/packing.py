@@ -653,6 +653,7 @@ def pack(
     report_output: str | os.PathLike[str] | None = None,
     write_receipt: bool = True,
     fail_on: Severity = Severity.HIGH,
+    limits: ScanLimits | None = None,
 ) -> PackedArtifact:
     source = Path(target)
     destination = Path(output)
@@ -713,7 +714,7 @@ def pack(
             else:
                 raise PackError("report must be outside the source directory")
 
-    initial = scan(source)
+    initial = scan(source, limits=limits)
     reasons = _policy_reasons(initial, fail_on)
     if reasons:
         blocked_receipt: Path | None = None

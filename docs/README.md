@@ -12,6 +12,7 @@ sensitive data.
 - [Platform support and filesystem requirements](platform-support.md)
 - [What ShareLint checks](../README.md#what-it-checks)
 - [Rules and stable identifiers](rules.md)
+- [Explicit configuration and policy profiles](configuration.md)
 - [Project direction and non-goals](roadmap.md)
 
 ## Integrate reports

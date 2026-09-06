@@ -172,6 +172,17 @@ Incomplete means one or more listed surfaces were not fully inspected.
 
 ## Use it
 
+Use a repeatable policy (ShareLint 1.1+):
+
+```bash
+sharelint scan ./client-handoff --profile public
+sharelint config init -o sharelint.toml
+sharelint config show --config sharelint.toml --profile client
+```
+
+See the [configuration guide](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/configuration.md).
+Configuration is explicit, never auto-discovered inside untrusted input.
+
 Scan a file, directory, ZIP, or Office document:
 
 ```bash

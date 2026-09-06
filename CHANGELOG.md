@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-06
+
+### Added
+
+- Explicit versioned TOML configuration with bounded, no-follow reads and strict validation.
+- Built-in public/strict profiles, reusable custom profiles, and configurable resource limits.
+- `config init` and `config show`, plus explicit policy overrides for `scan` and `pack`.
+- Optional `limits` for the Python `pack` API; every rescan and receipt uses the effective limits.
+- Cross-platform policy regression and malformed-control-document tests.
+
+Existing scan defaults and report/receipt schemas remain compatible. No automatic
+configuration discovery or incomplete-coverage bypass was added.
+
 ## [1.0.0] - 2026-09-06
 
 The first stable release maintains the existing scanner and machine-readable
@@ -112,7 +125,8 @@ work with focused usability fixes; no new scanning features are introduced.
 - A branch-aware 75% coverage floor enforced in CI and release verification.
 - CodeQL analysis, dependency update automation, and a Trusted Publishing release workflow.
 
-[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/jasonzhang06-source/sharelint/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.2...v1.0.0
 [0.1.2]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.0...v0.1.1

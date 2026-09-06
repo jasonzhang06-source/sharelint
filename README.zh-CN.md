@@ -154,6 +154,17 @@ Incomplete means one or more listed surfaces were not fully inspected.
 
 ## 使用方法
 
+1.1 起可以复用检查策略：
+
+```bash
+sharelint scan ./client-handoff --profile public
+sharelint config init -o sharelint.toml
+sharelint config show --config sharelint.toml --profile client
+```
+
+配置只会在指定 `--config` 时加载，不会从待扫描文件夹自动读取。
+`pack` 始终要求完整覆盖，不能通过配置绕过。详见[配置与策略说明](docs/configuration.md)。
+
 扫描文件、目录、ZIP 或 Office 文档：
 
 ```bash

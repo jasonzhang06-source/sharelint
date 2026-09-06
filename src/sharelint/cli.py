@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 import tempfile
@@ -11,7 +12,9 @@ from contextlib import suppress
 from pathlib import Path
 
 from . import __version__
+from .config import CONFIG_TEMPLATE, ConfigurationError, resolve_settings
 from .demo import create_demo_bundle, render_demo_console
+from .input_io import DocumentInputError
 from .models import Severity
 from .packing import PackBlocked, PackError, pack
 from .reporters import render, render_console
@@ -42,6 +45,26 @@ def _severity(value: str) -> Severity:
         return Severity.parse(value)
     except ValueError as exc:
         raise argparse.ArgumentTypeError(str(exc)) from exc
+
+
+def _policy_arguments(parser: argparse.ArgumentParser, *, include_strict: bool = True) -> None:
+    parser.add_argument(
+        "--config", type=Path, help="explicit TOML configuration (never auto-discovered)"
+    )
+    parser.add_argument("--profile", help="built-in default/public/strict or a configured profile")
+    parser.add_argument(
+        "--fail-on",
+        type=_severity,
+        default=None,
+        help="override the policy blocking severity (default profile: high)",
+    )
+    if include_strict:
+        parser.add_argument(
+            "--strict",
+            action=argparse.BooleanOptionalAction,
+            default=None,
+            help="also fail on incomplete coverage; --no-strict overrides a profile for scan only",
+        )
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -82,17 +105,7 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         help="write the report to a new file instead of standard output",
     )
-    scan_parser.add_argument(
-        "--fail-on",
-        type=_severity,
-        default=Severity.HIGH,
-        help="exit 1 for findings at this severity or higher (default: high)",
-    )
-    scan_parser.add_argument(
-        "--strict",
-        action="store_true",
-        help="also fail when coverage is partial, skipped, or errored",
-    )
+    _policy_arguments(scan_parser)
     scan_parser.add_argument("--no-color", action="store_true", help="disable terminal colors")
 
     pack_parser = subparsers.add_parser(
@@ -133,12 +146,7 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         help="write the private hash-bound JSON report here (requires --receipt)",
     )
-    pack_parser.add_argument(
-        "--fail-on",
-        type=_severity,
-        default=Severity.HIGH,
-        help="block findings at this severity or higher (default: high)",
-    )
+    _policy_arguments(pack_parser, include_strict=False)
     pack_parser.add_argument("--no-color", action="store_true", help="disable terminal colors")
 
     demo_parser = subparsers.add_parser(
@@ -178,6 +186,18 @@ def _parser() -> argparse.ArgumentParser:
     subparsers.add_parser("rules", help="list stable rule identifiers")
     explain_parser = subparsers.add_parser("explain", help="explain one rule")
     explain_parser.add_argument("rule_id")
+    config_parser = subparsers.add_parser(
+        "config", help="create or inspect an explicit policy configuration"
+    )
+    config_commands = config_parser.add_subparsers(dest="config_command", required=True)
+    config_init = config_commands.add_parser(
+        "init", help="write a commented TOML template to a new file"
+    )
+    config_init.add_argument("-o", "--output", type=Path, required=True)
+    config_show = config_commands.add_parser(
+        "show", help="show the complete effective policy as JSON"
+    )
+    _policy_arguments(config_show)
     return parser
 
 
@@ -247,22 +267,33 @@ def _display_path(path: Path) -> str:
 
 
 def _scan_command(arguments: argparse.Namespace) -> int:
+    settings = resolve_settings(
+        config=arguments.config,
+        profile=arguments.profile,
+        fail_on=arguments.fail_on,
+        strict=arguments.strict,
+    )
     _validate_scan_output(arguments.target, arguments.output)
-    report = scan(arguments.target)
+    report = scan(arguments.target, limits=settings.limits)
     rendered = render(
         report,
         arguments.format,
-        arguments.fail_on,
+        settings.fail_on,
         color=_use_color(arguments.no_color) and arguments.output is None,
     )
     _write_or_print(rendered, arguments.output)
-    blocked = report.count_at_or_above(arguments.fail_on) > 0
-    if arguments.strict and report.has_coverage_gaps:
+    blocked = report.count_at_or_above(settings.fail_on) > 0
+    if settings.strict and report.has_coverage_gaps:
         blocked = True
     return 1 if blocked else 0
 
 
 def _pack_command(arguments: argparse.Namespace) -> int:
+    settings = resolve_settings(
+        config=arguments.config,
+        profile=arguments.profile,
+        fail_on=arguments.fail_on,
+    )
     if arguments.report is not None and arguments.receipt is None:
         raise PackError("--report requires an explicit --receipt path")
     try:
@@ -272,11 +303,12 @@ def _pack_command(arguments: argparse.Namespace) -> int:
             receipt=arguments.receipt,
             report_output=arguments.report,
             write_receipt=not arguments.no_receipt,
-            fail_on=arguments.fail_on,
+            fail_on=settings.fail_on,
+            limits=settings.limits,
         )
     except PackBlocked as exc:
         sys.stdout.write(
-            render_console(exc.report, arguments.fail_on, color=_use_color(arguments.no_color))
+            render_console(exc.report, settings.fail_on, color=_use_color(arguments.no_color))
         )
         messages = {
             "blocking_findings": "one or more findings met the blocking threshold",
@@ -379,6 +411,23 @@ def _explain_command(rule_id: str) -> int:
     return 0
 
 
+def _config_command(arguments: argparse.Namespace) -> int:
+    if arguments.config_command == "init":
+        _write_or_print(CONFIG_TEMPLATE, arguments.output)
+        sys.stdout.write("Configuration template created; pass it explicitly with --config.\n")
+        return 0
+    settings = resolve_settings(
+        config=arguments.config,
+        profile=arguments.profile,
+        fail_on=arguments.fail_on,
+        strict=arguments.strict,
+    )
+    sys.stdout.write(
+        json.dumps(settings.to_dict(), indent=2, sort_keys=True, allow_nan=False) + "\n"
+    )
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     _configure_standard_streams()
     parser = _parser()
@@ -394,7 +443,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _rules_command()
         if arguments.command == "explain":
             return _explain_command(arguments.rule_id)
-    except (ScanInputError, PackError, OSError) as exc:
+        if arguments.command == "config":
+            return _config_command(arguments)
+    except (ScanInputError, PackError, ConfigurationError, DocumentInputError, OSError) as exc:
         message = "operating system operation failed" if isinstance(exc, OSError) else str(exc)
         sys.stderr.write(f"sharelint: {message}\n")
         return 2

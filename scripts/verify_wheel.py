@@ -91,6 +91,25 @@ def verify() -> None:
         if "SL.OFFICE.NOTES" not in rules.stdout:
             raise WheelVerificationError("installed wheel rule catalog is incomplete")
 
+        configuration = outputs / "policy.toml"
+        _expect(
+            _run(work, environment, "config", "init", "-o", str(configuration)), 0, "config init"
+        )
+        configured = _run(
+            work,
+            environment,
+            "config",
+            "show",
+            "--config",
+            str(configuration),
+            "--profile",
+            "client",
+        )
+        _expect(configured, 0, "config show")
+        settings = json.loads(configured.stdout)
+        if settings.get("fail_on") != "medium" or settings.get("strict") is not True:
+            raise WheelVerificationError("installed configuration policy is inconsistent")
+
         demo = _run(work, environment, "demo")
         _expect(demo, 0, "demo")
         if "SYNTHETIC DEMO" not in demo.stdout or "No personal files were read" not in demo.stdout:
