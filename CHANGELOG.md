@@ -54,8 +54,8 @@ work with focused usability fixes; no new scanning features are introduced.
 
 ### Documentation
 
-- Documented that standalone archives are still forthcoming, including the
-  exact target matrix, zero-Python and uv-first installation paths, onefile
+- Documented the standalone archive target matrix, zero-Python and uv
+  installation paths, onefile
   temporary-directory requirements, and initial Windows/macOS signing limits.
 - Distinguished checksum integrity, GitHub build provenance, platform code
   signing, notarization, and ShareLint pack receipts.

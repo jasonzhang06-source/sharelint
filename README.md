@@ -27,29 +27,29 @@
 
 ## Quick start
 
-### No Python: standalone archive (forthcoming)
+### No Python: standalone archive
 
-The simplest installation will be a native archive from the
-[GitHub Releases page](https://github.com/jasonzhang06-source/sharelint/releases). It will include
-ShareLint and its Python runtime, so it will not require Python, pip, uv, or pipx on the destination
-computer. Four native targets are being validated for the next tagged release:
+Download a matching archive from a completed
+[GitHub Release](https://github.com/jasonzhang06-source/sharelint/releases). Standalone archives
+include ShareLint and its Python runtime, so they do not require Python, pip, uv, or pipx on the
+destination computer. The 1.0 release pipeline builds and verifies four native targets:
 
-| Computer | Planned release target |
+| Computer | Release target |
 | --- | --- |
 | x86-64 Linux with glibc | `linux-glibc-x86_64` |
 | 64-bit Windows | `windows-x86_64` |
 | Intel Mac | `macos-x86_64` |
 | Apple silicon Mac | `macos-arm64` |
 
-**Release v0.1.2 and earlier do not contain these standalone archives.** Do not guess a download URL
-or treat an ordinary CI artifact as a release. When the files appear on a future release, download
-the archive and its same-named `.sha256` file, then follow the
+**Release v0.1.2 and earlier do not contain these standalone archives.** Use only files attached to
+a completed release, not ordinary CI artifacts. Download the archive and its same-named `.sha256`
+file, then follow the
 [verification and first-run instructions](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/troubleshooting.md#standalone-archive-verification).
 
-### Available now: run with uv
+### Run with uv
 
-If the standalone archive is not published yet, [uv](https://docs.astral.sh/uv/) is the shortest
-path. uv can obtain a compatible Python automatically; install uv for your operating system, then
+Alternatively, [uv](https://docs.astral.sh/uv/) can obtain a compatible Python automatically.
+Install uv for your operating system, then
 run the synthetic demo without persistently installing ShareLint:
 
 ```bash
@@ -100,8 +100,8 @@ target or the Python package and let CI exercise the native Windows and macOS jo
 binary is specific to its listed OS and architecture, so a Windows `.exe` does not run on Linux;
 manual validation of Windows-only host behavior still requires a Windows host.
 
-The Python 3.11+ package is tested on Ubuntu, Windows, and macOS. The forthcoming standalone matrix
-adds the four native targets listed above. Check the
+The Python 3.11+ package is tested on Ubuntu, Windows, and macOS. The standalone matrix covers
+the four native targets listed above. Check the
 [CI result](https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml) for the exact
 commit or release you use. A configured target does not imply that every filesystem, OS version,
 shell, locale, or security policy has been verified.

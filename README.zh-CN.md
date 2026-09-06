@@ -23,26 +23,26 @@
 
 ## 快速开始
 
-### 没有 Python：独立包（即将提供）
+### 没有 Python：独立包
 
-最简单的安装方式将是从 [GitHub Releases](https://github.com/jasonzhang06-source/sharelint/releases)
-下载原生独立包。它会带上 ShareLint 与 Python 运行时，目标电脑无需另装 Python、pip、uv 或 pipx。
-下一版带标签发行正在验证以下四个原生目标：
+从已完成的 [GitHub Release](https://github.com/jasonzhang06-source/sharelint/releases)
+下载对应系统的独立包。独立包包含 ShareLint 与 Python 运行时，目标电脑无需另装 Python、pip、uv 或 pipx。
+1.0 发布流程构建并验证以下四个原生目标：
 
-| 电脑 | 计划中的发行目标 |
+| 电脑 | 发行目标 |
 | --- | --- |
 | 使用 glibc 的 x86-64 Linux | `linux-glibc-x86_64` |
 | 64 位 Windows | `windows-x86_64` |
 | Intel Mac | `macos-x86_64` |
 | Apple 芯片 Mac | `macos-arm64` |
 
-**v0.1.2 及更早的发行版没有这些独立包。** 请勿猜测下载地址，也不要把普通 CI 构件当作正式发行。
-将来的 Release 页面出现对应文件后，请同时下载压缩包与同名 `.sha256` 文件，再按照
+**v0.1.2 及更早的发行版没有这些独立包。** 只使用已完成 Release 的附件，不要把普通 CI 构件当作正式发行。
+请同时下载压缩包与同名 `.sha256` 文件，再按照
 [校验与首次运行说明](docs/troubleshooting.md#standalone-archive-verification)操作。
 
-### 现在可用：通过 uv 运行
+### 通过 uv 运行
 
-独立包尚未发布时，[uv](https://docs.astral.sh/uv/) 是最短路径。uv 可以自动获取兼容的 Python；
+也可以使用 [uv](https://docs.astral.sh/uv/)，它能够自动获取兼容的 Python；
 按照当前系统的说明安装 uv 后，无需持久安装 ShareLint 即可运行合成数据演示：
 
 ```bash
@@ -89,7 +89,7 @@ python -m pip install -e .
 原生 Windows 与 macOS 作业由 CI 执行。独立程序只能运行在表格所列的系统和架构上，因此 Windows
 `.exe` 不能在 Linux 上运行；只有手工复现 Windows 专属主机行为时才需要 Windows 环境。
 
-Python 3.11+ 软件包会在 Ubuntu、Windows 和 macOS 上测试；即将提供的独立包矩阵增加上表四个原生
+Python 3.11+ 软件包会在 Ubuntu、Windows 和 macOS 上测试；独立包矩阵覆盖上表四个原生
 目标。请查看对应提交或发行版本的
 [CI 结果](https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml)。配置了目标并不代表已经
 验证每一种文件系统、系统版本、Shell、区域设置或安全策略。

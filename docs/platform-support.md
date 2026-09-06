@@ -39,13 +39,13 @@ macOS after the source suites pass.
 
 ## Standalone release target matrix
 
-The repository now configures a native standalone build and smoke test for four
-OS/architecture targets. The archives are **in CI validation for the next tagged
-release**. Release `v0.1.2` and earlier do not contain them; an asset is available
+The 1.0 release pipeline requires a native standalone build and smoke test for
+four OS/architecture targets. Release `v0.1.2` and earlier do not contain these
+archives; an asset is available
 only after it is visibly attached to a completed
 [GitHub Release](https://github.com/jasonzhang06-source/sharelint/releases).
 
-| Native build runner | Target identifier | Planned release archive | Validation boundary |
+| Native build runner | Target identifier | Release archive | Validation boundary |
 | --- | --- | --- | --- |
 | `ubuntu-22.04` | `linux-glibc-x86_64` | `sharelint-v{version}-linux-glibc-x86_64.tar.gz` | x86-64 glibc build; not a musl/Alpine or Linux ARM64 claim |
 | `windows-2022` | `windows-x86_64` | `sharelint-v{version}-windows-x86_64.zip` | 64-bit Windows build; not Windows ARM64 or 32-bit |
@@ -109,10 +109,9 @@ and reconciled against the Analysis data inventory and PKG inventory.
 This mechanism is deliberately fail closed, but its catalog remains a reviewed
 project artifact rather than an automated legal opinion. A new CPython,
 PyInstaller, runner image, or native dependency can change the inventory and
-must be reviewed instead of being silently accepted. The four target outputs
-are still awaiting their first complete native CI validation for the next
-tagged release; this repository does not claim that standalone files have
-already been published.
+must be reviewed instead of being silently accepted. All four target outputs
+must pass before the tagged release can be published. Consult the completed
+release and its workflow run for the exact version's validation evidence.
 
 The runner is the measured baseline, not a promise about every OS release. In
 particular, the Linux archive is built against glibc on Ubuntu 22.04; use the
@@ -121,9 +120,9 @@ where the standalone executable does not run.
 
 ## Installation order
 
-Once a tagged release visibly contains the standalone archives, that is the
-first-choice path for a user without Python. Until then, use `uvx`, which can
-obtain a compatible Python automatically:
+Use the matching standalone archive from a completed release if you do not
+have Python. Alternatively, use `uvx`, which can obtain a compatible Python
+automatically:
 
 ```text
 uvx sharelint demo

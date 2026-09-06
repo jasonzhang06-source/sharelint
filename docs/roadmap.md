@@ -32,10 +32,10 @@ Shipped means implemented and covered by the current repository tests. It does
 not mean every format surface is complete; reports continue to expose known
 blind spots.
 
-## Current P0 release gate: native standalone delivery
+## 1.0 release gate: native standalone delivery
 
-The repository is validating, but has not yet published, a zero-Python release
-path for these native targets:
+The 1.0 release pipeline validates a zero-Python release path for these native
+targets:
 
 - `linux-glibc-x86_64` on `ubuntu-22.04`;
 - `windows-x86_64` on `windows-2022`;

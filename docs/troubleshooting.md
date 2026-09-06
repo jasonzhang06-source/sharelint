@@ -1,29 +1,29 @@
 # Installation and troubleshooting
 
 ShareLint is published as a Python 3.11+ package on
-[PyPI](https://pypi.org/project/sharelint/). A zero-Python standalone archive is
-also being validated for the next tagged release. Installation and provenance
+[PyPI](https://pypi.org/project/sharelint/). The 1.0 release pipeline also builds
+zero-Python standalone archives. Installation and provenance
 checks use the network; scanning itself has no upload, telemetry, account, or
 network feature.
 
 ## No Python installed
 
-### First choice: standalone archive (forthcoming)
+### First choice: standalone archive
 
-The standalone archive will include the interpreter and launcher. Release
+The standalone archive includes the interpreter and launcher. Release
 `v0.1.2` and earlier do not contain these files. Until the matching archive is
 visibly attached to a completed
 [GitHub Release](https://github.com/jasonzhang06-source/sharelint/releases), use
 the uv route below; do not guess an asset URL or treat a normal CI artifact as a
 release.
 
-The planned archive names and measured build runners are listed in the
+The archive names and measured build runners are listed in the
 [standalone target matrix](platform-support.md#standalone-release-target-matrix).
-When a future release contains them, complete
+For an archive attached to a completed release, complete
 [standalone archive verification](#standalone-archive-verification) before
 running the executable.
 
-### Available now: install uv from zero
+### Alternative: install uv from zero
 
 [uv](https://docs.astral.sh/uv/getting-started/installation/) is a standalone
 tool that can download a compatible Python automatically. On 64-bit Windows,
@@ -222,9 +222,8 @@ reproducible-build proof.
 If any expected notice file is absent, `BUILD-INFO.json` is not format version 2,
 or an archive/checksum pair fails verification, do not run or redistribute that
 copy. Delete the extracted directory and obtain the matching archive and
-checksum again from the completed GitHub Release. The standalone artifacts are
-still forthcoming until a release page visibly lists them; a normal CI artifact
-is not a substitute.
+checksum again from the completed GitHub Release. Use only assets visibly
+listed on that release page; a normal CI artifact is not a substitute.
 
 ## Standalone executable does not start
 
