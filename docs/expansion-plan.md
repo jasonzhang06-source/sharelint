@@ -9,8 +9,8 @@ keeps Python 3.11+ and a dependency-free core.
 | Version | Intended outcome | State |
 | --- | --- | --- |
 | 1.1.0 | Explicit TOML configuration, reusable policy profiles, bounded scan limits | Published and installed from public PyPI |
-| 1.2.0 | Offline receipt, report, and artifact verification | Native CI pending |
-| 1.2.1 | Regression fixes found during adversarial verification | Planned |
+| 1.2.0 | Offline receipt, report, and artifact verification | Native CI passed; publishing |
+| 1.2.1 | Cancellation, closed-pipe, and rollback regressions | Local validation |
 | 1.3.0 | Validated report comparison and coverage-change review | Planned |
 | 2.0.0 | Reviewable handoff plans bound to input and effective policy | Planned |
 | 2.1.0 | Bounded batch scanning with per-target results | Planned |
@@ -44,5 +44,11 @@ versions and workflow links below as work proceeds.
   lint/format/type checks, build/sdist normalization, package metadata checks,
   and isolated installed-wheel receipt verification passed. Native CI and
   public publication are not yet claimed.
+- The first 1.2.0 CI caught Python 3.11 Enum membership incompatibility before
+  tagging. Fixed at `36a8008`; all 17 checks passed in
+  [CI](https://github.com/jasonzhang06-source/sharelint/actions/runs/34044550732).
+  An exact-commit wheel also passed isolated Python 3.11 installation tests;
+  real public-1.1 receipts passed verification. The release tag points to the
+  corrected commit, never the failed candidate.
 - The existing long-running Goal is paused; no background continuation was
   enabled by this work. Progress in the active conversation is checkpointed here.

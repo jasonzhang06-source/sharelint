@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-09-07
+
+### Fixed
+
+- Handle Ctrl+C with an explicit, traceback-free cancellation exit `130`.
+- Flush command/help/version output inside the I/O error boundary, preventing
+  closed pipes from changing exit `2` into interpreter-shutdown exit `120`.
+- Discard failed output streams safely and keep native error details private.
+- Cover cancellation rollback and real subprocess pipe closure with regressions.
+
 ## [1.2.0] - 2026-09-07
 
 ### Added
@@ -146,7 +156,8 @@ work with focused usability fixes; no new scanning features are introduced.
 - A branch-aware 75% coverage floor enforced in CI and release verification.
 - CodeQL analysis, dependency update automation, and a Trusted Publishing release workflow.
 
-[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/jasonzhang06-source/sharelint/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/jasonzhang06-source/sharelint/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/jasonzhang06-source/sharelint/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.2...v1.0.0

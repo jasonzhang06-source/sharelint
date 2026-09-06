@@ -24,6 +24,11 @@ automation should use JSON or SARIF.
 
 ## Detection and security updates
 
+From 1.2.1, user cancellation returns `130` with a concise diagnostic. Failed
+output pipes return `2`, including buffered help/version output. Cancellation
+does not claim that no files exist: a completed publication may precede the
+interrupt. Review outputs before retrying; no-overwrite rules still apply.
+
 Rules, severity classifications, and coverage checks may become stricter in a
 patch when correcting a detection or security defect. Consequently, the same
 input can produce new findings or a blocked result after an upgrade. Changes

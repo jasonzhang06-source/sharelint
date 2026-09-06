@@ -479,7 +479,7 @@ def _verify_command(arguments: argparse.Namespace) -> int:
     return 0 if result.status == "verified" else 1
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def _main(argv: Sequence[str] | None = None) -> int:
     _configure_standard_streams()
     parser = _parser()
     arguments = parser.parse_args(argv)
@@ -498,9 +498,63 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _config_command(arguments)
         if arguments.command == "verify":
             return _verify_command(arguments)
+    except BrokenPipeError:
+        raise
     except (ScanInputError, PackError, ConfigurationError, DocumentInputError, OSError) as exc:
         message = "operating system operation failed" if isinstance(exc, OSError) else str(exc)
         sys.stderr.write(f"sharelint: {message}\n")
         return 2
     parser.error("unknown command")
     return 2
+
+
+def _discard_broken_stream(stream: object) -> None:
+    """Prevent an interpreter-shutdown flush from replacing our exit code with 120."""
+
+    descriptor: int | None = None
+    try:
+        fileno = getattr(stream, "fileno", None)
+        if fileno is None:
+            return
+        target = fileno()
+        descriptor = os.open(os.devnull, os.O_WRONLY | getattr(os, "O_BINARY", 0))
+        os.dup2(descriptor, target)
+    except (OSError, ValueError):
+        # An embedded caller can supply a memory stream without a descriptor.
+        pass
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+
+
+def _diagnostic(message: str) -> None:
+    try:
+        sys.stderr.write(f"sharelint: {message}\n")
+        sys.stderr.flush()
+    except (OSError, ValueError):
+        _discard_broken_stream(sys.stderr)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    try:
+        try:
+            result = _main(argv)
+        except SystemExit:
+            # argparse's help/version paths exit before the normal return.
+            sys.stdout.flush()
+            raise
+        sys.stdout.flush()
+        return result
+    except KeyboardInterrupt:
+        _diagnostic(
+            "interrupted; no successful completion is claimed; review any completed outputs"
+        )
+        return 130
+    except BrokenPipeError:
+        _discard_broken_stream(sys.stdout)
+        _diagnostic("output pipe closed; the result was not fully delivered")
+        return 2
+    except OSError:
+        _discard_broken_stream(sys.stdout)
+        _diagnostic("output could not be completed")
+        return 2
