@@ -12,6 +12,7 @@ from contextlib import suppress
 from pathlib import Path
 
 from . import __version__
+from .batch import BatchLimits, read_batch_manifest, resolve_targets, scan_batch
 from .comparison import compare_reports
 from .config import CONFIG_TEMPLATE, ConfigurationError, resolve_settings
 from .demo import create_demo_bundle, render_demo_console
@@ -241,6 +242,20 @@ def _parser() -> argparse.ArgumentParser:
     )
     plan_inspect.add_argument("plan", type=Path)
     plan_inspect.add_argument("--format", choices=("console", "json"), default="console")
+    batch_parser = subparsers.add_parser(
+        "batch", help="scan multiple explicit targets with a shared budget"
+    )
+    batch_parser.add_argument("targets", nargs="*", type=Path)
+    batch_parser.add_argument(
+        "--manifest", type=Path, help="explicit TOML list instead of positional targets"
+    )
+    batch_parser.add_argument("--max-targets", type=int, default=100)
+    batch_parser.add_argument("--max-total-bytes", type=int, default=1024 * 1024 * 1024)
+    batch_parser.add_argument("--format", choices=("console", "json", "html"), default="console")
+    batch_parser.add_argument(
+        "-o", "--output", type=Path, help="new aggregate report; required for HTML"
+    )
+    _policy_arguments(batch_parser, include_strict=False)
     return parser
 
 
@@ -548,6 +563,31 @@ def _plan_command(arguments: argparse.Namespace) -> int:
     return 0 if plan.ready else 1
 
 
+def _batch_command(arguments: argparse.Namespace) -> int:
+    if bool(arguments.targets) == bool(arguments.manifest):
+        raise DocumentInputError("supply either positional batch targets or --manifest")
+    if arguments.format == "html" and arguments.output is None:
+        raise DocumentInputError("HTML batch reports require an explicit --output file")
+    budget = BatchLimits(arguments.max_targets, arguments.max_total_bytes)
+    targets = (
+        read_batch_manifest(arguments.manifest, maximum=budget.max_targets)
+        if arguments.manifest
+        else resolve_targets(arguments.targets, maximum=budget.max_targets)
+    )
+    for target in targets:
+        _validate_scan_output(target, arguments.output)
+    if arguments.manifest:
+        _validate_scan_output(arguments.manifest, arguments.output)
+    settings = resolve_settings(
+        config=arguments.config, profile=arguments.profile, fail_on=arguments.fail_on
+    )
+    result = scan_batch(
+        targets, limits=settings.limits, batch_limits=budget, fail_on=settings.fail_on
+    )
+    _write_or_print(result.render(arguments.format), arguments.output)
+    return result.exit_code
+
+
 def _main(argv: Sequence[str] | None = None) -> int:
     _configure_standard_streams()
     parser = _parser()
@@ -571,6 +611,8 @@ def _main(argv: Sequence[str] | None = None) -> int:
             return _diff_command(arguments)
         if arguments.command == "plan":
             return _plan_command(arguments)
+        if arguments.command == "batch":
+            return _batch_command(arguments)
     except BrokenPipeError:
         raise
     except (ScanInputError, PackError, ConfigurationError, DocumentInputError, OSError) as exc:

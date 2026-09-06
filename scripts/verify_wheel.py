@@ -185,6 +185,10 @@ def verify() -> None:
         _expect(compared, 0, "report comparison")
         if json.loads(compared.stdout).get("decision") != "no-regression-observed":
             raise WheelVerificationError("installed wheel report comparison is inconsistent")
+        batched = _run(work, environment, "batch", str(handoff), str(bundle), "--format", "json")
+        _expect(batched, 0, "batch preflight")
+        if json.loads(batched.stdout).get("summary", {}).get("target_count") != 2:
+            raise WheelVerificationError("installed wheel batch did not inspect both targets")
 
 
 def main() -> int:

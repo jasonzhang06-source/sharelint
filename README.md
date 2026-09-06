@@ -357,6 +357,16 @@ Packing repeats all strict checks and rejects changed source, policy, or scan
 snapshots. A plan is a private review record, not approval or a signature.
 See [handoff plans](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/handoff-plans.md).
 
+## Check several handoffs
+
+```bash
+sharelint batch ./handoff-a ./handoff-b --format html -o batch.html
+```
+
+Each input has a separate result and shares a finite inspection-byte budget.
+Failures and unattempted targets remain visible; aggregate output uses input-order
+IDs, not filenames. See [batch preflight](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/batch.md).
+
 ## Project status and direction
 
 ShareLint adds explicit policy profiles, offline receipt verification, report

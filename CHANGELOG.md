@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-07
+
+### Added
+
+- Bounded sequential `batch` scanning and the `scan_batch` Python API.
+- Explicit private TOML manifests with relative-path semantics and pre-scan validation.
+- Per-target rule/coverage counts, isolated input errors, and explicit unattempted targets.
+- Shared scanner/decompression byte accounting without double-counting report surfaces.
+- Filename-free console/JSON and script-free HTML, a dedicated batch schema,
+  and cross-platform installed-program tests.
+
+Batch preflight always requires complete coverage. Existing single-target
+commands, native reports, and v2 receipts retain their contracts.
+
 ## [2.0.0] - 2026-09-07
 
 ### Added
@@ -184,7 +198,8 @@ work with focused usability fixes; no new scanning features are introduced.
 - A branch-aware 75% coverage floor enforced in CI and release verification.
 - CodeQL analysis, dependency update automation, and a Trusted Publishing release workflow.
 
-[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/jasonzhang06-source/sharelint/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/jasonzhang06-source/sharelint/compare/v1.3.0...v2.0.0
 [1.3.0]: https://github.com/jasonzhang06-source/sharelint/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/jasonzhang06-source/sharelint/compare/v1.2.0...v1.2.1

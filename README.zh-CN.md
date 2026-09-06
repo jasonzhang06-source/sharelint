@@ -323,6 +323,15 @@ sharelint pack ./handoff -o delivery.zip --plan handoff.plan.json
 计划记录输入边界、策略和扫描快照；打包时重新扫描，变化就要求重新生成和审查计划。
 计划保存在本机，不代表签名、授权或安全保证。详见[交付计划](docs/handoff-plans.md)。
 
+## 一次检查多份交付文件
+
+```bash
+sharelint batch ./handoff-a ./handoff-b --format html -o batch.html
+```
+
+各输入独立记录结果，共享有限的扫描字节预算；失败和未扫描项不会被省略。
+汇总只用输入顺序编号，不回显文件名。支持可重复使用的私有 TOML 清单，详见[批量扫描](docs/batch.md)。
+
 ## 项目状态与方向
 
 现有本地扫描和打包流程已加入显式策略配置、离线回执核验、报告对比和可审查的交付计划。

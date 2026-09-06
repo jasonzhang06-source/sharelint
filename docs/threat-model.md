@@ -146,6 +146,14 @@ The baseline limit set is:
 
 Duplicate members and content reached through different container chains count
 again. OOXML packages consume the same ZIP budgets as ordinary archives.
+Batch preflight scans explicitly selected targets sequentially with independent
+report scopes and finite per-target limits. A shared charged-byte budget reduces
+each remaining target's effective limit. Target-count validation occurs before
+scanning; errors and budget-skipped targets remain explicit. Aggregate reports
+MUST NOT copy filenames or matched evidence, and the batch MUST NOT pass unless
+every target has complete coverage and no blocking findings. This is not an
+atomic snapshot across targets or a total system-I/O/time/memory quota.
+
 Counters use actual streamed bytes. Overflow, negative metadata, impossible
 sizes, and inconsistent end-of-stream values are parser errors.
 

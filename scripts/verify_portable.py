@@ -277,6 +277,13 @@ def verify(executable: Path) -> None:
         _expect(compared, 0, "report comparison")
         if _json(compared, "report comparison").get("decision") != "no-regression-observed":
             raise VerificationError("frozen executable report comparison is inconsistent")
+        batched = _run(
+            executable, work, environment, "batch", str(pack_input), str(bundle), "--format", "json"
+        )
+        _expect(batched, 0, "batch preflight")
+        batch_summary = _json(batched, "batch preflight").get("summary")
+        if not isinstance(batch_summary, dict) or batch_summary.get("target_count") != 2:
+            raise VerificationError("frozen batch did not inspect both targets")
 
 
 def _parser() -> argparse.ArgumentParser:

@@ -14,6 +14,7 @@ sensitive data.
 - [Rules and stable identifiers](rules.md)
 - [Explicit configuration and policy profiles](configuration.md)
 - [Reviewable handoff plans](handoff-plans.md)
+- [Bounded batch preflight](batch.md)
 - [Migrating receipt consumers to 2.0](migration-2.md)
 - [Project direction and non-goals](roadmap.md)
 
@@ -27,6 +28,7 @@ sensitive data.
 - [Pack receipt v2 JSON Schema](../schemas/receipt-v2.schema.json)
 - [Legacy receipt v1 JSON Schema](../schemas/receipt.schema.json)
 - [Handoff plan JSON Schema](../schemas/handoff-plan.schema.json)
+- [Aggregate batch JSON Schema](../schemas/batch.schema.json)
 
 Machine consumers should prefer the native JSON report when they need complete
 ShareLint coverage semantics. SARIF is an integration projection, and a pack

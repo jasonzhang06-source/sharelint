@@ -12,8 +12,8 @@ keeps Python 3.11+ and a dependency-free core.
 | 1.2.0 | Offline receipt, report, and artifact verification | Published and installed from public PyPI |
 | 1.2.1 | Cancellation, closed-pipe, and rollback regressions | Published and installed from public PyPI |
 | 1.3.0 | Validated report comparison and coverage-change review | Published and installed from public PyPI |
-| 2.0.0 | Reviewable handoff plans and privacy-minimized receipt migration | Local gates passed; native CI preparation |
-| 2.1.0 | Bounded batch scanning with per-target results | Planned |
+| 2.0.0 | Reviewable handoff plans and privacy-minimized receipt migration | Published; public installation verification |
+| 2.1.0 | Bounded batch scanning with per-target results | Local gates passed; native CI preparation |
 | 3.0.0 | Reviewable text-redaction plans and rescanned new outputs | Planned |
 | 3.1.0 | Bounded encoded-content inspection with explicit provenance | Planned |
 | 4.0.0 | Private local review workspace and auditable decisions | Planned |
@@ -72,3 +72,10 @@ versions and workflow links below as work proceeds.
   source/installed-wheel planning, packing, and verification checks passed.
   New v2 receipts remove filename repetition demonstrated by a synthetic
   non-blocking filename regression. No native/public release is claimed yet.
+- 2.0.0 source `2dc9f29`: all 17 [native checks](https://github.com/jasonzhang06-source/sharelint/actions/runs/34046899303)
+  and the [release pipeline](https://github.com/jasonzhang06-source/sharelint/actions/runs/34047190134)
+  passed in release order.
+- 2.1.0 local gates: 188 tests passed, two platform skips, 83.65% branch coverage;
+  lint/format/types and fresh Python 3.11 wheel installation passed, including
+  batch checks of both a source directory and a packed archive. Python 3.11
+  batch unit tests also passed; native publication is not yet claimed.
