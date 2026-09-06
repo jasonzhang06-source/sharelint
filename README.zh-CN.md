@@ -98,9 +98,9 @@ Python 3.11+ 软件包会在 Ubuntu、Windows 和 macOS 上测试；独立包矩
 写出报告、演示包、压缩包和回执时，目标文件系统必须支持硬链接，ShareLint 才能保持“不覆盖既有
 目标”的安全契约。验证矩阵、Windows 注意事项和文件系统限制见[平台支持说明](docs/platform-support.md)。
 
-> **ShareLint 1.0。** 现有扫描、报告和打包流程进入稳定维护版本，命令行退出码及版本化 JSON
-> 契约与 0.1.x 保持兼容。检查范围不变：PDF 页面和图片像素仍不进行 OCR，覆盖不完整时仍会阻止
-> `pack`。兼容性约定见 [1.x 维护政策](docs/stability.md)。
+> **ShareLint 2.0。** 新增可审查的交付计划，打包时要求输入和策略仍与计划一致。
+> 新回执使用 2.0.0 格式，以 ZIP 条目序号替代文件名；扫描报告仍为 1.0.0。
+> 自动化使用者请看[迁移说明](docs/migration-2.md)。PDF 页面和图片像素仍不进行 OCR，不完整覆盖仍阻止打包。
 
 你正准备发送一个 ZIP：代码没有问题，但演示文稿还留着演讲者备注，工作簿里藏着
 `veryHidden` 工作表，PDF 暴露了作者姓名，图片则记录了位置。专注 Git 仓库的密钥扫描器
@@ -198,7 +198,7 @@ sharelint pack ./approved-files -o release.zip
 `release.zip.sharelint.report.json`。回执绑定输出哈希、策略、实测覆盖和伴随报告哈希摘要。失败时不会发布
 压缩包。显式指定 `--receipt blocked.json` 可为失败尝试写出 `blocked.json` 和
 `blocked.report.json`；它绝不是成功回执。伴随报告包含已掩码的发现项及上下文文件名，即使匹配原文
-保持隐藏，也应作为敏感记录妥善保护。成功回执还会列出压缩包成员路径，应与压缩包一同妥善保护。
+保持隐藏，也应作为敏感记录妥善保护。新回执使用 ZIP 条目序号，不再重复文件名，仍应妥善保护。
 
 `pack` 始终拒绝任何 `partial`、`skipped` 或报错的覆盖结果，并且刻意不提供绕过开关：只有所有必需
 表面都完成检查时，打包回执才有意义。
@@ -312,10 +312,21 @@ sharelint diff before.json after.json --format html -o comparison.html
 不会把跨报告指纹当成稳定身份，也不会将“数量减少”直接解释为“问题已修复”。
 输出不回显导入报告中的文件名和隐私原文。详见[报告对比说明](docs/comparison.md)。
 
+## 先审查，再交付
+
+```bash
+sharelint plan create ./handoff -o handoff.plan.json
+sharelint plan inspect handoff.plan.json
+sharelint pack ./handoff -o delivery.zip --plan handoff.plan.json
+```
+
+计划记录输入边界、策略和扫描快照；打包时重新扫描，变化就要求重新生成和审查计划。
+计划保存在本机，不代表签名、授权或安全保证。详见[交付计划](docs/handoff-plans.md)。
+
 ## 项目状态与方向
 
-ShareLint `1.0.0` 稳定现有本地扫描和打包流程，完善首次使用说明和发行验证。后续优先处理具体问题、
-补充合成回归测试并保持兼容性。1.1 新增显式策略配置，1.2 新增离线回执核验。本地 OCR、策略例外、发送前钩子和桌面界面仍属于
+现有本地扫描和打包流程已加入显式策略配置、离线回执核验、报告对比和可审查的交付计划。
+后续优先处理具体问题、补充合成回归测试和明确兼容边界。本地 OCR、策略例外、发送前钩子和桌面界面仍属于
 后续方向。详见[路线图](docs/roadmap.md)。
 
 项目以三个可验证承诺保持长期价值：输入留在本地、证据始终隐藏、不完整覆盖绝不伪装成干净扫描。

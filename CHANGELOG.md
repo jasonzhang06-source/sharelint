@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-09-07
+
+### Added
+
+- Local handoff plans with bounded validation, masked snapshots, and explicit inspection.
+- Planned packing requires unchanged source, policy, producer version, and fresh scan results.
+- Exact plan-to-receipt binding and offline verification without trusting imported paths.
+- Versioned plan/receipt schemas, migration documentation, and installed-program regressions.
+
+### Changed
+
+- **Receipt schema 2.0.0:** all new receipt manifests replace `files[].path` with
+  zero-based `files[].entry`, preventing repetition of matched private filenames
+  when an operator permits non-blocking findings. Old v1 receipts remain verifiable.
+- Native scan reports remain schema 1.0.0; existing scan/pack safety gates remain.
+
 ## [1.3.0] - 2026-09-07
 
 ### Added
@@ -168,7 +184,8 @@ work with focused usability fixes; no new scanning features are introduced.
 - A branch-aware 75% coverage floor enforced in CI and release verification.
 - CodeQL analysis, dependency update automation, and a Trusted Publishing release workflow.
 
-[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/jasonzhang06-source/sharelint/compare/v1.3.0...v2.0.0
 [1.3.0]: https://github.com/jasonzhang06-source/sharelint/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/jasonzhang06-source/sharelint/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/jasonzhang06-source/sharelint/compare/v1.1.0...v1.2.0

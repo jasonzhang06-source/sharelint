@@ -87,4 +87,8 @@ assert result.status == "verified"
 
 Catch `sharelint.VerificationError` for mismatches and
 `sharelint.input_io.DocumentInputError` for invalid/unreadable inputs.
-Existing native report and receipt schemas remain unchanged.
+Native report schema remains `1.0.0`. ShareLint 2.0 emits receipt schema `2.0.0`
+with filename-free entry indices; this verifier accepts both receipt versions.
+For a receipt bound to a handoff plan, also supply `plan_path=Path("plan.json")`
+in Python or `--plan plan.json` on the CLI. The plan is mandatory when bound;
+it is never opened through a path imported from a receipt. See [migration](migration-2.md).

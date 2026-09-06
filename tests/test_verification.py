@@ -64,6 +64,38 @@ class VerificationTests(CliTestCase):
         self.assertEqual(result.returncode, 1)
         self.assertEqual(result.json()["status"], "mismatch")
 
+    def test_legacy_v1_receipts_remain_verifiable(self) -> None:
+        bundle, receipt, report = self.make_pack()
+        document = json.loads(receipt.read_bytes())
+        document["schema_version"] = "1.0.0"
+        with zipfile.ZipFile(bundle) as archive:
+            names = archive.namelist()
+        document["files"] = [
+            {"path": names[item["entry"]], "size": item["size"], "sha256": item["sha256"]}
+            for item in document["files"]
+        ]
+        self.write_json(receipt, document)
+        self.assertEqual(verify_receipt(receipt, report, bundle).status, "verified")
+        document["files"][0]["path"] = "../escape"
+        with self.assertRaises(DocumentInputError):
+            validate_receipt(json.dumps(document).encode())
+
+    def test_v2_entry_indices_are_exact_and_do_not_accept_paths(self) -> None:
+        bundle, receipt, report = self.make_pack()
+        original = json.loads(receipt.read_bytes())
+        self.assertEqual(original["schema_version"], "2.0.0")
+        self.assertEqual(set(original["files"][0]), {"entry", "size", "sha256"})
+        for value in (True, -1, 1, "0", 0.0):
+            altered = copy.deepcopy(original)
+            altered["files"][0]["entry"] = value
+            with self.subTest(value=value), self.assertRaises(DocumentInputError):
+                validate_receipt(json.dumps(altered).encode())
+        altered = copy.deepcopy(original)
+        altered["files"][0]["path"] = "PRIVATE_MARKER"
+        with self.assertRaises(DocumentInputError):
+            validate_receipt(json.dumps(altered).encode())
+        self.assertEqual(verify_receipt(receipt, report, bundle).status, "verified")
+
     def test_artifact_mutation_and_expected_receipt_digest_are_rejected(self) -> None:
         bundle, receipt, report = self.make_pack()
         with self.assertRaises(VerificationError):
@@ -140,7 +172,7 @@ class VerificationTests(CliTestCase):
         original = json.loads(receipt.read_bytes())
         cases = []
         for key, value in (
-            ("schema_version", "2.0.0"),
+            ("schema_version", "9.0.0"),
             ("unexpected", "PRIVATE_MARKER"),
             ("created_at", "2026-90-01T10:00:00Z"),
             ("reasons", ["coverage_incomplete"]),

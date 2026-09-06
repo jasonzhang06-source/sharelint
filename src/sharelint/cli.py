@@ -18,6 +18,7 @@ from .demo import create_demo_bundle, render_demo_console
 from .input_io import DocumentInputError
 from .models import Severity
 from .packing import PackBlocked, PackError, pack
+from .planning import create_plan, read_plan
 from .reporters import render, render_console
 from .rules import RULES
 from .scanner import ScanInputError, scan
@@ -149,6 +150,7 @@ def _parser() -> argparse.ArgumentParser:
         help="write the private hash-bound JSON report here (requires --receipt)",
     )
     _policy_arguments(pack_parser, include_strict=False)
+    pack_parser.add_argument("--plan", type=Path, help="require a matching reviewed handoff plan")
     pack_parser.add_argument("--no-color", action="store_true", help="disable terminal colors")
 
     demo_parser = subparsers.add_parser(
@@ -209,6 +211,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     verify_parser.add_argument("--receipt", type=Path, required=True)
     verify_parser.add_argument("--report", type=Path, required=True)
+    verify_parser.add_argument("--plan", type=Path, help="required for a planned v2 receipt")
     verify_parser.add_argument("--config", type=Path, help="explicit verifier resource limits")
     verify_parser.add_argument("--profile", help="profile supplying verifier resource limits")
     verify_parser.add_argument(
@@ -225,6 +228,19 @@ def _parser() -> argparse.ArgumentParser:
     diff_parser.add_argument(
         "-o", "--output", type=Path, help="new comparison output; required for HTML"
     )
+    plan_parser = subparsers.add_parser(
+        "plan", help="create and inspect a private handoff snapshot"
+    )
+    plan_commands = plan_parser.add_subparsers(dest="plan_command", required=True)
+    plan_create = plan_commands.add_parser("create", help="scan input into a new reviewable plan")
+    plan_create.add_argument("target", type=Path)
+    plan_create.add_argument("-o", "--output", type=Path, required=True)
+    _policy_arguments(plan_create, include_strict=False)
+    plan_inspect = plan_commands.add_parser(
+        "inspect", help="validate a plan and show privacy-safe counts"
+    )
+    plan_inspect.add_argument("plan", type=Path)
+    plan_inspect.add_argument("--format", choices=("console", "json"), default="console")
     return parser
 
 
@@ -332,6 +348,7 @@ def _pack_command(arguments: argparse.Namespace) -> int:
             write_receipt=not arguments.no_receipt,
             fail_on=settings.fail_on,
             limits=settings.limits,
+            plan=arguments.plan,
         )
     except PackBlocked as exc:
         sys.stdout.write(
@@ -464,6 +481,7 @@ def _verify_command(arguments: argparse.Namespace) -> int:
             arguments.artifact,
             limits=settings.limits,
             expected_receipt_sha256=arguments.expected_receipt_sha256,
+            plan_path=arguments.plan,
         )
     except VerificationError as exc:
         if arguments.format == "json":
@@ -500,6 +518,36 @@ def _diff_command(arguments: argparse.Namespace) -> int:
     return 1 if comparison.requires_review else 0
 
 
+def _plan_command(arguments: argparse.Namespace) -> int:
+    if arguments.plan_command == "create":
+        settings = resolve_settings(
+            config=arguments.config,
+            profile=arguments.profile,
+            fail_on=arguments.fail_on,
+        )
+        _validate_scan_output(arguments.target, arguments.output)
+        plan = create_plan(arguments.target, limits=settings.limits, fail_on=settings.fail_on)
+        _write_or_print(plan.payload.decode("utf-8"), arguments.output)
+        sys.stdout.write(
+            f"PLAN {'READY' if plan.ready else 'BLOCKED'} · sha256:{plan.sha256}\n"
+            "Keep the plan private. It is a snapshot, not approval or a signature.\n"
+        )
+    else:
+        plan = read_plan(arguments.plan)
+        summary = plan.summary()
+        if arguments.format == "json":
+            sys.stdout.write(json.dumps(summary, sort_keys=True, indent=2) + "\n")
+        else:
+            sys.stdout.write(
+                f"PLAN {'READY' if plan.ready else 'BLOCKED'} · sha256:{plan.sha256}\n"
+                f"Producer matches installed version: {summary['producer_version_matches']}\n"
+                f"Findings: {summary['summary']['total_findings']} · "
+                f"coverage complete: {summary['summary']['coverage_complete']}\n"
+                f"{summary['claim']}\n"
+            )
+    return 0 if plan.ready else 1
+
+
 def _main(argv: Sequence[str] | None = None) -> int:
     _configure_standard_streams()
     parser = _parser()
@@ -521,6 +569,8 @@ def _main(argv: Sequence[str] | None = None) -> int:
             return _verify_command(arguments)
         if arguments.command == "diff":
             return _diff_command(arguments)
+        if arguments.command == "plan":
+            return _plan_command(arguments)
     except BrokenPipeError:
         raise
     except (ScanInputError, PackError, ConfigurationError, DocumentInputError, OSError) as exc:

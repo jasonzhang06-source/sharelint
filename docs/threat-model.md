@@ -1,6 +1,6 @@
 # Threat model
 
-This document defines the security boundary for the ShareLint 1.x line. The words
+This document defines the security boundary for the ShareLint 2.x line. The words
 **MUST**, **MUST NOT**, **SHOULD**, and **MAY** describe requirements for the
 scanner, reporters, and `pack` workflow.
 
@@ -210,8 +210,10 @@ identity, durable suppression key, cross-run identifier, or proof that two
 different values cannot collide. Consumers MUST NOT compare fingerprints from
 different scopes. Receipt files contain aggregate counts and a report digest,
 but never finding previews, fingerprints, locations, or messages. A successful
-receipt may list the paths, sizes, and hashes of files that are already visible
-inside its ZIP artifact. A blocked receipt has no file manifest.
+v2 receipt lists only ZIP entry indices, sizes, and hashes. Legacy v1 receipts
+may repeat ZIP member paths and should be treated as private artifact metadata.
+A blocked receipt has no file manifest. No receipt is a sanitized substitute
+for inspecting the artifact itself.
 
 Masking is type-aware and bounded. Credentials and private keys reveal only a
 type and bounded length; national/payment identifiers reveal only a digit
@@ -260,9 +262,21 @@ interpreted as a successful export.
 
 The receipt binds only particular bytes to a particular ShareLint result and
 configuration; without a signature it does not identify who created either.
-Receipt verification is not yet a shipped CLI feature. A future or external
-verifier should recompute hashes and schema constraints; rerunning detectors is
-a separate, explicit operation and neither check is a safety verdict.
+The offline `verify` command recomputes hashes, validates structure and policy
+consistency, and checks a bounded in-memory manifest without extraction.
+Rerunning detectors is a separate, explicit operation; neither check is a
+safety verdict. Both v1 and v2 receipts are accepted.
+
+Optional handoff plans bind a selected source boundary, effective policy,
+producer version, and already-masked scan snapshot. Plans MUST NOT supply
+implicit weaker policy or larger budgets. Planned packing MUST compare the
+snapshot before construction and at the final source recheck, while retaining
+every fresh scan and publication gate. A successful planned receipt binds exact
+plan bytes and requires the explicit plan during verification. Plans are
+unsigned, self-asserted review records, never approval or authorization. Their
+digests bind content, not a trusted person; a malicious operator can replace
+the plan and artifact together. Plans and their contextual reports remain
+sensitive and MUST use protected non-overwriting publication.
 
 ## Non-promises and out-of-scope threats
 

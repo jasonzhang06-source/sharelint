@@ -1,7 +1,11 @@
-# ShareLint 1.x compatibility
+# ShareLint compatibility and migration
 
 Version 1.0 stabilizes the existing local privacy preflight. It does not expand
 format coverage or turn a passing scan into a guarantee of safe sharing.
+
+Version 2.0 adds optional handoff plans and changes all newly emitted receipt
+manifests to schema `2.0.0`: entry indices replace raw paths. Legacy receipts
+remain readable. See [migration](migration-2.md) before updating machine consumers.
 
 ## Supported contracts
 
@@ -11,7 +15,7 @@ format coverage or turn a passing scan into a guarantee of safe sharing.
 - Exit codes: `0` for a completed, non-blocking command, `1` for a policy block,
   and `2` for usage or operational errors. `demo` returns `0` for its deliberately
   blocked synthetic example. Use `scan --strict` to fail on incomplete coverage.
-- Native report and receipt schema `1.0.0`, and SARIF 2.1.0, as specified in
+- Native report schema `1.0.0`, receipt schema `2.0.0`, and SARIF 2.1.0, as specified in
   [report formats](report-format.md). Package and schema versions are independent.
 - Public Python exports listed in `sharelint.__all__`; underscore-prefixed
   functions and scanner implementation modules are internal.

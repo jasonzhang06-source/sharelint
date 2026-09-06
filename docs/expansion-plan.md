@@ -10,9 +10,9 @@ keeps Python 3.11+ and a dependency-free core.
 | --- | --- | --- |
 | 1.1.0 | Explicit TOML configuration, reusable policy profiles, bounded scan limits | Published and installed from public PyPI |
 | 1.2.0 | Offline receipt, report, and artifact verification | Published and installed from public PyPI |
-| 1.2.1 | Cancellation, closed-pipe, and rollback regressions | Native CI passed; release preparation |
-| 1.3.0 | Validated report comparison and coverage-change review | Local validation passed |
-| 2.0.0 | Reviewable handoff plans bound to input and effective policy | Planned |
+| 1.2.1 | Cancellation, closed-pipe, and rollback regressions | Published and installed from public PyPI |
+| 1.3.0 | Validated report comparison and coverage-change review | Published and installed from public PyPI |
+| 2.0.0 | Reviewable handoff plans and privacy-minimized receipt migration | Local gates passed; native CI preparation |
 | 2.1.0 | Bounded batch scanning with per-target results | Planned |
 | 3.0.0 | Reviewable text-redaction plans and rescanned new outputs | Planned |
 | 3.1.0 | Bounded encoded-content inspection with explicit provenance | Planned |
@@ -61,3 +61,14 @@ versions and workflow links below as work proceeds.
   schema, privacy, CLI, and Python 3.11 tests passed. No public release claimed yet.
 - The existing long-running Goal is paused; no background continuation was
   enabled by this work. Progress in the active conversation is checkpointed here.
+- 1.2.1 [publication](https://github.com/jasonzhang06-source/sharelint/actions/runs/34045514747)
+  succeeded and its public PyPI wheel passed isolated Python 3.11 verification.
+- 1.3.0 source `e3edf75`: [native CI](https://github.com/jasonzhang06-source/sharelint/actions/runs/34045515846)
+  and [publication](https://github.com/jasonzhang06-source/sharelint/actions/runs/34046052030)
+  passed. The publicly served wheel was installed without cache and passed its
+  exact-version isolated smoke test, including offline verification and comparison.
+- 2.0.0 local gates: 172 tests passed, two platform skips, 82.52% branch coverage;
+  lint/format/types, legacy public-1.1 receipt verification, and Python 3.11
+  source/installed-wheel planning, packing, and verification checks passed.
+  New v2 receipts remove filename repetition demonstrated by a synthetic
+  non-blocking filename regression. No native/public release is claimed yet.

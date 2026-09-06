@@ -144,6 +144,9 @@ def verify() -> None:
         bundle = outputs / "shareable.zip"
         receipt = outputs / "private-receipt.json"
         report = outputs / "private-report.json"
+        plan = outputs / "private-plan.json"
+        planned = _run(work, environment, "plan", "create", str(handoff), "-o", str(plan))
+        _expect(planned, 0, "handoff planning")
         packed = _run(
             work,
             environment,
@@ -155,6 +158,8 @@ def verify() -> None:
             str(receipt),
             "--report",
             str(report),
+            "--plan",
+            str(plan),
         )
         _expect(packed, 0, "clean pack")
         if not zipfile.is_zipfile(bundle) or "Shareable bundle" not in packed.stdout:
@@ -168,6 +173,8 @@ def verify() -> None:
             str(receipt),
             "--report",
             str(report),
+            "--plan",
+            str(plan),
             "--format",
             "json",
         )

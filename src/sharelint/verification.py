@@ -29,6 +29,7 @@ from .documents import (
 )
 from .input_io import DocumentInputError, read_document
 from .models import ScanLimits, Severity
+from .planning import read_plan
 from .reporters import canonical_json
 from .scanners.archive import has_excessive_central_directory, normalized_member_name
 
@@ -97,10 +98,28 @@ def validate_receipt(data: bytes) -> dict[str, Any]:
             "reasons",
             "claim",
         ),
-        optional=("archive", "files", "verification"),
+        optional=("archive", "files", "verification", "plan"),
         strict=True,
     )
-    require(doc["schema_version"] == "1.0.0" and doc["receipt_type"] == "sharelint.pack")
+    version = choice(doc["schema_version"], ("1.0.0", "2.0.0"))
+    require(doc["receipt_type"] == "sharelint.pack")
+    if version == "2.0.0" and "plan" in doc:
+        require(doc["status"] == "packed")
+        binding = object_fields(
+            doc["plan"],
+            (
+                "schema_version",
+                "sha256",
+                "snapshot_sha256",
+                "source_boundary_sha256",
+            ),
+            strict=True,
+        )
+        require(binding["schema_version"] == "1.0.0")
+        for key in ("sha256", "snapshot_sha256", "source_boundary_sha256"):
+            digest(binding[key])
+    elif version == "1.0.0":
+        require("plan" not in doc)
     status = choice(doc["status"], ("packed", "blocked"))
     tool = object_fields(doc["tool"], ("name", "version"), strict=True)
     require(tool["name"] == "sharelint")
@@ -156,11 +175,15 @@ def validate_receipt(data: bytes) -> dict[str, Any]:
     integer(archive["size"])
     digest(archive["sha256"])
     names: list[str] = []
-    for value in array(doc["files"]):
-        item = object_fields(value, ("path", "size", "sha256"), strict=True)
-        name = string(item["path"], maximum=4096)
-        require(normalized_member_name(name) == name and not name.endswith("/"))
-        names.append(name)
+    for index, value in enumerate(array(doc["files"])):
+        if version == "1.0.0":
+            item = object_fields(value, ("path", "size", "sha256"), strict=True)
+            name = string(item["path"], maximum=4096)
+            require(normalized_member_name(name) == name and not name.endswith("/"))
+            names.append(name)
+        else:
+            item = object_fields(value, ("entry", "size", "sha256"), strict=True)
+            require(integer(item["entry"]) == index)
         integer(item["size"])
         digest(item["sha256"])
     require(names == sorted(set(names)))
@@ -251,6 +274,7 @@ def verify_receipt(
     *,
     limits: ScanLimits | None = None,
     expected_receipt_sha256: str | None = None,
+    plan_path: Path | None = None,
 ) -> VerificationResult:
     """Check exact bytes and consistency; never follow paths embedded in inputs.
 
@@ -297,6 +321,24 @@ def verify_receipt(
     )
     if expected_receipt_sha256 is not None:
         checks += ("expected-receipt-digest",)
+    if "plan" in receipt:
+        if plan_path is None:
+            raise DocumentInputError(
+                "planned receipt verification requires an explicit --plan file"
+            )
+        plan = read_plan(plan_path)
+        _matches(
+            plan.ready
+            and plan.binding() == receipt["plan"]
+            and plan.document["policy"] == policy
+            and plan.report.tool_version == receipt["tool"]["version"]
+            and plan.report.target_kind == receipt["source"]["kind"]
+            and plan.report.target_sha256 == receipt["source"].get("sha256"),
+            "handoff plan does not match the receipt bindings",
+        )
+        checks += ("handoff-plan-binding",)
+    elif plan_path is not None:
+        raise DocumentInputError("this receipt has no handoff plan binding")
     if receipt["status"] == "blocked":
         require(artifact_path is None)
         expected_source: dict[str, Any] = {
@@ -336,6 +378,11 @@ def verify_receipt(
         "report target does not match the archive",
     )
     manifest = _archive_manifest(artifact_bytes, limits)
+    if receipt["schema_version"] == "2.0.0":
+        manifest = [
+            {"entry": index, "size": item["size"], "sha256": item["sha256"]}
+            for index, item in enumerate(manifest)
+        ]
     _matches(manifest == receipt["files"], "archive contents do not match the recorded manifest")
     return VerificationResult(
         "verified",

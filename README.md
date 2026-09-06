@@ -112,10 +112,10 @@ the destination filesystem so ShareLint can preserve its no-overwrite contract.
 See [platform support](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/platform-support.md)
 for the validation matrix, Windows notes, and filesystem limitations.
 
-> **ShareLint 1.0.** The existing scan, report, and pack workflow is now the stable release line.
-> CLI exit codes and versioned JSON contracts remain compatible with 0.1.x. Format coverage is
-> unchanged: PDF pages and image pixels are not OCR-scanned, and incomplete coverage blocks `pack`.
-> See the [1.x compatibility policy](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/stability.md).
+> **ShareLint 2.0.** Create a reviewable handoff plan, then pack only if source and policy still match.
+> New receipt schema 2.0.0 replaces filenames with ZIP entry indices; native scan reports remain 1.0.0.
+> Read the [migration guide](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/migration-2.md).
+> PDF pages and image pixels are not OCR-scanned; incomplete coverage still blocks `pack`.
 
 You are about to send a ZIP. The code is clean, but the deck still has speaker notes, the workbook
 contains a very-hidden sheet, the PDF names its author, and an image records a location. Git-focused
@@ -220,7 +220,7 @@ and companion report digest. On failure, no archive is published. An explicit
 `--receipt blocked.json` may write `blocked.json` plus `blocked.report.json` for the blocked attempt;
 it is never a success receipt. Companion reports include masked findings and contextual filenames,
 so protect them as sensitive records even though matched values remain hidden. Successful receipts
-also list archive member paths and should be protected alongside the archive.
+use ZIP entry indices instead of repeating filenames and should still be protected.
 
 `pack` always rejects partial, skipped, or errored coverage. There is deliberately no bypass flag:
 a pack receipt is only meaningful when every required surface was inspected.
@@ -345,10 +345,22 @@ review. It never treats report-scoped fingerprints as stable evidence IDs, and
 fewer findings do not prove a particular issue was fixed. See the
 [comparison guide](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/comparison.md).
 
+## Review before export
+
+```bash
+sharelint plan create ./handoff -o handoff.plan.json
+sharelint plan inspect handoff.plan.json
+sharelint pack ./handoff -o delivery.zip --plan handoff.plan.json
+```
+
+Packing repeats all strict checks and rejects changed source, policy, or scan
+snapshots. A plan is a private review record, not approval or a signature.
+See [handoff plans](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/handoff-plans.md).
+
 ## Project status and direction
 
-ShareLint 1.x builds on the stable scanning and packaging workflow: 1.1 adds explicit
-policy profiles, and 1.2 adds offline receipt verification. The maintenance priority
+ShareLint adds explicit policy profiles, offline receipt verification, report
+comparison, and reviewable handoff plans to the scanning/packaging workflow. The maintenance priority
 is synthetic regression tests, conservative coverage, and compatibility. Local OCR, policy exceptions,
 pre-send hooks, and a desktop interface remain future work. See the
 [roadmap](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/roadmap.md).

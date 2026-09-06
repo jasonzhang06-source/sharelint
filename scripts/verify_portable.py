@@ -219,6 +219,11 @@ def verify(executable: Path) -> None:
         bundle = output_dir / "safe-to-share.zip"
         receipt = output_dir / "private-receipt.json"
         report = output_dir / "private-report.json"
+        plan = output_dir / "private-plan.json"
+        planned = _run(
+            executable, work, environment, "plan", "create", str(pack_input), "-o", str(plan)
+        )
+        _expect(planned, 0, "handoff planning")
         packed = _run(
             executable,
             work,
@@ -231,6 +236,8 @@ def verify(executable: Path) -> None:
             str(receipt),
             "--report",
             str(report),
+            "--plan",
+            str(plan),
         )
         _expect(packed, 0, "pack")
         if not zipfile.is_zipfile(bundle):
@@ -249,6 +256,8 @@ def verify(executable: Path) -> None:
             str(receipt),
             "--report",
             str(report),
+            "--plan",
+            str(plan),
             "--format",
             "json",
         )

@@ -24,8 +24,9 @@ from .filesystem import (
     metadata_matches_open_file,
 )
 from .models import ScanLimits, ScanReport, Severity
-from .reporters import canonical_json, render_json
-from .rules import RULES
+from .planning import read_plan
+from .policy import policy_document, ruleset_sha256
+from .reporters import render_json
 from .scanner import ScanInputError, scan
 from .scanners.archive import has_excessive_central_directory, normalized_member_name
 from .windows_streams import WindowsStreamStatus, inspect_windows_streams
@@ -323,39 +324,11 @@ def _manifest_from_zip(path: Path, limits: ScanLimits) -> list[dict[str, Any]]:
 
 
 def _ruleset_sha256() -> str:
-    descriptor = {
-        "format": "sharelint-ruleset-v1",
-        "engine": "builtin-v1",
-        "rules": [
-            {
-                "id": rule.rule_id,
-                "title": rule.title,
-                "severity": rule.severity.value,
-                "remediation": rule.remediation,
-                "tags": sorted(rule.tags),
-            }
-            for rule in (RULES[rule_id] for rule_id in sorted(RULES))
-        ],
-    }
-    return hashlib.sha256(canonical_json(descriptor).encode("utf-8")).hexdigest()
+    return ruleset_sha256()
 
 
 def _policy_document(report: ScanReport, threshold: Severity) -> dict[str, Any]:
-    ruleset_sha256 = _ruleset_sha256()
-    descriptor = {
-        "format": "sharelint-pack-policy-v1",
-        "fail_on": threshold.value,
-        "require_complete_coverage": True,
-        "limits": report.limits.to_dict(),
-        "ruleset_sha256": ruleset_sha256,
-    }
-    return {
-        "sha256": hashlib.sha256(canonical_json(descriptor).encode("utf-8")).hexdigest(),
-        "ruleset_sha256": ruleset_sha256,
-        "fail_on": threshold.value,
-        "require_complete_coverage": True,
-        "limits": report.limits.to_dict(),
-    }
+    return policy_document(report.limits, threshold, ruleset_digest=_ruleset_sha256())
 
 
 def _report_bytes(report: ScanReport, threshold: Severity) -> bytes:
@@ -388,7 +361,7 @@ def _receipt_common(
     report_sha256: str,
 ) -> dict[str, Any]:
     return {
-        "schema_version": "1.0.0",
+        "schema_version": "2.0.0",
         "receipt_type": "sharelint.pack",
         "status": status,
         "tool": {"name": "sharelint", "version": report.tool_version},
@@ -409,6 +382,7 @@ def _receipt_document(
     files: list[dict[str, Any]],
     threshold: Severity,
     report_sha256: str,
+    plan_binding: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     document = _receipt_common(verified, threshold, "packed", [], report_sha256)
     document["source"] = _source_identity(source_report)
@@ -420,7 +394,10 @@ def _receipt_document(
                 "sha256": archive_sha256,
                 "profile": "deterministic-zip-v1",
             },
-            "files": files,
+            "files": [
+                {"entry": index, "size": item["size"], "sha256": item["sha256"]}
+                for index, item in enumerate(files)
+            ],
             "verification": {
                 "coverage_complete": True,
                 "reopened_and_rescanned": True,
@@ -432,6 +409,8 @@ def _receipt_document(
             ),
         }
     )
+    if plan_binding is not None:
+        document["plan"] = plan_binding
     return document
 
 
@@ -663,9 +642,13 @@ def pack(
     write_receipt: bool = True,
     fail_on: Severity = Severity.HIGH,
     limits: ScanLimits | None = None,
+    plan: str | os.PathLike[str] | None = None,
 ) -> PackedArtifact:
     source = Path(target)
     destination = Path(output)
+    if plan is not None and not write_receipt:
+        raise PackError("planned packing requires a verification receipt")
+    handoff_plan = read_plan(Path(plan)) if plan is not None else None
     receipt_path = (
         Path(receipt)
         if receipt is not None
@@ -724,6 +707,8 @@ def pack(
                 raise PackError("report must be outside the source directory")
 
     initial = scan(source, limits=limits)
+    if handoff_plan is not None:
+        handoff_plan.require_match(source, initial, fail_on)
     reasons = _policy_reasons(initial, fail_on)
     if reasons:
         blocked_receipt: Path | None = None
@@ -838,6 +823,8 @@ def pack(
                 report_output=blocked_report,
             )
 
+        if handoff_plan is not None:
+            handoff_plan.require_match(source, source_after, fail_on)
         report_bytes = _report_bytes(verified, fail_on)
         document = _receipt_document(
             initial,
@@ -847,6 +834,7 @@ def pack(
             files,
             fail_on,
             _report_sha256(report_bytes),
+            plan_binding=handoff_plan.binding() if handoff_plan is not None else None,
         )
         archive_publication = _publish_without_overwrite(
             temporary_path,

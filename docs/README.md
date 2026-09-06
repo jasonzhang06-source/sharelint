@@ -1,7 +1,7 @@
 # ShareLint documentation
 
 Use this page as the stable map of ShareLint's user, integration, contributor,
-and maintainer documentation for ShareLint 1.x. Documented
+and maintainer documentation for ShareLint. Documented
 coverage is a measured boundary, not a guarantee that a file is safe or free of
 sensitive data.
 
@@ -13,6 +13,8 @@ sensitive data.
 - [What ShareLint checks](../README.md#what-it-checks)
 - [Rules and stable identifiers](rules.md)
 - [Explicit configuration and policy profiles](configuration.md)
+- [Reviewable handoff plans](handoff-plans.md)
+- [Migrating receipt consumers to 2.0](migration-2.md)
 - [Project direction and non-goals](roadmap.md)
 
 ## Integrate reports
@@ -22,7 +24,9 @@ sensitive data.
 - [Comparison JSON Schema](../schemas/comparison.schema.json)
 - [Native JSON, SARIF, and receipt contracts](report-format.md)
 - [Native report JSON Schema](../schemas/report.schema.json)
-- [Pack receipt JSON Schema](../schemas/receipt.schema.json)
+- [Pack receipt v2 JSON Schema](../schemas/receipt-v2.schema.json)
+- [Legacy receipt v1 JSON Schema](../schemas/receipt.schema.json)
+- [Handoff plan JSON Schema](../schemas/handoff-plan.schema.json)
 
 Machine consumers should prefer the native JSON report when they need complete
 ShareLint coverage semantics. SARIF is an integration projection, and a pack
@@ -47,7 +51,7 @@ issue or pull request.
 - [Support policy](../SUPPORT.md)
 - [Governance](../GOVERNANCE.md)
 - [Changelog](../CHANGELOG.md)
-- [1.x compatibility and maintenance](stability.md)
+- [Compatibility and maintenance](stability.md)
 
 Possible vulnerabilities belong in GitHub's private vulnerability reporting
 flow, not in a public issue.

@@ -13,6 +13,7 @@ except ImportError:  # pragma: no cover - dependency-free source checks intentio
 import tests.bootstrap  # noqa: F401
 from sharelint.comparison import compare_reports
 from sharelint.packing import PackBlocked, pack
+from sharelint.planning import create_plan
 from sharelint.reporters import render_json
 from sharelint.scanner import scan
 from tests.helpers import FICTIONAL_SECRET
@@ -51,8 +52,23 @@ class SchemaContractTests(unittest.TestCase):
         result["raw_evidence"] = "PRIVATE_MARKER"
         self.assertFalse(validator.is_valid(result))
 
+    def test_plans_and_v2_receipts_match_separate_schemas(self) -> None:
+        target = self.root / "ordinary.txt"
+        target.write_text("ordinary synthetic public text\n", encoding="utf-8")
+        plan = create_plan(target)
+        self.validator("handoff-plan.schema.json").validate(plan.document)
+        plan_path = self.root / "plan.json"
+        plan_path.write_bytes(plan.payload)
+        receipt = self.root / "receipt.json"
+        pack(target, self.root / "planned.zip", receipt=receipt, plan=plan_path)
+        document = json.loads(receipt.read_bytes())
+        self.validator("receipt-v2.schema.json").validate(document)
+        self.assertFalse(self.validator("receipt.schema.json").is_valid(document))
+        document["plan"]["raw_report"] = {"private": "PRIVATE_MARKER"}
+        self.assertFalse(self.validator("receipt-v2.schema.json").is_valid(document))
+
     def test_packed_and_blocked_receipts_match_published_schema(self) -> None:
-        validator = self.validator("receipt.schema.json")
+        validator = self.validator("receipt-v2.schema.json")
         source = self.root / "source"
         source.mkdir()
         (source / "ordinary.txt").write_text("ordinary synthetic public text\n", encoding="utf-8")
