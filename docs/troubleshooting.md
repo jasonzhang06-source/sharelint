@@ -2,7 +2,9 @@
 
 ShareLint is published as a Python 3.11+ package on
 [PyPI](https://pypi.org/project/sharelint/). The 1.0 release pipeline also builds
-zero-Python standalone archives. Installation and provenance
+zero-Python standalone archives, available in
+[v1.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0).
+Installation and provenance
 checks use the network; scanning itself has no upload, telemetry, account, or
 network feature.
 

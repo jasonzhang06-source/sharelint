@@ -39,6 +39,14 @@ macOS after the source suites pass.
 
 ## Standalone release target matrix
 
+**Available in [v1.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0).**
+All four native builds and their final archives passed the
+[release workflow](https://github.com/jasonzhang06-source/sharelint/actions/runs/34035839879).
+The release has four archives, four SHA-256 files, and GitHub build attestations.
+On 2026-09-06, the public PyPI wheel and downloaded Linux archive were also
+installed/run outside the build environment and passed their smoke tests.
+This is runner-level evidence, not verification of every end-user machine.
+
 The 1.0 release pipeline requires a native standalone build and smoke test for
 four OS/architecture targets. Release `v0.1.2` and earlier do not contain these
 archives; an asset is available

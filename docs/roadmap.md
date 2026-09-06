@@ -32,10 +32,10 @@ Shipped means implemented and covered by the current repository tests. It does
 not mean every format surface is complete; reports continue to expose known
 blind spots.
 
-## 1.0 release gate: native standalone delivery
+## Shipped in 1.0: native standalone delivery
 
-The 1.0 release pipeline validates a zero-Python release path for these native
-targets:
+[Version 1.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0)
+ships a zero-Python release path for these natively built and verified targets:
 
 - `linux-glibc-x86_64` on `ubuntu-22.04`;
 - `windows-x86_64` on `windows-2022`;
@@ -47,10 +47,10 @@ gate uses CPython 3.13.15 and hash-locked build wheels, then checks the exact
 archive contents, embedded `BUILD-INFO.json` byte bindings, a same-named
 SHA-256 file, and GitHub artifact provenance before attaching assets. The
 GitHub Release remains a private draft until PyPI publication also succeeds.
-Release `v0.1.2` and earlier do not include these archives. This item is
-complete only when a tagged release visibly contains all four verified
-archives and their checksums; a passing CI artifact by itself is not a public
-release.
+Release `v0.1.2` and earlier do not include these archives. All four archives
+and their checksums are attached to `v1.0.0`; the
+[release workflow](https://github.com/jasonzhang06-source/sharelint/actions/runs/34035839879)
+completed successfully. A passing CI artifact by itself is not a public release.
 
 Checksums, build provenance, and platform code signing are different controls.
 The initial Windows target is unsigned, and the initial macOS targets are

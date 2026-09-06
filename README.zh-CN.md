@@ -27,14 +27,15 @@
 
 从已完成的 [GitHub Release](https://github.com/jasonzhang06-source/sharelint/releases)
 下载对应系统的独立包。独立包包含 ShareLint 与 Python 运行时，目标电脑无需另装 Python、pip、uv 或 pipx。
-1.0 发布流程构建并验证以下四个原生目标：
+**[ShareLint 1.0.0 已发布](https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0)**，
+以下四个目标均已通过原生构建和验证：
 
 | 电脑 | 发行目标 |
 | --- | --- |
-| 使用 glibc 的 x86-64 Linux | `linux-glibc-x86_64` |
-| 64 位 Windows | `windows-x86_64` |
-| Intel Mac | `macos-x86_64` |
-| Apple 芯片 Mac | `macos-arm64` |
+| 使用 glibc 的 x86-64 Linux | [下载 Linux 版](https://github.com/jasonzhang06-source/sharelint/releases/download/v1.0.0/sharelint-v1.0.0-linux-glibc-x86_64.tar.gz) |
+| 64 位 Windows | [下载 Windows 版](https://github.com/jasonzhang06-source/sharelint/releases/download/v1.0.0/sharelint-v1.0.0-windows-x86_64.zip) |
+| Intel Mac | [下载 Intel Mac 版](https://github.com/jasonzhang06-source/sharelint/releases/download/v1.0.0/sharelint-v1.0.0-macos-x86_64.tar.gz) |
+| Apple 芯片 Mac | [下载 Apple 芯片 Mac 版](https://github.com/jasonzhang06-source/sharelint/releases/download/v1.0.0/sharelint-v1.0.0-macos-arm64.tar.gz) |
 
 **v0.1.2 及更早的发行版没有这些独立包。** 只使用已完成 Release 的附件，不要把普通 CI 构件当作正式发行。
 请同时下载压缩包与同名 `.sha256` 文件，再按照

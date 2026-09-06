@@ -32,14 +32,15 @@
 Download a matching archive from a completed
 [GitHub Release](https://github.com/jasonzhang06-source/sharelint/releases). Standalone archives
 include ShareLint and its Python runtime, so they do not require Python, pip, uv, or pipx on the
-destination computer. The 1.0 release pipeline builds and verifies four native targets:
+destination computer. **[ShareLint 1.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0)
+is available** for four natively built and verified targets:
 
 | Computer | Release target |
 | --- | --- |
-| x86-64 Linux with glibc | `linux-glibc-x86_64` |
-| 64-bit Windows | `windows-x86_64` |
-| Intel Mac | `macos-x86_64` |
-| Apple silicon Mac | `macos-arm64` |
+| x86-64 Linux with glibc | [Download Linux](https://github.com/jasonzhang06-source/sharelint/releases/download/v1.0.0/sharelint-v1.0.0-linux-glibc-x86_64.tar.gz) |
+| 64-bit Windows | [Download Windows](https://github.com/jasonzhang06-source/sharelint/releases/download/v1.0.0/sharelint-v1.0.0-windows-x86_64.zip) |
+| Intel Mac | [Download Intel Mac](https://github.com/jasonzhang06-source/sharelint/releases/download/v1.0.0/sharelint-v1.0.0-macos-x86_64.tar.gz) |
+| Apple silicon Mac | [Download Apple silicon Mac](https://github.com/jasonzhang06-source/sharelint/releases/download/v1.0.0/sharelint-v1.0.0-macos-arm64.tar.gz) |
 
 **Release v0.1.2 and earlier do not contain these standalone archives.** Use only files attached to
 a completed release, not ordinary CI artifacts. Download the archive and its same-named `.sha256`
