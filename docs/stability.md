@@ -38,7 +38,8 @@ corrections receive a new patch version.
 ## Coverage retained in 1.0
 
 PDF inspection remains static, image inspection remains metadata-only, and
-there is no OCR, automatic cleaning, graphical interface, or receipt verification
-command. Unsupported content stays visible as incomplete coverage and blocks
+there is no OCR, automatic cleaning, or graphical interface.
+Version 1.2 adds [offline receipt verification](verification.md) without changing
+the scan/pack contracts. Unsupported content stays visible as incomplete coverage and blocks
 `pack`. Scanning does not upload data or modify originals. Reports can still
 reveal contextual filenames and structure and should be handled accordingly.

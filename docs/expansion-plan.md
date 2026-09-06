@@ -8,8 +8,8 @@ keeps Python 3.11+ and a dependency-free core.
 
 | Version | Intended outcome | State |
 | --- | --- | --- |
-| 1.1.0 | Explicit TOML configuration, reusable policy profiles, bounded scan limits | In progress |
-| 1.2.0 | Offline receipt, report, and artifact verification | Planned |
+| 1.1.0 | Explicit TOML configuration, reusable policy profiles, bounded scan limits | Published and installed from public PyPI |
+| 1.2.0 | Offline receipt, report, and artifact verification | Native CI pending |
 | 1.2.1 | Regression fixes found during adversarial verification | Planned |
 | 1.3.0 | Validated report comparison and coverage-change review | Planned |
 | 2.0.0 | Reviewable handoff plans bound to input and effective policy | Planned |
@@ -35,5 +35,14 @@ versions and workflow links below as work proceeds.
 ## Evidence journal
 
 - Start: clean `main` at `da2e3b6`; public baseline is `v1.0.0`.
+- 1.1.0: source `24ff09a`; 121 local tests passed, two platform skips,
+  77.83% coverage. [Native CI](https://github.com/jasonzhang06-source/sharelint/actions/runs/34043185279)
+  and [release pipeline](https://github.com/jasonzhang06-source/sharelint/actions/runs/34043497065)
+  passed. GitHub published at 15:53 UTC with eight standalone/checksum assets;
+  fresh public-PyPI installation and isolated wheel smoke verification passed.
+- 1.2.0 local gate: 138 tests passed, two platform skips, 80.50% coverage;
+  lint/format/type checks, build/sdist normalization, package metadata checks,
+  and isolated installed-wheel receipt verification passed. Native CI and
+  public publication are not yet claimed.
 - The existing long-running Goal is paused; no background continuation was
   enabled by this work. Progress in the active conversation is checkpointed here.

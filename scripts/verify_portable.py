@@ -239,6 +239,22 @@ def verify(executable: Path) -> None:
             parsed = json.loads(document.read_text(encoding="utf-8"))
             if not isinstance(parsed, dict):
                 raise VerificationError("frozen pack metadata root was not an object")
+        verified = _run(
+            executable,
+            work,
+            environment,
+            "verify",
+            str(bundle),
+            "--receipt",
+            str(receipt),
+            "--report",
+            str(report),
+            "--format",
+            "json",
+        )
+        _expect(verified, 0, "receipt verification")
+        if _json(verified, "receipt verification").get("status") != "verified":
+            raise VerificationError("frozen executable did not verify its pack receipt")
 
 
 def _parser() -> argparse.ArgumentParser:

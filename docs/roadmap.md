@@ -96,9 +96,9 @@ ShareLint must not claim to remove all metadata.
   per-page coverage. Pages that were not processed successfully must remain
   explicit gaps; no OCR coverage may be inferred when the capability was not
   run and verified.
-- Add `sharelint verify` to validate receipt schemas and byte bindings, with
-  optional receipt signatures when a documented key model exists. Verification
-  of a receipt is not a rescan or a safety verdict.
+- Shipped in 1.2: `sharelint verify` validates receipt structures and byte bindings.
+  Optional signatures remain future work until a documented key model exists.
+  Verification of a receipt is not a rescan or a safety verdict.
 - Build desktop drag-and-drop and file-manager integration on the same scanner,
   policy, report, and no-overwrite contracts instead of creating a second
   scanning engine.

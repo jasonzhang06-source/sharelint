@@ -142,6 +142,8 @@ def verify() -> None:
             raise WheelVerificationError("installed wheel clean fixture produced findings")
 
         bundle = outputs / "shareable.zip"
+        receipt = outputs / "private-receipt.json"
+        report = outputs / "private-report.json"
         packed = _run(
             work,
             environment,
@@ -149,11 +151,29 @@ def verify() -> None:
             str(handoff),
             "--output",
             str(bundle),
-            "--no-receipt",
+            "--receipt",
+            str(receipt),
+            "--report",
+            str(report),
         )
         _expect(packed, 0, "clean pack")
         if not zipfile.is_zipfile(bundle) or "Shareable bundle" not in packed.stdout:
             raise WheelVerificationError("installed wheel did not complete a clean pack")
+        verified = _run(
+            work,
+            environment,
+            "verify",
+            str(bundle),
+            "--receipt",
+            str(receipt),
+            "--report",
+            str(report),
+            "--format",
+            "json",
+        )
+        _expect(verified, 0, "receipt verification")
+        if json.loads(verified.stdout).get("status") != "verified":
+            raise WheelVerificationError("installed wheel did not verify its pack receipt")
 
 
 def main() -> int:

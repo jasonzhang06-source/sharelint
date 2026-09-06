@@ -319,11 +319,24 @@ The security boundary and residual risks are documented in the
 [report and receipt contract](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/report-format.md), not parse console text.
 JSON Schema files for automated validation live in [`schemas/`](https://github.com/jasonzhang06-source/sharelint/tree/main/schemas).
 
+### Verify a delivered bundle offline
+
+```bash
+sharelint verify release.zip --receipt release.zip.sharelint.json --report release.zip.sharelint.report.json
+```
+
+Version 1.2 checks exact report/archive bytes, recomputed report summaries,
+recorded policy settings, and ZIP file manifests. It does not upload or extract
+files. Integrity is not a signature, producer authentication, a new privacy
+scan, or a guarantee of safe sharing. See the
+[verification contract](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/verification.md)
+for blocked receipts, independent digest pinning, budgets, and exit codes.
+
 ## Project status and direction
 
-ShareLint `1.0.0` stabilizes the existing local scanning and packaging workflow with clearer
-first-run guidance and a validated release pipeline. The maintenance priority is focused fixes,
-synthetic regression tests, and compatibility. Local OCR, policy exceptions, receipt verification,
+ShareLint 1.x builds on the stable scanning and packaging workflow: 1.1 adds explicit
+policy profiles, and 1.2 adds offline receipt verification. The maintenance priority
+is synthetic regression tests, conservative coverage, and compatibility. Local OCR, policy exceptions,
 pre-send hooks, and a desktop interface remain future work. See the
 [roadmap](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/roadmap.md).
 

@@ -20,6 +20,7 @@ from .packing import PackBlocked, PackError, pack
 from .reporters import render, render_console
 from .rules import RULES
 from .scanner import ScanInputError, scan
+from .verification import VerificationError, verify_receipt
 
 FORMATS = ("console", "json", "sarif", "html")
 _UNSAFE_TERMINAL_CODEPOINTS = {
@@ -198,6 +199,21 @@ def _parser() -> argparse.ArgumentParser:
         "show", help="show the complete effective policy as JSON"
     )
     _policy_arguments(config_show)
+
+    verify_parser = subparsers.add_parser(
+        "verify", help="verify a pack receipt, report, and archive entirely offline"
+    )
+    verify_parser.add_argument(
+        "artifact", type=Path, nargs="?", help="ZIP required for a packed receipt"
+    )
+    verify_parser.add_argument("--receipt", type=Path, required=True)
+    verify_parser.add_argument("--report", type=Path, required=True)
+    verify_parser.add_argument("--config", type=Path, help="explicit verifier resource limits")
+    verify_parser.add_argument("--profile", help="profile supplying verifier resource limits")
+    verify_parser.add_argument(
+        "--expected-receipt-sha256", help="receipt digest from a separately trusted channel"
+    )
+    verify_parser.add_argument("--format", choices=("console", "json"), default="console")
     return parser
 
 
@@ -428,6 +444,41 @@ def _config_command(arguments: argparse.Namespace) -> int:
     return 0
 
 
+def _verify_command(arguments: argparse.Namespace) -> int:
+    settings = resolve_settings(config=arguments.config, profile=arguments.profile)
+    try:
+        result = verify_receipt(
+            arguments.receipt,
+            arguments.report,
+            arguments.artifact,
+            limits=settings.limits,
+            expected_receipt_sha256=arguments.expected_receipt_sha256,
+        )
+    except VerificationError as exc:
+        if arguments.format == "json":
+            sys.stdout.write(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "verification_type": "sharelint.integrity",
+                        "status": "mismatch",
+                        "message": str(exc),
+                    },
+                    sort_keys=True,
+                )
+                + "\n"
+            )
+        else:
+            sys.stderr.write(f"INTEGRITY NOT VERIFIED: {exc}\n")
+        return 1
+    sys.stdout.write(
+        json.dumps(result.to_dict(), indent=2, sort_keys=True) + "\n"
+        if arguments.format == "json"
+        else result.render_console()
+    )
+    return 0 if result.status == "verified" else 1
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     _configure_standard_streams()
     parser = _parser()
@@ -445,6 +496,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _explain_command(arguments.rule_id)
         if arguments.command == "config":
             return _config_command(arguments)
+        if arguments.command == "verify":
+            return _verify_command(arguments)
     except (ScanInputError, PackError, ConfigurationError, DocumentInputError, OSError) as exc:
         message = "operating system operation failed" if isinstance(exc, OSError) else str(exc)
         sys.stderr.write(f"sharelint: {message}\n")

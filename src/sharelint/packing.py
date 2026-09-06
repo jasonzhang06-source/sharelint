@@ -18,7 +18,11 @@ from pathlib import Path
 from typing import IO, Any
 
 from .extended_attributes import ExtendedAttributeStatus, probe_extended_attributes
-from .filesystem import bounded_directory_items, metadata_matches_open_file
+from .filesystem import (
+    bounded_directory_items,
+    metadata_is_filesystem_link,
+    metadata_matches_open_file,
+)
 from .models import ScanLimits, ScanReport, Severity
 from .reporters import canonical_json, render_json
 from .rules import RULES
@@ -106,12 +110,12 @@ def _read_regular(path: Path, limit: int) -> bytes:
         before = path.stat(follow_symlinks=False)
     except OSError as exc:
         raise PackError("an input file could not be inspected for packing") from exc
-    if not stat.S_ISREG(before.st_mode):
+    if not stat.S_ISREG(before.st_mode) or metadata_is_filesystem_link(before):
         raise PackError("pack accepts regular files only")
     if before.st_size > limit:
         raise PackError("an input file exceeds the configured pack limit")
     flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_CLOEXEC", 0)
-    flags |= getattr(os, "O_NOFOLLOW", 0)
+    flags |= getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
     try:
         descriptor = os.open(path, flags)
     except OSError as exc:
@@ -123,9 +127,14 @@ def _read_regular(path: Path, limit: int) -> bytes:
                 raise PackError("an input file changed before it could be packed")
             data = _read_bounded(stream, limit)
             after = os.fstat(stream.fileno())
+            current = path.stat(follow_symlinks=False)
     except OSError as exc:
         raise PackError("an input file could not be read for packing") from exc
-    if (after.st_size, after.st_mtime_ns) != (opened.st_size, opened.st_mtime_ns):
+    if (
+        not metadata_matches_open_file(before, after)
+        or not metadata_matches_open_file(current, after)
+        or len(data) != before.st_size
+    ):
         raise PackError("an input file changed while it was being packed")
     return data
 
@@ -523,7 +532,7 @@ def _publication_matches(path: Path, publication: _PublishedFile) -> bool:
         ):
             return False
         flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_CLOEXEC", 0)
-        flags |= getattr(os, "O_NOFOLLOW", 0)
+        flags |= getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
         descriptor = os.open(publication.anchor, flags)
         digest = hashlib.sha256()
         consumed = 0

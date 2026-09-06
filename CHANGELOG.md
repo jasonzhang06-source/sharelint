@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-07
+
+### Added
+
+- Offline `verify` command and public Python receipt verification API.
+- Bounded native JSON validation with duplicate-key and non-finite value rejection,
+  independent summary recomputation, and conservative coverage handling.
+- Exact receipt/report/ZIP bindings, recorded policy consistency, bounded ZIP
+  manifest inspection, and optional independently obtained receipt digest pinning.
+- Explicit integrity-only results without imported filenames, evidence, or claims.
+- Installed wheel and four-target portable verification smoke coverage.
+
+Report and receipt schemas remain unchanged; existing scan and pack defaults
+remain compatible. Verification is not authentication or a privacy guarantee.
+
+### Fixed
+
+- Source and publication verification opens use nonblocking file descriptors
+  where supported, so a regular-file-to-FIFO race cannot hang the operation.
+- Packing rechecks no-follow file identity and exact read size after reading.
+
 ## [1.1.0] - 2026-09-06
 
 ### Added
@@ -125,7 +146,8 @@ work with focused usability fixes; no new scanning features are introduced.
 - A branch-aware 75% coverage floor enforced in CI and release verification.
 - CodeQL analysis, dependency update automation, and a Trusted Publishing release workflow.
 
-[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/jasonzhang06-source/sharelint/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/jasonzhang06-source/sharelint/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.2...v1.0.0
 [0.1.2]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.1...v0.1.2
