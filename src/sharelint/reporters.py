@@ -50,6 +50,31 @@ def _terminal_safe(value: str) -> str:
     )
 
 
+def _presentation_verdict(summary: dict[str, Any]) -> str:
+    """Return a human-facing verdict without changing machine-readable policy state."""
+
+    verdict = str(summary["verdict"]).upper()
+    if verdict == "PASS" and int(summary["total_findings"]) > 0:
+        return "REVIEW"
+    return verdict
+
+
+def _verdict_guidance(verdict: str) -> str:
+    if verdict == "REVIEW":
+        return (
+            "Review means findings exist below the selected blocking threshold; "
+            "inspect them before sharing."
+        )
+    if verdict == "BLOCKED":
+        return "Blocked means one or more findings met the selected blocking threshold."
+    if verdict == "INCOMPLETE":
+        return "Incomplete means one or more listed surfaces were not fully inspected."
+    return (
+        "Pass means no configured finding was detected on the listed surfaces; "
+        "it is not a safety guarantee."
+    )
+
+
 def render_console(
     report: ScanReport,
     threshold: Severity = Severity.HIGH,
@@ -57,8 +82,13 @@ def render_console(
     color: bool = False,
 ) -> str:
     summary = report.summary(threshold)
-    verdict_label = str(summary["verdict"]).upper()
-    verdict_code = {"PASS": "32;1", "BLOCKED": "31;1", "INCOMPLETE": "33;1"}[verdict_label]
+    verdict_label = _presentation_verdict(summary)
+    verdict_code = {
+        "PASS": "32;1",
+        "REVIEW": "33;1",
+        "BLOCKED": "31;1",
+        "INCOMPLETE": "33;1",
+    }[verdict_label]
     verdict = _color(verdict_label, verdict_code, color)
     lines = [
         f"ShareLint {report.tool_version} · local privacy preflight",
@@ -119,7 +149,7 @@ def render_console(
         [
             "",
             "Original untouched · 0 bytes uploaded · matched values hidden",
-            "A pass means no configured blocker was found on the listed surfaces; it is not a safety guarantee.",
+            _verdict_guidance(verdict_label),
         ]
     )
     return "\n".join(lines) + "\n"
@@ -225,8 +255,8 @@ def render_sarif(report: ScanReport, threshold: Severity = Severity.HIGH) -> str
 
 def render_html(report: ScanReport, threshold: Severity = Severity.HIGH) -> str:
     summary = report.summary(threshold)
-    verdict = str(summary["verdict"]).upper()
-    tone = {"PASS": "good", "BLOCKED": "bad", "INCOMPLETE": "warn"}[verdict]
+    verdict = _presentation_verdict(summary)
+    tone = {"PASS": "good", "REVIEW": "warn", "BLOCKED": "bad", "INCOMPLETE": "warn"}[verdict]
     counts = Counter(finding.severity.value for finding in report.findings)
     cards = "".join(
         f'<div class="metric"><b>{counts[severity.value]}</b><span>{severity.value}</span></div>'
@@ -284,7 +314,7 @@ h1{{font-size:clamp(36px,7vw,72px);line-height:1;margin:.2em 0}}.verdict{{displa
 <p class="sub">{summary["blocking_findings"]} policy-blocking finding(s) across {summary["surface_count"]} surface record(s). Target sha256:{html.escape(report.target_sha256)}</p>
 <section class="metrics">{cards}</section><section>{findings}</section>
 <section class="coverage"><h2>Coverage ledger</h2><p>{summary["surfaces_by_status"]["scanned"]} scanned · {summary["surfaces_by_status"]["partial"]} partial · {summary["surfaces_by_status"]["skipped"]} skipped · {summary["error_count"]} errors</p><ul>{gaps}</ul></section>
-<footer>Original untouched · 0 bytes uploaded · matched values hidden.<br>A pass is scoped to configured rules and listed surfaces; it is not a safety guarantee.</footer>
+<footer>Original untouched · 0 bytes uploaded · matched values hidden.<br>{html.escape(_verdict_guidance(verdict))}</footer>
 </main></body></html>\n"""
 
 

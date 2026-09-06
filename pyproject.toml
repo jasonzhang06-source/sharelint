@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=69"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -26,7 +26,7 @@ keywords = [
   "cli",
 ]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 5 - Production/Stable",
   "Environment :: Console",
   "Intended Audience :: Developers",
   "Intended Audience :: End Users/Desktop",
@@ -49,6 +49,16 @@ dev = [
   "pytest>=8,<9",
   "pytest-cov>=5,<7",
   "ruff>=0.8,<1",
+]
+standalone = [
+  "altgraph==0.17.5",
+  "macholib==1.16.4; sys_platform == 'darwin'",
+  "packaging==26.3",
+  "pefile==2024.8.26; sys_platform == 'win32'",
+  "pyinstaller==6.22.2",
+  "pyinstaller-hooks-contrib==2026.6",
+  "pywin32-ctypes==0.2.3; sys_platform == 'win32'",
+  "setuptools==84.0.0",
 ]
 
 [project.scripts]

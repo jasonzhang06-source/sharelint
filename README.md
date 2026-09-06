@@ -13,7 +13,7 @@
   <a href="https://github.com/jasonzhang06-source/sharelint/actions/workflows/codeql.yml"><img src="https://github.com/jasonzhang06-source/sharelint/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
   <a href="https://pypi.org/project/sharelint/"><img src="https://img.shields.io/pypi/v/sharelint.svg" alt="PyPI version"></a>
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/runtime_dependencies-0-38F2C2" alt="Zero runtime dependencies">
+  <img src="https://img.shields.io/badge/Python_package_dependencies-0-38F2C2" alt="No third-party Python package dependencies">
   <a href="https://github.com/jasonzhang06-source/sharelint/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-54A9FF" alt="MIT license"></a>
 </p>
 
@@ -27,25 +27,51 @@
 
 ## Quick start
 
-ShareLint requires Python 3.11 or newer. Try the synthetic demo without installing
-ShareLint if you already have [uv](https://docs.astral.sh/uv/guides/tools/):
+### No Python: standalone archive (forthcoming)
+
+The simplest installation will be a native archive from the
+[GitHub Releases page](https://github.com/jasonzhang06-source/sharelint/releases). It will include
+ShareLint and its Python runtime, so it will not require Python, pip, uv, or pipx on the destination
+computer. Four native targets are being validated for the next tagged release:
+
+| Computer | Planned release target |
+| --- | --- |
+| x86-64 Linux with glibc | `linux-glibc-x86_64` |
+| 64-bit Windows | `windows-x86_64` |
+| Intel Mac | `macos-x86_64` |
+| Apple silicon Mac | `macos-arm64` |
+
+**Release v0.1.2 and earlier do not contain these standalone archives.** Do not guess a download URL
+or treat an ordinary CI artifact as a release. When the files appear on a future release, download
+the archive and its same-named `.sha256` file, then follow the
+[verification and first-run instructions](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/troubleshooting.md#standalone-archive-verification).
+
+### Available now: run with uv
+
+If the standalone archive is not published yet, [uv](https://docs.astral.sh/uv/) is the shortest
+path. uv can obtain a compatible Python automatically; install uv for your operating system, then
+run the synthetic demo without persistently installing ShareLint:
 
 ```bash
 uvx sharelint demo
 ```
 
-Install it for regular use as an isolated CLI with
-[pipx](https://pipx.pypa.io/stable/):
+For regular use, install the tool persistently and make its command available to a new shell:
+
+```bash
+uv tool install sharelint
+uv tool update-shell
+```
+
+Open a new terminal after `uv tool update-shell`, then run `sharelint demo`. In the current shell,
+`uvx sharelint demo` continues to work immediately.
+
+If Python 3.11+ and [pipx](https://pipx.pypa.io/stable/) are already installed, pipx remains a
+supported alternative:
 
 ```bash
 pipx install sharelint
 sharelint demo
-```
-
-The equivalent persistent install with uv is:
-
-```bash
-uv tool install sharelint
 ```
 
 Preview the same synthetic scan as a self-contained local HTML report:
@@ -54,9 +80,10 @@ Preview the same synthetic scan as a self-contained local HTML report:
 sharelint demo --format html --report sharelint-demo.html
 ```
 
-A standard virtual environment and `pip` also work. See
+A standard virtual environment and `pip` also work. See the OS-specific
 [installation and troubleshooting](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/troubleshooting.md)
-for those commands, upgrades, PATH fixes, and externally managed Python environments.
+guide for installing uv from zero, standalone archive verification, upgrades, PATH fixes, and
+externally managed Python environments.
 
 For development, install from a source checkout:
 
@@ -68,20 +95,26 @@ python -m pip install -e .
 
 ### Platform support
 
-ShareLint targets Linux, Windows, and macOS on Python 3.11 or newer. The current
-source tree configures its complete unit and CLI contract suites on Ubuntu,
-Windows, and macOS; check the [CI result](https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml)
-for the exact commit or release you use. Package portability does not imply that
-every filesystem and security configuration has been verified.
+You do not need to switch operating systems to use or develop ShareLint. On Ubuntu, use the Linux
+target or the Python package and let CI exercise the native Windows and macOS jobs. A standalone
+binary is specific to its listed OS and architecture, so a Windows `.exe` does not run on Linux;
+manual validation of Windows-only host behavior still requires a Windows host.
+
+The Python 3.11+ package is tested on Ubuntu, Windows, and macOS. The forthcoming standalone matrix
+adds the four native targets listed above. Check the
+[CI result](https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml) for the exact
+commit or release you use. A configured target does not imply that every filesystem, OS version,
+shell, locale, or security policy has been verified.
 
 Writing reports, bundles, archives, and receipts requires hard-link support in
 the destination filesystem so ShareLint can preserve its no-overwrite contract.
 See [platform support](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/platform-support.md)
 for the validation matrix, Windows notes, and filesystem limitations.
 
-> **Alpha software.** ShareLint already has a working, dependency-free core, but its rules and
-> format coverage are still growing. Install a tagged package from PyPI for normal use, and
-> independently review important results.
+> **ShareLint 1.0.** The existing scan, report, and pack workflow is now the stable release line.
+> CLI exit codes and versioned JSON contracts remain compatible with 0.1.x. Format coverage is
+> unchanged: PDF pages and image pixels are not OCR-scanned, and incomplete coverage blocks `pack`.
+> See the [1.x compatibility policy](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/stability.md).
 
 You are about to send a ZIP. The code is clean, but the deck still has speaker notes, the workbook
 contains a very-hidden sheet, the PDF names its author, and an image records a location. Git-focused
@@ -107,12 +140,16 @@ It is intentionally composable with those controls rather than a replacement for
 
 ## Demo output
 
-The demo builds a disposable, entirely synthetic handoff bundle in a temporary directory. It shows
-nested Office content, PDF metadata, active content, redacted evidence, and an explicit PDF coverage
-gap without touching your files. Abridged output:
+The demo builds a disposable, entirely synthetic handoff bundle in a temporary directory. Its
+console output starts with a banner confirming that the data is synthetic and no personal files
+were read. It shows nested Office content, PDF metadata, active content, redacted evidence, and an
+explicit PDF coverage gap without touching your files. Abridged output:
 
 ```text
-ShareLint 0.1.2 · local privacy preflight
+SYNTHETIC DEMO · generated sample only
+No personal files were read; this run scanned only files created by ShareLint.
+
+ShareLint 1.0.0 · local privacy preflight
 INCOMPLETE · 5 policy-blocking finding(s) · 9 total · 13 surface(s)
 Coverage · 12 scanned · 1 partial · 0 skipped · 0 error(s)
 
@@ -192,6 +229,11 @@ sharelint explain SL.OFFICE.NOTES
 
 `sharelint demo` intentionally returns `0` after rendering its synthetic blocked example.
 
+The console and HTML report use `REVIEW` when a completed scan found something below the selected
+`--fail-on` threshold. That is a prompt for human review, not a blocking verdict: the exit code is
+still `0`, and JSON/SARIF keep `summary.verdict: "pass"` for the stable automation contract. `PASS`
+means no findings were retained; neither label is a guarantee that the input is safe.
+
 ## What it checks
 
 | Surface | Current inspection | Coverage semantics |
@@ -266,10 +308,11 @@ JSON Schema files for automated validation live in [`schemas/`](https://github.c
 
 ## Project status and direction
 
-ShareLint is at `0.1.2` **Alpha**. The current priority is to harden hostile-input handling, expand
-synthetic fixtures, measure detector quality, and make release artifacts reproducible. Local OCR,
-more regional PII rules, turnkey pre-send hooks, signed releases, and a desktop review experience
-are later directions—not shipped claims. See the date-free [roadmap](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/roadmap.md).
+ShareLint `1.0.0` stabilizes the existing local scanning and packaging workflow with clearer
+first-run guidance and a validated release pipeline. The maintenance priority is focused fixes,
+synthetic regression tests, and compatibility. Local OCR, policy exceptions, receipt verification,
+pre-send hooks, and a desktop interface remain future work. See the
+[roadmap](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/roadmap.md).
 
 The project stays useful by keeping three promises measurable: input remains local, evidence remains
 hidden, and incomplete coverage never masquerades as a clean scan.

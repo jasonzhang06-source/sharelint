@@ -8,6 +8,7 @@ __pycache__/
 .venv/
 build/
 dist/
+portable-build/
 htmlcov/
 *.sharelint.json
 *.safe.zip

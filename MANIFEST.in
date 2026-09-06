@@ -7,7 +7,9 @@ include README.md
 include README.zh-CN.md
 include SECURITY.md
 include SUPPORT.md
-recursive-include .github *.md *.yml
+recursive-include .github *.md *.py *.yml
 recursive-include docs *.md *.svg
+recursive-include requirements *.txt
 recursive-include schemas *.json
+recursive-include scripts *.json *.py *.txt
 recursive-include tests *.py

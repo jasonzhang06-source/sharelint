@@ -11,7 +11,7 @@ from contextlib import suppress
 from pathlib import Path
 
 from . import __version__
-from .demo import create_demo_bundle
+from .demo import create_demo_bundle, render_demo_console
 from .models import Severity
 from .packing import PackBlocked, PackError, pack
 from .reporters import render, render_console
@@ -48,54 +48,132 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="sharelint",
         description="See what your files reveal before they leave your machine.",
+        epilog="""examples:
+  sharelint demo
+  sharelint scan ./client-handoff
+  sharelint scan ./client-handoff --format html -o sharelint-report.html
+  sharelint pack ./approved-files -o share-ready.zip
+  sharelint explain SL.OFFICE.NOTES""",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--version", action="version", version=f"ShareLint {__version__}")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    scan_parser = subparsers.add_parser("scan", help="scan a file, folder, ZIP, or OOXML package")
-    scan_parser.add_argument("target", type=Path)
-    scan_parser.add_argument("--format", choices=FORMATS, default="console")
-    scan_parser.add_argument("-o", "--output", type=Path)
-    scan_parser.add_argument("--fail-on", type=_severity, default=Severity.HIGH)
+    scan_parser = subparsers.add_parser(
+        "scan",
+        help="scan a file, folder, ZIP, or OOXML package",
+        description="Inspect a local file or folder. Nothing is uploaded or modified.",
+        epilog="""examples:
+  sharelint scan ./client-handoff
+  sharelint scan ./client-handoff --strict
+  sharelint scan document.pdf --format html -o sharelint-report.html""",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    scan_parser.add_argument("target", type=Path, help="file or folder to inspect")
+    scan_parser.add_argument(
+        "--format",
+        choices=FORMATS,
+        default="console",
+        help="report format (default: console)",
+    )
+    scan_parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        help="write the report to a new file instead of standard output",
+    )
+    scan_parser.add_argument(
+        "--fail-on",
+        type=_severity,
+        default=Severity.HIGH,
+        help="exit 1 for findings at this severity or higher (default: high)",
+    )
     scan_parser.add_argument(
         "--strict",
         action="store_true",
         help="also fail when coverage is partial, skipped, or errored",
     )
-    scan_parser.add_argument("--no-color", action="store_true")
+    scan_parser.add_argument("--no-color", action="store_true", help="disable terminal colors")
 
     pack_parser = subparsers.add_parser(
-        "pack", help="create a deterministic ZIP only when the policy passes"
+        "pack",
+        help="create a deterministic ZIP only when the policy passes",
+        description=(
+            "Scan a local file or folder, then create a shareable ZIP only when "
+            "coverage is complete and policy passes. PDF pages and image pixels "
+            "are not fully inspected, so those coverage gaps block packing."
+        ),
+        epilog="""examples:
+  sharelint pack ./approved-files -o share-ready.zip
+  sharelint pack ./approved-files -o share-ready.zip --no-receipt""",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    pack_parser.add_argument("target", type=Path)
-    pack_parser.add_argument("-o", "--output", type=Path, required=True)
+    pack_parser.add_argument("target", type=Path, help="approved file or folder to scan and pack")
+    pack_parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        required=True,
+        metavar="BUNDLE",
+        help="new shareable ZIP path",
+    )
     receipt_group = pack_parser.add_mutually_exclusive_group()
-    receipt_group.add_argument("--receipt", type=Path)
-    receipt_group.add_argument("--no-receipt", action="store_true")
+    receipt_group.add_argument(
+        "--receipt",
+        type=Path,
+        help="write the private verification receipt to this new path",
+    )
+    receipt_group.add_argument(
+        "--no-receipt",
+        action="store_true",
+        help="create only the shareable ZIP (no private report or receipt)",
+    )
     pack_parser.add_argument(
         "--report",
         type=Path,
-        help="write the hash-bound JSON report here (requires --receipt)",
+        help="write the private hash-bound JSON report here (requires --receipt)",
     )
-    pack_parser.add_argument("--fail-on", type=_severity, default=Severity.HIGH)
-    pack_parser.add_argument("--no-color", action="store_true")
+    pack_parser.add_argument(
+        "--fail-on",
+        type=_severity,
+        default=Severity.HIGH,
+        help="block findings at this severity or higher (default: high)",
+    )
+    pack_parser.add_argument("--no-color", action="store_true", help="disable terminal colors")
 
-    demo_parser = subparsers.add_parser("demo", help="scan a synthetic nested handoff bundle")
+    demo_parser = subparsers.add_parser(
+        "demo",
+        help="scan a synthetic nested handoff bundle",
+        description=(
+            "Try ShareLint on files it generates itself. The demo does not read "
+            "your personal files."
+        ),
+        epilog="""examples:
+  sharelint demo
+  sharelint demo -o synthetic-demo.zip
+  sharelint demo --format html --report sharelint-demo.html""",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     demo_parser.add_argument(
         "-o",
         "--output",
         type=Path,
         metavar="BUNDLE",
-        help="write the synthetic demo ZIP here",
+        help="save the synthetic input ZIP here (not the report)",
     )
     demo_parser.add_argument(
         "--report",
         type=Path,
         metavar="REPORT",
-        help="write the rendered demo report here",
+        help="write the rendered scan report here (required for HTML)",
     )
-    demo_parser.add_argument("--format", choices=FORMATS, default="console")
-    demo_parser.add_argument("--no-color", action="store_true")
+    demo_parser.add_argument(
+        "--format",
+        choices=FORMATS,
+        default="console",
+        help="report format; HTML requires --report (default: console)",
+    )
+    demo_parser.add_argument("--no-color", action="store_true", help="disable terminal colors")
 
     subparsers.add_parser("rules", help="list stable rule identifiers")
     explain_parser = subparsers.add_parser("explain", help="explain one rule")
@@ -209,22 +287,31 @@ def _pack_command(arguments: argparse.Namespace) -> int:
         for reason in exc.reasons:
             sys.stderr.write(f"pack blocked: {messages.get(reason, reason)}\n")
         if exc.report_output is not None:
-            sys.stdout.write(f"Wrote {_display_path(exc.report_output)}\n")
+            sys.stdout.write(
+                f"Keep private · blocked scan report · {_display_path(exc.report_output)}\n"
+            )
         if exc.receipt is not None:
-            sys.stdout.write(f"Wrote {_display_path(exc.receipt)}\n")
+            sys.stdout.write(f"Keep private · blocked receipt · {_display_path(exc.receipt)}\n")
         return 1
     sys.stdout.write(
         f"PACKED · {len(artifact.files)} file(s) · sha256:{artifact.archive_sha256}\n"
-        f"Wrote {_display_path(artifact.output)}\n"
+        f"Shareable bundle · {_display_path(artifact.output)}\n"
     )
     if artifact.report_output is not None:
-        sys.stdout.write(f"Wrote {_display_path(artifact.report_output)}\n")
+        sys.stdout.write(f"Keep private · scan report · {_display_path(artifact.report_output)}\n")
     if artifact.receipt is not None:
-        sys.stdout.write(f"Wrote {_display_path(artifact.receipt)}\n")
+        sys.stdout.write(
+            f"Keep private · verification receipt · {_display_path(artifact.receipt)}\n"
+        )
     return 0
 
 
 def _demo_command(arguments: argparse.Namespace) -> int:
+    if arguments.format == "html" and arguments.report is None:
+        raise ScanInputError(
+            "demo --format html requires --report <path>; example: "
+            "sharelint demo --format html --report sharelint-demo.html"
+        )
     if arguments.report is not None:
         if arguments.report.exists() or arguments.report.is_symlink():
             raise ScanInputError("refusing to overwrite an existing report output")
@@ -245,28 +332,31 @@ def _demo_command(arguments: argparse.Namespace) -> int:
             raise ScanInputError("refusing to overwrite an existing demo bundle") from exc
         path = arguments.output
         report = scan(path)
-        _write_or_print(
-            render(
-                report,
-                arguments.format,
-                Severity.HIGH,
-                color=_use_color(arguments.no_color) and arguments.report is None,
-            ),
-            arguments.report,
+        rendered = render(
+            report,
+            arguments.format,
+            Severity.HIGH,
+            color=_use_color(arguments.no_color) and arguments.report is None,
         )
+        if arguments.format == "console":
+            rendered = render_demo_console(
+                rendered,
+                saved_bundle=_display_path(arguments.output),
+            )
+        _write_or_print(rendered, arguments.report)
         return 0
     with tempfile.TemporaryDirectory(prefix="sharelint-demo-") as directory:
         path = create_demo_bundle(Path(directory) / "client-handoff.zip")
         report = scan(path)
-        _write_or_print(
-            render(
-                report,
-                arguments.format,
-                Severity.HIGH,
-                color=_use_color(arguments.no_color) and arguments.report is None,
-            ),
-            arguments.report,
+        rendered = render(
+            report,
+            arguments.format,
+            Severity.HIGH,
+            color=_use_color(arguments.no_color) and arguments.report is None,
         )
+        if arguments.format == "console":
+            rendered = render_demo_console(rendered)
+        _write_or_print(rendered, arguments.report)
     return 0
 
 
@@ -280,7 +370,7 @@ def _rules_command() -> int:
 def _explain_command(rule_id: str) -> int:
     rule = RULES.get(rule_id.upper())
     if rule is None:
-        sys.stderr.write(f"unknown rule: {rule_id}\n")
+        sys.stderr.write("unknown rule; use 'sharelint rules' to list supported identifiers\n")
         return 2
     sys.stdout.write(
         f"{rule.rule_id}\nSeverity: {rule.severity.value}\nTitle: {rule.title}\n"

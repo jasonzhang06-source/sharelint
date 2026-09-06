@@ -1,13 +1,16 @@
 # Threat model
 
-This document defines the security boundary for the ShareLint 0.1 Alpha line. The words
+This document defines the security boundary for the ShareLint 1.x line. The words
 **MUST**, **MUST NOT**, **SHOULD**, and **MAY** describe requirements for the
 scanner, reporters, and `pack` workflow.
 
-ShareLint is a zero-runtime-dependency, local privacy preflight tool. It helps a
-person find likely disclosure risks before sharing a directory or file. It is
-designed to inspect hostile input without executing it and to say explicitly
-when inspection was incomplete.
+ShareLint is a local privacy preflight tool. Its Python package has no
+third-party runtime package dependencies. A standalone build instead freezes
+ShareLint, CPython, and a PyInstaller launcher into one native executable, so it
+does not require a host Python installation but has a larger trusted computing
+base. ShareLint helps a person find likely disclosure risks before sharing a
+directory or file. It is designed to inspect hostile input without executing it
+and to say explicitly when inspection was incomplete.
 
 ## Security objectives
 
@@ -33,8 +36,15 @@ ShareLint has five primary objectives:
 
 The trusted computing base is the installed ShareLint release, the Python
 standard library and interpreter, the operating system, and the policy and
-command line selected by the local operator. Release verification and host
-hardening are outside ShareLint itself.
+command line selected by the local operator. For a standalone build, it also
+includes the frozen CPython runtime, PyInstaller bootloader and support files,
+the native build workflow, and the operating system's temporary-directory
+behavior. Release verification and host hardening are outside the core scanner.
+
+Installing ShareLint, downloading a release or `.sha256` file, and querying
+GitHub for an artifact attestation can use the network. Those distribution and
+provenance operations are not part of a scan. Once installed, the scan, report,
+demo, and pack paths have no upload, account, telemetry, or network feature.
 
 All scanned material is untrusted, including:
 
@@ -72,11 +82,19 @@ bounded traversal -> format inspectors -> deterministic rules
              reopened artifact + receipt hashes
 ```
 
+Before that flow starts, a PyInstaller `onefile` executable expands its own
+embedded interpreter and support libraries into an operating-system temporary
+directory and launches ShareLint from there. It does not extract the selected
+input files or archives. On POSIX, that temporary filesystem must permit
+execution and symbolic links. The executable SHOULD run as the ordinary local
+user, never through `sudo`, a root shell, or Windows **Run as administrator**.
+
 Format inspectors MUST NOT execute macros, JavaScript, launch actions, shell
 commands, embedded programs, or external relationships. They MUST NOT render a
 document in an office suite, browser, PDF viewer, or image application. An
-archive MUST be inspected through bounded streams and MUST NOT be extracted to
-the filesystem.
+input archive MUST be inspected through bounded streams and MUST NOT be
+extracted to the filesystem. This prohibition concerns untrusted scan input,
+not the standalone launcher's own embedded runtime.
 
 ## Threats and required controls
 
@@ -96,6 +114,8 @@ the filesystem.
 | A partial scan is presented as clean | Keep findings separate from coverage; errors, limits, encryption, and required unsupported surfaces force an incomplete result | A supported detector can still have false negatives |
 | A failed export leaves a misleading artifact | Build in a private temporary file, publish only after all checks pass, and remove partial output on best effort; a requested blocked-attempt receipt is clearly marked and has no artifact fields | Crashes can leave an identifiable temporary file; callers should protect the output directory |
 | A receipt is copied to another artifact | Bind exact artifact and report bytes with SHA-256 and include the effective policy, ruleset, limits, and coverage summary | An unsigned receipt does not identify its creator and can be replaced together with the artifact |
+| A release archive is corrupted or replaced | Publish a same-named SHA-256 file and request GitHub artifact attestations for the exact archive/checksum bytes; document verification before execution | A checksum can be replaced with the archive; provenance depends on GitHub identity, workflow, runner, and attestation infrastructure and does not show that the program is safe |
+| A frozen launcher is run from a hostile or unsuitable temporary environment | Use the OS temporary-directory mechanism, require execution and symlink support on POSIX, and run without root or administrator elevation | A compromised host, privileged process, launcher, or temporary filesystem remains outside the boundary; `noexec` and no-symlink filesystems can prevent startup |
 
 ## Resource budgets
 
@@ -238,9 +258,11 @@ report does contain masked findings and contextual source chains and MUST be
 protected accordingly. The presence of a blocked receipt can never be
 interpreted as a successful export.
 
-The receipt proves only that particular bytes were associated with a particular
-ShareLint result and configuration. Receipt verification recomputes hashes and
-schema constraints; it does not rerun detectors unless explicitly requested.
+The receipt binds only particular bytes to a particular ShareLint result and
+configuration; without a signature it does not identify who created either.
+Receipt verification is not yet a shipped CLI feature. A future or external
+verifier should recompute hashes and schema constraints; rerunning detectors is
+a separate, explicit operation and neither check is a safety verdict.
 
 ## Non-promises and out-of-scope threats
 
@@ -258,6 +280,15 @@ ShareLint does **not** promise or provide:
   files and findings are review prompts;
 - authenticity, signer identity, non-repudiation, timestamp authority, or
   transparency-log inclusion for an unsigned receipt;
+- live credential validation over the network, a hosted scanning service, or a
+  centralized enterprise DLP control plane;
+- proof that a matching release checksum identifies the publisher, or that a
+  GitHub artifact attestation is an operating-system code signature, Apple
+  notarization, an independently reproduced build, or a safety certification;
+- Authenticode signing for the first Windows standalone release line, or
+  Developer ID distribution signing and Apple notarization for the first macOS
+  standalone release line; PyInstaller's macOS ad-hoc signature is not a
+  substitute for either;
 - protection when the local host, runtime, scanner, policy, output directory,
   or release artifact is compromised;
 - zero false positives or zero false negatives.

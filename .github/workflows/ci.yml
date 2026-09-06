@@ -9,6 +9,9 @@ on:
 permissions:
   contents: read
 
+env:
+  SOURCE_DATE_EPOCH: "315532800"
+
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -20,21 +23,27 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Set up Python 3.11
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.11"
           cache: pip
-          cache-dependency-path: pyproject.toml
+          cache-dependency-path: |
+            pyproject.toml
+            requirements/release-build.txt
+      - name: Install locked build tools
+        run: >-
+          python -m pip install --require-hashes --only-binary=:all:
+          -r requirements/release-build.txt
       - name: Install development tools
-        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+        run: python -m pip install --no-build-isolation -e ".[dev]"
       - name: Lint
         run: ruff check .
       - name: Check formatting
         run: ruff format --check .
       - name: Type check
-        run: mypy
+        run: mypy src scripts
 
   tests:
     name: ${{ matrix.os-name }} / Python ${{ matrix.python-version }}
@@ -70,15 +79,21 @@ jobs:
             python-version: "3.14"
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-          cache-dependency-path: pyproject.toml
+          cache-dependency-path: |
+            pyproject.toml
+            requirements/release-build.txt
+      - name: Install locked build tools
+        run: >-
+          python -m pip install --require-hashes --only-binary=:all:
+          -r requirements/release-build.txt
       - name: Install project and test tools
-        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+        run: python -m pip install --no-build-isolation -e ".[dev]"
       - name: Run unittest contract
         run: python .github/scripts/run_unittest.py
       - name: Run pytest suite with coverage
@@ -114,15 +129,30 @@ jobs:
             os-name: macOS
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up Python 3.13.15
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
-          python-version: "3.11"
+          python-version: "3.13.15"
           cache: pip
-          cache-dependency-path: pyproject.toml
+          cache-dependency-path: requirements/release-build.txt
       - name: Build distribution
-        run: python -m pip install --upgrade pip build && python -m build
+        run: |
+          python -m pip install --require-hashes --only-binary=:all: -r requirements/release-build.txt
+          python -m build --no-isolation
+      - name: Normalize and verify source distribution
+        if: runner.os == 'Linux'
+        run: |
+          PACKAGE_VERSION="$(PYTHONPATH=src python -c 'import sharelint; print(sharelint.__version__)')"
+          python scripts/normalize_sdist.py \
+            "dist/sharelint-$PACKAGE_VERSION.tar.gz" \
+            --project sharelint \
+            --version "$PACKAGE_VERSION"
+          python scripts/normalize_sdist.py \
+            "dist/sharelint-$PACKAGE_VERSION.tar.gz" \
+            --project sharelint \
+            --version "$PACKAGE_VERSION" \
+            --check
       - name: Install wheel
         run: python -c "import pathlib, subprocess, sys; wheels=list(pathlib.Path('dist').glob('*.whl')); assert len(wheels) == 1, wheels; subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--no-deps', '--force-reinstall', str(wheels[0])])"
       - name: Smoke-test installed commands
@@ -130,11 +160,73 @@ jobs:
           sharelint --version
           sharelint rules
           python -c "import sharelint; print(sharelint.__version__)"
+          python scripts/verify_wheel.py
       - name: Upload distributions
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: distributions
           path: dist/
+          if-no-files-found: error
+          retention-days: 14
+
+  portable:
+    name: Portable / ${{ matrix.target }}
+    needs: [quality, tests]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            target: linux-glibc-x86_64
+            executable: portable-build/sharelint
+          - os: windows-2022
+            target: windows-x86_64
+            executable: portable-build/sharelint.exe
+          - os: macos-15-intel
+            target: macos-x86_64
+            executable: portable-build/sharelint
+          - os: macos-15
+            target: macos-arm64
+            executable: portable-build/sharelint
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up Python 3.13.15
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.13.15"
+          cache: pip
+          cache-dependency-path: |
+            requirements/release-build.txt
+            requirements/standalone-build.txt
+      - name: Build wheel
+        run: |
+          python -m pip install --require-hashes --only-binary=:all: -r requirements/standalone-build.txt
+          python -m build --wheel --no-isolation
+      - name: Install built wheel
+        run: >-
+          python -c "import pathlib, subprocess, sys; wheels=list(pathlib.Path('dist').glob('*.whl')); assert len(wheels) == 1, wheels; subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--no-deps', '--force-reinstall', str(wheels[0])])"
+      - name: Record installed package version
+        id: package
+        run: >-
+          python -c "import importlib.metadata, os, pathlib; pathlib.Path(os.environ['GITHUB_OUTPUT']).open('a', encoding='utf-8').write('package_version=' + importlib.metadata.version('sharelint') + '\n')"
+      - name: Build portable executable and archive
+        run: python scripts/build_portable.py --output-dir portable-build
+      - name: Verify portable executable
+        run: python scripts/verify_portable.py ${{ matrix.executable }}
+      - name: Verify final portable archive
+        run: >-
+          python scripts/verify_release_assets.py portable-build
+          --version "${{ steps.package.outputs.package_version }}"
+          --target "${{ matrix.target }}"
+          --executable "${{ matrix.executable }}"
+      - name: Upload portable archive and checksum
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: portable-${{ matrix.target }}
+          path: portable-build/sharelint-v*
           if-no-files-found: error
           retention-days: 14

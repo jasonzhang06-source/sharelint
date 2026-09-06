@@ -10,6 +10,29 @@ from contextlib import suppress
 from pathlib import Path
 
 
+def render_demo_console(report_text: str, *, saved_bundle: str | None = None) -> str:
+    """Frame a console report so a first-time user understands the demo boundary."""
+
+    lines = [
+        "SYNTHETIC DEMO · generated sample only",
+        "No personal files were read; this run scanned only files created by ShareLint.",
+    ]
+    if saved_bundle is not None:
+        lines.append(f"Synthetic demo bundle saved · {saved_bundle}")
+    lines.extend(
+        [
+            "",
+            report_text.rstrip("\n"),
+            "",
+            "Next steps",
+            "  Scan a file or folder: sharelint scan ./path-to-share",
+            "  After review, pack approved files: "
+            "sharelint pack ./approved-files -o share-ready.zip",
+        ]
+    )
+    return "\n".join(lines) + "\n"
+
+
 def _zip_bytes(files: dict[str, bytes]) -> bytes:
     output = io.BytesIO()
     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:

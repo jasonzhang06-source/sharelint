@@ -1,0 +1,259 @@
+{
+  "components": {
+    "bzip2": {
+      "sources": [
+        {
+          "notice_marker": "bzip2/libbzip2 version 1.0.8 of 13 July 2019",
+          "source_url": "https://gitlab.com/bzip2/bzip2/-/blob/bzip2-1.0.8/LICENSE",
+          "version": "1.0.8"
+        }
+      ],
+      "spdx": "bzip2-1.0.6"
+    },
+    "cpython": {
+      "sources": [
+        {
+          "notice_marker": "CPYTHON 3.13.15 HISTORY, LICENSE, AND INCORPORATED SOFTWARE LICENSES",
+          "source_url": "https://github.com/python/cpython/blob/v3.13.15/Doc/license.rst",
+          "version": "3.13.15"
+        }
+      ],
+      "spdx": "Python-2.0"
+    },
+    "expat": {
+      "sources": [
+        {
+          "notice_marker": "Copyright (c) 2001-2025 Expat maintainers",
+          "source_url": "https://github.com/python/cpython/blob/v3.13.15/Modules/expat/COPYING",
+          "version": "2.8.2"
+        }
+      ],
+      "spdx": "MIT"
+    },
+    "libffi": {
+      "sources": [
+        {
+          "notice_marker": "libffi - Copyright (c) 1996-2021  Anthony Green, Red Hat, Inc and others.",
+          "source_url": "https://github.com/libffi/libffi/blob/v3.4.2/LICENSE",
+          "version": "3.4.2"
+        },
+        {
+          "notice_marker": "libffi - Copyright (c) 1996-2022  Anthony Green, Red Hat, Inc and others.",
+          "source_url": "https://github.com/libffi/libffi/blob/v3.4.4/LICENSE",
+          "version": "3.4.4"
+        }
+      ],
+      "spdx": "MIT"
+    },
+    "libmpdec": {
+      "sources": [
+        {
+          "notice_marker": "Copyright (c) 2008-2020 Stefan Krah. All rights reserved.",
+          "source_url": "https://www.bytereef.org/software/mpdecimal/releases/mpdecimal-2.5.1.tar.gz",
+          "version": "2.5.1"
+        },
+        {
+          "notice_marker": "Copyright (c) 2008-2024 Stefan Krah. All rights reserved.",
+          "source_url": "https://www.bytereef.org/software/mpdecimal/releases/mpdecimal-4.0.0.tar.gz",
+          "version": "4.0.0"
+        },
+        {
+          "notice_marker": "Copyright (c) 2008-2025 Stefan Krah. All rights reserved.",
+          "source_url": "https://www.bytereef.org/software/mpdecimal/releases/mpdecimal-4.0.1.tar.gz",
+          "version": "4.0.1"
+        }
+      ],
+      "spdx": "BSD-2-Clause"
+    },
+    "mimalloc": {
+      "sources": [
+        {
+          "notice_marker": "Copyright (c) 2018-2021 Microsoft Corporation, Daan Leijen",
+          "source_url": "https://github.com/microsoft/mimalloc/blob/v2.1.2/LICENSE",
+          "version": "2.1.2"
+        }
+      ],
+      "spdx": "MIT"
+    },
+    "openssl": {
+      "sources": [
+        {
+          "notice_marker": "For the OpenSSL 3.0 release,",
+          "source_url": "https://github.com/openssl/openssl/blob/openssl-3.0.21/LICENSE.txt",
+          "version": "3.0.21"
+        }
+      ],
+      "spdx": "Apache-2.0"
+    },
+    "sqlite": {
+      "sources": [
+        {
+          "notice_marker": "SQLite Is Public Domain",
+          "source_url": "https://www.sqlite.org/copyright.html",
+          "version": "3.50.4"
+        }
+      ],
+      "spdx": "LicenseRef-SQLite-Public-Domain"
+    },
+    "xz-utils": {
+      "sources": [
+        {
+          "notice_marker": "XZ UTILS / LIBLZMA 5.2.3 COPYING (MACOS PYTHON BUILD)",
+          "source_url": "https://github.com/tukaani-project/xz/blob/v5.2.3/COPYING",
+          "version": "5.2.3"
+        },
+        {
+          "notice_marker": "XZ UTILS / LIBLZMA 5.2.5 COPYING (PUBLIC-DOMAIN LINE)",
+          "source_url": "https://github.com/tukaani-project/xz/blob/v5.2.5/COPYING",
+          "version": "5.2.5"
+        }
+      ],
+      "spdx": "LicenseRef-XZ-Public-Domain"
+    },
+    "zlib": {
+      "sources": [
+        {
+          "notice_marker": "ZLIB 1.2.11 LICENSE (LINUX ABI FALLBACK)",
+          "source_url": "https://github.com/madler/zlib/blob/v1.2.11/README",
+          "version": "1.2.11"
+        },
+        {
+          "notice_marker": "ZLIB 1.3.1 LICENSE (CPYTHON 3.13.15 WINDOWS CORE)",
+          "source_url": "https://github.com/madler/zlib/blob/v1.3.1/LICENSE",
+          "version": "1.3.1"
+        },
+        {
+          "notice_marker": "ZLIB 1.3.2 LICENSE (PYINSTALLER 6.22.2 WINDOWS BOOTLOADER)",
+          "source_url": "https://github.com/pyinstaller/pyinstaller/blob/v6.22.2/bootloader/zlib/LICENSE",
+          "version": "1.3.2"
+        }
+      ],
+      "spdx": "Zlib"
+    }
+  },
+  "format_version": 2,
+  "target_static_rules": {
+    "linux-glibc-x86_64": [
+      {
+        "component": "mimalloc",
+        "match": "@always",
+        "origin": "CPython 3.13.15 core",
+        "version": "2.1.2"
+      },
+      {
+        "component": "libmpdec",
+        "match": "_decimal*.so",
+        "origin": "CPython 3.13.15 bundled extension",
+        "version": "2.5.1"
+      },
+      {
+        "component": "expat",
+        "match": "pyexpat*.so",
+        "origin": "CPython 3.13.15 vendored extension",
+        "version": "2.8.2"
+      }
+    ],
+    "macos-arm64": [
+      {
+        "component": "xz-utils",
+        "match": "_lzma*.so",
+        "origin": "CPython 3.13.15 macOS installer",
+        "version": "5.2.3"
+      },
+      {
+        "component": "libmpdec",
+        "match": "_decimal*.so",
+        "origin": "CPython 3.13.15 macOS installer",
+        "version": "4.0.1"
+      },
+      {
+        "component": "expat",
+        "match": "pyexpat*.so",
+        "origin": "CPython 3.13.15 vendored extension",
+        "version": "2.8.2"
+      },
+      {
+        "component": "sqlite",
+        "match": "_sqlite3*.so",
+        "origin": "CPython 3.13.15 macOS installer",
+        "version": "3.50.4"
+      }
+    ],
+    "macos-x86_64": [
+      {
+        "component": "xz-utils",
+        "match": "_lzma*.so",
+        "origin": "CPython 3.13.15 macOS installer",
+        "version": "5.2.3"
+      },
+      {
+        "component": "libmpdec",
+        "match": "_decimal*.so",
+        "origin": "CPython 3.13.15 macOS installer",
+        "version": "4.0.1"
+      },
+      {
+        "component": "expat",
+        "match": "pyexpat*.so",
+        "origin": "CPython 3.13.15 vendored extension",
+        "version": "2.8.2"
+      },
+      {
+        "component": "sqlite",
+        "match": "_sqlite3*.so",
+        "origin": "CPython 3.13.15 macOS installer",
+        "version": "3.50.4"
+      }
+    ],
+    "windows-x86_64": [
+      {
+        "component": "zlib",
+        "match": "@always",
+        "origin": "PyInstaller 6.22.2 Windows bootloader",
+        "version": "1.3.2"
+      },
+      {
+        "component": "mimalloc",
+        "match": "@always",
+        "origin": "CPython 3.13.15 core",
+        "version": "2.1.2"
+      },
+      {
+        "component": "zlib",
+        "match": "@always",
+        "origin": "CPython 3.13.15 Windows core",
+        "version": "1.3.1"
+      },
+      {
+        "component": "bzip2",
+        "match": "_bz2*.pyd",
+        "origin": "CPython 3.13.15 Windows extension",
+        "version": "1.0.8"
+      },
+      {
+        "component": "xz-utils",
+        "match": "_lzma*.pyd",
+        "origin": "CPython 3.13.15 Windows extension",
+        "version": "5.2.5"
+      },
+      {
+        "component": "libmpdec",
+        "match": "_decimal*.pyd",
+        "origin": "CPython 3.13.15 Windows extension",
+        "version": "4.0.0"
+      },
+      {
+        "component": "expat",
+        "match": "pyexpat*.pyd",
+        "origin": "CPython 3.13.15 vendored extension",
+        "version": "2.8.2"
+      },
+      {
+        "component": "expat",
+        "match": "_elementtree*.pyd",
+        "origin": "CPython 3.13.15 Windows extension",
+        "version": "2.8.2"
+      }
+    ]
+  }
+}

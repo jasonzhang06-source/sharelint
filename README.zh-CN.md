@@ -23,24 +23,47 @@
 
 ## 快速开始
 
-ShareLint 需要 Python 3.11 或更高版本。如果已经安装
-[uv](https://docs.astral.sh/uv/guides/tools/)，无需安装 ShareLint 即可试用合成数据演示：
+### 没有 Python：独立包（即将提供）
+
+最简单的安装方式将是从 [GitHub Releases](https://github.com/jasonzhang06-source/sharelint/releases)
+下载原生独立包。它会带上 ShareLint 与 Python 运行时，目标电脑无需另装 Python、pip、uv 或 pipx。
+下一版带标签发行正在验证以下四个原生目标：
+
+| 电脑 | 计划中的发行目标 |
+| --- | --- |
+| 使用 glibc 的 x86-64 Linux | `linux-glibc-x86_64` |
+| 64 位 Windows | `windows-x86_64` |
+| Intel Mac | `macos-x86_64` |
+| Apple 芯片 Mac | `macos-arm64` |
+
+**v0.1.2 及更早的发行版没有这些独立包。** 请勿猜测下载地址，也不要把普通 CI 构件当作正式发行。
+将来的 Release 页面出现对应文件后，请同时下载压缩包与同名 `.sha256` 文件，再按照
+[校验与首次运行说明](docs/troubleshooting.md#standalone-archive-verification)操作。
+
+### 现在可用：通过 uv 运行
+
+独立包尚未发布时，[uv](https://docs.astral.sh/uv/) 是最短路径。uv 可以自动获取兼容的 Python；
+按照当前系统的说明安装 uv 后，无需持久安装 ShareLint 即可运行合成数据演示：
 
 ```bash
 uvx sharelint demo
 ```
 
-日常使用推荐通过 [pipx](https://pipx.pypa.io/stable/) 隔离安装命令行工具：
+日常使用可以持久安装，并让新终端找到 `sharelint` 命令：
+
+```bash
+uv tool install sharelint
+uv tool update-shell
+```
+
+执行 `uv tool update-shell` 后请关闭并重新打开终端，再运行 `sharelint demo`；当前终端中仍可直接使用
+`uvx sharelint demo`。
+
+如果已经安装 Python 3.11+ 和 [pipx](https://pipx.pypa.io/stable/)，pipx 仍是受支持的次要方案：
 
 ```bash
 pipx install sharelint
 sharelint demo
-```
-
-使用 uv 持久安装的等价命令是：
-
-```bash
-uv tool install sharelint
 ```
 
 还可以把同一组合成扫描生成为完全本地、可直接打开的 HTML 报告：
@@ -49,8 +72,8 @@ uv tool install sharelint
 sharelint demo --format html --report sharelint-demo.html
 ```
 
-也可以使用标准虚拟环境和 `pip`。具体安装、升级、PATH 修复以及系统 Python 被标记为
-externally managed 时的处理方式，见[安装与排错](docs/troubleshooting.md)。
+也可以使用标准虚拟环境和 `pip`。从零安装 uv、独立包校验、升级、PATH 修复以及系统 Python 被标记为
+externally managed 时的处理方式，见分系统的[安装与排错](docs/troubleshooting.md)。
 
 开发时可从源码检出安装：
 
@@ -62,16 +85,21 @@ python -m pip install -e .
 
 ### 平台支持
 
-ShareLint 面向 Linux、Windows 和 macOS，要求 Python 3.11 或更高版本。当前源码树在 Ubuntu、
-Windows 和 macOS 上配置了完整的单元测试与 CLI 契约测试；请查看你所使用提交或发布版本对应的
-[CI 结果](https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml)。软件包可移植并不表示
-每一种文件系统和安全配置都已经验证。
+**你不需要为了做跨平台开发而切回 Windows。** 在 Ubuntu 上继续使用 Linux 目标或 Python 包即可，
+原生 Windows 与 macOS 作业由 CI 执行。独立程序只能运行在表格所列的系统和架构上，因此 Windows
+`.exe` 不能在 Linux 上运行；只有手工复现 Windows 专属主机行为时才需要 Windows 环境。
+
+Python 3.11+ 软件包会在 Ubuntu、Windows 和 macOS 上测试；即将提供的独立包矩阵增加上表四个原生
+目标。请查看对应提交或发行版本的
+[CI 结果](https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml)。配置了目标并不代表已经
+验证每一种文件系统、系统版本、Shell、区域设置或安全策略。
 
 写出报告、演示包、压缩包和回执时，目标文件系统必须支持硬链接，ShareLint 才能保持“不覆盖既有
 目标”的安全契约。验证矩阵、Windows 注意事项和文件系统限制见[平台支持说明](docs/platform-support.md)。
 
-> **Alpha 软件。** ShareLint 已有可运行、零第三方运行时依赖的核心，但规则和格式覆盖仍在扩展。
-> 日常使用请安装 PyPI 上的带标签软件包；无论哪种方式，都应独立复核重要结果。
+> **ShareLint 1.0。** 现有扫描、报告和打包流程进入稳定维护版本，命令行退出码及版本化 JSON
+> 契约与 0.1.x 保持兼容。检查范围不变：PDF 页面和图片像素仍不进行 OCR，覆盖不完整时仍会阻止
+> `pack`。兼容性约定见 [1.x 维护政策](docs/stability.md)。
 
 你正准备发送一个 ZIP：代码没有问题，但演示文稿还留着演讲者备注，工作簿里藏着
 `veryHidden` 工作表，PDF 暴露了作者姓名，图片则记录了位置。专注 Git 仓库的密钥扫描器
@@ -96,11 +124,15 @@ Windows 和 macOS 上配置了完整的单元测试与 CLI 契约测试；请查
 
 ## 演示输出
 
-演示命令会在临时目录创建一个完全由合成数据组成、用完即弃的交付包。它会展示嵌套 Office 内容、
-PDF 元数据、主动内容、脱敏证据，以及一个明确的 PDF 覆盖缺口，不会操作你的文件。以下为节选输出：
+演示命令会在临时目录创建一个完全由合成数据组成、用完即弃的交付包。控制台会先明确提示数据为合成数据，
+且没有读取个人文件。它会展示嵌套 Office 内容、PDF 元数据、主动内容、脱敏证据，以及一个明确的 PDF
+覆盖缺口，不会操作你的文件。以下为节选输出：
 
 ```text
-ShareLint 0.1.2 · local privacy preflight
+SYNTHETIC DEMO · generated sample only
+No personal files were read; this run scanned only files created by ShareLint.
+
+ShareLint 1.0.0 · local privacy preflight
 INCOMPLETE · 5 policy-blocking finding(s) · 9 total · 13 surface(s)
 Coverage · 12 scanned · 1 partial · 0 skipped · 0 error(s)
 
@@ -176,6 +208,10 @@ sharelint explain SL.OFFICE.NOTES
 
 `sharelint demo` 在展示完合成的被阻止案例后会有意返回 `0`。
 
+当扫描完整结束、但存在低于所选 `--fail-on` 阈值的发现项时，控制台和 HTML 报告会显示 `REVIEW`。
+这表示建议人工复核，并非阻止结论：退出码仍为 `0`，JSON/SARIF 为保持自动化契约，仍使用
+`summary.verdict: "pass"`。`PASS` 表示没有保留发现项；这两个标签都不是“文件安全”的保证。
+
 ## 检查范围
 
 | 表面 | 当前检查内容 | 覆盖语义 |
@@ -245,9 +281,9 @@ ShareLint 是预检工具，不是证明系统。一次通过只表示：在该�
 
 ## 项目状态与方向
 
-ShareLint 当前为 `0.1.2` **Alpha**。近期重点是强化恶意输入处理、扩充合成测试夹具、量化检测质量，
-以及建立可复现发布流程。本地 OCR、更多地区的 PII 规则、开箱即用的发送前钩子、签名发布和桌面审阅体验
-属于后续方向，而不是已交付能力。详见不承诺日期的[路线图](docs/roadmap.md)。
+ShareLint `1.0.0` 稳定现有本地扫描和打包流程，完善首次使用说明和发行验证。后续优先处理具体问题、
+补充合成回归测试并保持兼容性。本地 OCR、策略例外、回执核验命令、发送前钩子和桌面界面仍属于
+后续方向。详见[路线图](docs/roadmap.md)。
 
 项目以三个可验证承诺保持长期价值：输入留在本地、证据始终隐藏、不完整覆盖绝不伪装成干净扫描。
 

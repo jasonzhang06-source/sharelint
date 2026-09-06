@@ -22,7 +22,33 @@ class CliContractTests(CliTestCase):
         for command in ("scan", "pack", "demo"):
             with self.subTest(command=command):
                 self.assertIn(command, help_text)
+        self.assertIn("examples:", help_text)
+        self.assertIn("sharelint scan ./client-handoff", help_text)
+        self.assertIn("sharelint pack ./approved-files -o share-ready.zip", help_text)
         self.assertNotIn("traceback", help_text)
+
+    def test_command_help_explains_outputs_and_copyable_examples(self) -> None:
+        scan_help = self.run_cli("scan", "--help")
+        pack_help = self.run_cli("pack", "--help")
+        demo_help = self.run_cli("demo", "--help")
+
+        for result in (scan_help, pack_help, demo_help):
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("examples:", result.stdout.lower())
+            self.assertNotIn("traceback", (result.stdout + result.stderr).lower())
+        self.assertIn("nothing is uploaded or modified", scan_help.stdout.lower())
+        self.assertIn("new shareable zip path", pack_help.stdout.lower())
+        self.assertIn("synthetic input zip", demo_help.stdout.lower())
+        self.assertIn("html requires --report", demo_help.stdout.lower())
+        self.assertIn("coverage gaps block packing", pack_help.stdout.lower())
+
+    def test_unknown_rule_does_not_echo_untrusted_terminal_input(self) -> None:
+        result = self.run_cli("explain", "FICTITIOUS_RULE\x1b[2J\u202e")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("sharelint rules", result.stderr)
+        self.assertNotIn("FICTITIOUS_RULE", result.stderr)
+        self.assertNotIn("\x1b", result.stderr)
+        self.assertNotIn("\u202e", result.stderr)
 
     def test_usage_errors_have_exit_code_two_and_no_traceback(self) -> None:
         cases = [
@@ -117,6 +143,24 @@ class CliContractTests(CliTestCase):
                 self.assertEqual(result.returncode, 1 if highest >= threshold else 0)
                 assert_scan_contract(result.json())
 
+    def test_human_reports_say_review_when_findings_are_below_threshold(self) -> None:
+        review = self.root / "review.txt"
+        review.write_text("Contact reviewer@example.test\n", encoding="utf-8")
+
+        console = self.run_cli("scan", review)
+        html = self.run_cli("scan", review, "--format", "html")
+        machine = self.run_cli("scan", review, "--format", "json")
+
+        self.assertEqual(console.returncode, 0, console.stderr)
+        self.assertIn("REVIEW · 0 policy-blocking", console.stdout)
+        self.assertNotIn("\nPASS ·", console.stdout)
+        self.assertIn("below the selected blocking threshold", console.stdout)
+        self.assertEqual(html.returncode, 0, html.stderr)
+        self.assertIn(">REVIEW</span>", html.stdout)
+        self.assertNotIn(">PASS</span>", html.stdout)
+        self.assertEqual(machine.returncode, 0, machine.stderr)
+        self.assertEqual(machine.json()["summary"]["verdict"], "pass")
+
     def test_partial_coverage_has_an_incomplete_not_pass_verdict(self) -> None:
         partial_image = write_jpeg(
             self.root / "partial.jpg",
@@ -142,7 +186,27 @@ class CliContractTests(CliTestCase):
         self.assertIn("sharelint", output)
         self.assertIn("client-handoff.zip", output)
         self.assertIn("sl.", output)
+        self.assertIn("synthetic demo", output)
+        self.assertIn("no personal files were read", output)
+        self.assertIn("next steps", output)
+        self.assertIn("sharelint scan ./path-to-share", output)
+        self.assertIn("sharelint pack ./approved-files -o share-ready.zip", output)
         self.assertNotIn("traceback", output)
+
+    def test_demo_html_requires_an_explicit_report_path_before_creating_files(self) -> None:
+        bundle = self.root / "synthetic-input.zip"
+
+        result = self.run_cli("demo", "-o", bundle, "--format", "html")
+
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.stdout, "")
+        self.assertIn("requires --report <path>", result.stderr)
+        self.assertIn(
+            "sharelint demo --format html --report sharelint-demo.html",
+            result.stderr,
+        )
+        self.assertNotIn("<!doctype html>", result.stdout + result.stderr)
+        self.assertFalse(bundle.exists())
 
     def test_demo_output_never_follows_a_symlink(self) -> None:
         escaped = self.root / "escaped.zip"
@@ -271,6 +335,19 @@ class CliContractTests(CliTestCase):
         same_output = self.run_cli("demo", "-o", shared_path, "--report", shared_path)
         self.assertEqual(same_output.returncode, 2)
         self.assertFalse(shared_path.exists())
+
+    def test_pack_labels_shareable_and_private_outputs(self) -> None:
+        source = self.root / "approved.txt"
+        source.write_text("ordinary public-domain synthetic text\n", encoding="utf-8")
+        bundle = self.root / "share-ready.zip"
+
+        result = self.run_cli("pack", source, "-o", bundle)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(f"Shareable bundle · {bundle}", result.stdout)
+        self.assertIn("Keep private · scan report ·", result.stdout)
+        self.assertIn("Keep private · verification receipt ·", result.stdout)
+        self.assertNotIn("\nWrote ", result.stdout)
 
 
 if __name__ == "__main__":

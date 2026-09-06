@@ -1,72 +1,406 @@
 name: Publish release
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "v*"
 
 permissions:
   contents: read
 
+env:
+  SOURCE_DATE_EPOCH: "315532800"
+
 concurrency:
-  group: release-${{ github.event.release.tag_name }}
+  group: release-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
-  build:
-    name: Build and verify distributions
-    runs-on: ubuntu-latest
+  prepare:
+    name: Validate tag and prepare draft
+    runs-on: ubuntu-22.04
     timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      package_version: ${{ steps.package.outputs.package_version }}
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v7
+      - name: Check out tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up Python 3.13.15
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
-          python-version: "3.11"
-          cache: pip
-          cache-dependency-path: pyproject.toml
+          python-version: "3.13.15"
       - name: Verify release tag matches package version
+        id: package
         env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_TAG: ${{ github.ref_name }}
         run: |
           PACKAGE_VERSION="$(PYTHONPATH=src python -c 'import sharelint; print(sharelint.__version__)')"
           test "$RELEASE_TAG" = "v$PACKAGE_VERSION"
-      - name: Install release verification tools
-        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]" twine
+          printf 'package_version=%s\n' "$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
+      - name: Create or reuse an unpublished draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PACKAGE_VERSION: ${{ steps.package.outputs.package_version }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if release_state="$(gh release view "$RELEASE_TAG" --json isDraft --jq '.isDraft' 2>/dev/null)"; then
+            if [ "$release_state" != "true" ]; then
+              echo "Refusing to modify an already-published release: $RELEASE_TAG" >&2
+              exit 1
+            fi
+            echo "Reusing existing draft for $RELEASE_TAG"
+          else
+            notes="docs/releases/$RELEASE_TAG.md"
+            if [ -f "$notes" ]; then
+              gh release create "$RELEASE_TAG" \
+                --draft --notes-file "$notes" \
+                --title "ShareLint $PACKAGE_VERSION" --verify-tag
+            else
+              gh release create "$RELEASE_TAG" \
+                --draft --generate-notes \
+                --title "ShareLint $PACKAGE_VERSION" --verify-tag
+            fi
+          fi
+
+  verify-source:
+    name: Verify tagged source
+    needs: prepare
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up Python 3.13.15
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.13.15"
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements/release-build.txt
+      - name: Install locked build tools
+        run: >-
+          python -m pip install --require-hashes --only-binary=:all:
+          -r requirements/release-build.txt
+      - name: Install source verification tools
+        run: python -m pip install --no-build-isolation -e ".[dev]"
       - name: Run lint and format checks
         run: |
           ruff check .
           ruff format --check .
       - name: Run type checks
-        run: mypy src
+        run: mypy src scripts
       - name: Run tests
         env:
           PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
         run: |
           python .github/scripts/run_unittest.py
           pytest -p pytest_cov.plugin --cov=sharelint --cov-branch -q
-      - name: Build distributions
-        run: python -m build
-      - name: Check distribution metadata
-        run: python -m twine check dist/*
-      - name: Smoke-test the built wheel in a clean environment
+
+  build:
+    name: Build locked distributions
+    needs: [prepare, verify-source]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up Python 3.13.15
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.13.15"
+          cache: pip
+          cache-dependency-path: requirements/release-build.txt
+      - name: Install locked release build dependencies
+        run: >-
+          python -m pip install --require-hashes --only-binary=:all:
+          -r requirements/release-build.txt
+      - name: Build distributions without dependency resolution
         run: |
-          python -m venv "$RUNNER_TEMP/sharelint-wheel-smoke"
-          "$RUNNER_TEMP/sharelint-wheel-smoke/bin/python" -m pip install --no-deps dist/*.whl
-          "$RUNNER_TEMP/sharelint-wheel-smoke/bin/sharelint" --version
-          "$RUNNER_TEMP/sharelint-wheel-smoke/bin/sharelint" rules > /dev/null
+          python -m build --no-isolation
+          python scripts/normalize_sdist.py \
+            "dist/sharelint-${{ needs.prepare.outputs.package_version }}.tar.gz" \
+            --project sharelint \
+            --version "${{ needs.prepare.outputs.package_version }}"
       - name: Upload distributions
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: release-distributions
           path: dist/
           if-no-files-found: error
           retention-days: 14
 
+  verify-distributions:
+    name: Verify built distributions
+    needs: [prepare, build]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up Python 3.13.15
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.13.15"
+      - name: Download distributions
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: release-distributions
+          path: dist/
+      - name: Check distribution metadata
+        run: |
+          python scripts/normalize_sdist.py \
+            "dist/sharelint-${{ needs.prepare.outputs.package_version }}.tar.gz" \
+            --project sharelint \
+            --version "${{ needs.prepare.outputs.package_version }}" \
+            --check
+          python -m pip install twine
+          python -m twine check dist/*
+      - name: Smoke-test the built wheel in a clean environment
+        run: |
+          python -m venv "$RUNNER_TEMP/sharelint-wheel-smoke"
+          "$RUNNER_TEMP/sharelint-wheel-smoke/bin/python" -m pip install --no-deps dist/*.whl
+          "$RUNNER_TEMP/sharelint-wheel-smoke/bin/sharelint" --version
+          "$RUNNER_TEMP/sharelint-wheel-smoke/bin/sharelint" rules > /dev/null
+          "$RUNNER_TEMP/sharelint-wheel-smoke/bin/python" scripts/verify_wheel.py
+
+  portable:
+    name: Portable / ${{ matrix.target }}
+    needs: [prepare, build, verify-distributions]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            target: linux-glibc-x86_64
+            executable: portable-build/sharelint
+          - os: windows-2022
+            target: windows-x86_64
+            executable: portable-build/sharelint.exe
+          - os: macos-15-intel
+            target: macos-x86_64
+            executable: portable-build/sharelint
+          - os: macos-15
+            target: macos-arm64
+            executable: portable-build/sharelint
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up Python 3.13.15
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.13.15"
+          cache: pip
+          cache-dependency-path: |
+            requirements/release-build.txt
+            requirements/standalone-build.txt
+      - name: Download built wheel
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: release-distributions
+          path: dist/
+      - name: Install locked standalone build dependencies
+        run: >-
+          python -m pip install --require-hashes --only-binary=:all:
+          -r requirements/standalone-build.txt
+      - name: Install built wheel
+        run: >-
+          python -c "import pathlib, subprocess, sys; wheels=list(pathlib.Path('dist').glob('*.whl')); assert len(wheels) == 1, wheels; subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--no-deps', '--force-reinstall', str(wheels[0])])"
+      - name: Build portable executable and archive
+        run: python scripts/build_portable.py --output-dir portable-build
+      - name: Smoke-test loose portable executable
+        run: python scripts/verify_portable.py "${{ matrix.executable }}"
+      - name: Verify final portable archive
+        run: >-
+          python scripts/verify_release_assets.py portable-build
+          --version "${{ needs.prepare.outputs.package_version }}"
+          --target "${{ matrix.target }}"
+          --executable "${{ matrix.executable }}"
+      - name: Upload portable archive and checksum
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: portable-${{ matrix.target }}
+          path: portable-build/sharelint-v*
+          if-no-files-found: error
+          retention-days: 14
+
+  attest-portable:
+    name: Verify and attest portable assets
+    needs: [prepare, portable]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up Python 3.13.15
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.13.15"
+      - name: Download portable release assets
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: portable-*
+          path: release-assets/
+          merge-multiple: true
+      - name: Verify complete portable release asset set
+        run: >-
+          python scripts/verify_release_assets.py release-assets
+          --version "${{ needs.prepare.outputs.package_version }}"
+          --all-targets
+      - name: Generate build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: release-assets/sharelint-v*
+      - name: Upload verified release asset set
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: verified-portable-release-assets
+          path: release-assets/
+          if-no-files-found: error
+          retention-days: 14
+
+  attach-portable:
+    name: Attach portable assets to draft
+    needs: attest-portable
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Set up Python 3.13.15
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.13.15"
+      - name: Download verified portable release assets
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: verified-portable-release-assets
+          path: release-assets/
+      - name: Upload missing assets and require matching bytes on retry
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          import subprocess
+          import tempfile
+          from pathlib import Path
+
+          tag = os.environ["RELEASE_TAG"]
+          directory = Path("release-assets")
+          candidates = sorted(directory.iterdir(), key=lambda path: path.name)
+          if (
+              len(candidates) != 8
+              or any(path.is_symlink() or not path.is_file() for path in candidates)
+          ):
+              raise SystemExit("verified portable artifact has an invalid file inventory")
+          local = {path.name: path for path in candidates}
+
+          def release_state() -> dict[str, object]:
+              raw = subprocess.check_output(
+                  ["gh", "release", "view", tag, "--json", "isDraft,assets"],
+                  text=True,
+              )
+              value = json.loads(raw)
+              if not isinstance(value, dict) or value.get("isDraft") is not True:
+                  raise SystemExit("portable assets may only be attached to an unpublished draft")
+              return value
+
+          def remote_names(value: dict[str, object]) -> set[str]:
+              assets = value.get("assets")
+              if not isinstance(assets, list):
+                  raise SystemExit("draft release returned an invalid asset inventory")
+              names = {
+                  item.get("name")
+                  for item in assets
+                  if isinstance(item, dict) and isinstance(item.get("name"), str)
+              }
+              if len(names) != len(assets):
+                  raise SystemExit("draft release asset names are invalid or duplicated")
+              return names
+
+          existing = remote_names(release_state())
+          unexpected = existing - set(local)
+          if unexpected:
+              raise SystemExit(f"draft has unexpected existing assets: {sorted(unexpected)!r}")
+
+          with tempfile.TemporaryDirectory(prefix="sharelint-release-assets-") as temporary:
+              downloaded = Path(temporary)
+              for name in sorted(existing):
+                  subprocess.run(
+                      ["gh", "release", "download", tag, "--pattern", name, "--dir", temporary],
+                      check=True,
+                  )
+                  local_digest = hashlib.sha256(local[name].read_bytes()).digest()
+                  remote_digest = hashlib.sha256((downloaded / name).read_bytes()).digest()
+                  if local_digest != remote_digest:
+                      raise SystemExit(f"existing draft asset has different bytes: {name}")
+
+              for name in sorted(set(local) - existing):
+                  subprocess.run(["gh", "release", "upload", tag, str(local[name])], check=True)
+                  subprocess.run(
+                      ["gh", "release", "download", tag, "--pattern", name, "--dir", temporary],
+                      check=True,
+                  )
+                  local_digest = hashlib.sha256(local[name].read_bytes()).digest()
+                  remote_digest = hashlib.sha256((downloaded / name).read_bytes()).digest()
+                  if local_digest != remote_digest:
+                      raise SystemExit(f"uploaded draft asset has different bytes: {name}")
+
+          final_names = remote_names(release_state())
+          if final_names != set(local):
+              raise SystemExit("draft release asset set is incomplete or has extra files")
+          PY
+
+  reconcile-pypi:
+    name: Reconcile PyPI release state
+    needs: [prepare, build]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      decision: ${{ steps.pypi-state.outputs.decision }}
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up Python 3.13.15
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.13.15"
+      - name: Download distributions
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: release-distributions
+          path: dist/
+      - name: Check whether identical bytes already exist on PyPI
+        id: pypi-state
+        run: >-
+          python scripts/check_pypi_release.py dist
+          --project sharelint
+          --version "${{ needs.prepare.outputs.package_version }}"
+          --github-output "$GITHUB_OUTPUT"
+
   publish:
     name: Publish to PyPI
-    needs: build
-    runs-on: ubuntu-latest
+    needs: [build, attach-portable, reconcile-pypi]
+    if: ${{ needs.reconcile-pypi.outputs.decision == 'publish' }}
+    runs-on: ubuntu-22.04
     timeout-minutes: 10
     environment:
       name: pypi
@@ -76,13 +410,62 @@ jobs:
       id-token: write
     steps:
       - name: Download distributions
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: release-distributions
           path: dist/
       # This requires a matching PyPI Trusted Publisher and protected `pypi`
-      # environment to be configured before the first release.
+      # environment configured for the workflow file `release.yml`.
       - name: Publish distributions with Trusted Publishing
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
         with:
           packages-dir: dist/
+
+  pypi-complete:
+    name: Require a complete PyPI state
+    needs: [attach-portable, reconcile-pypi, publish]
+    if: ${{ always() }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - name: Validate publication state machine
+        env:
+          ATTACH_RESULT: ${{ needs.attach-portable.result }}
+          CHECK_RESULT: ${{ needs.reconcile-pypi.result }}
+          DECISION: ${{ needs.reconcile-pypi.outputs.decision }}
+          PUBLISH_RESULT: ${{ needs.publish.result }}
+        run: |
+          set -euo pipefail
+          test "$ATTACH_RESULT" = "success"
+          case "$DECISION:$CHECK_RESULT:$PUBLISH_RESULT" in
+            reuse:success:skipped|publish:success:success) ;;
+            *)
+              echo "Invalid PyPI completion state: $DECISION/$CHECK_RESULT/$PUBLISH_RESULT" >&2
+              exit 1
+              ;;
+          esac
+
+  publish-draft:
+    name: Publish completed GitHub Release
+    needs: pypi-complete
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Publish the completed draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          release_state="$(gh release view "$RELEASE_TAG" --json isDraft --jq '.isDraft')"
+          if [ "$release_state" = "true" ]; then
+            gh release edit "$RELEASE_TAG" --draft=false --latest
+          elif [ "$release_state" = "false" ]; then
+            echo "Release $RELEASE_TAG is already published"
+          else
+            echo "Could not determine release state for $RELEASE_TAG" >&2
+            exit 1
+          fi

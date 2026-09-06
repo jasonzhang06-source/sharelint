@@ -1,7 +1,7 @@
 # ShareLint documentation
 
 Use this page as the stable map of ShareLint's user, integration, contributor,
-and maintainer documentation. The project is alpha software; documented
+and maintainer documentation for ShareLint 1.x. Documented
 coverage is a measured boundary, not a guarantee that a file is safe or free of
 sensitive data.
 
@@ -43,6 +43,7 @@ issue or pull request.
 - [Support policy](../SUPPORT.md)
 - [Governance](../GOVERNANCE.md)
 - [Changelog](../CHANGELOG.md)
+- [1.x compatibility and maintenance](stability.md)
 
 Possible vulnerabilities belong in GitHub's private vulnerability reporting
 flow, not in a public issue.
