@@ -63,7 +63,9 @@ def digest(value: Any) -> str:
 
 def choice(value: Any, choices: Iterable[str]) -> str:
     result = string(value)
-    require(result in choices)
+    # EnumType.__contains__ rejects plain strings on Python 3.11. Iterate
+    # values explicitly so validation behaves identically on every runtime.
+    require(any(result == candidate for candidate in choices))
     return result
 
 
