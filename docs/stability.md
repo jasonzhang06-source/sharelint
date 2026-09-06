@@ -7,6 +7,10 @@ Version 2.0 adds optional handoff plans and changes all newly emitted receipt
 manifests to schema `2.0.0`: entry indices replace raw paths. Legacy receipts
 remain readable. See [migration](migration-2.md) before updating machine consumers.
 
+Version 3.0 adds explicit, reviewed text derivatives with separate redaction
+plan/receipt contracts. Existing commands and schemas remain supported; scanning
+never implicitly transforms a source. Read the [3.0 compatibility review](migration-3.md).
+
 ## Supported contracts
 
 - Python 3.11 and newer; native CI covers the versions listed in
@@ -47,7 +51,8 @@ corrections receive a new patch version.
 ## Coverage retained in 1.0
 
 PDF inspection remains static, image inspection remains metadata-only, and
-there is no OCR, automatic cleaning, or graphical interface.
+there is no OCR or graphical interface. The original 1.0 command set does not
+clean files; 3.0 adds a separate bounded [text-derivative workflow](redaction.md).
 Version 1.2 adds [offline receipt verification](verification.md) without changing
 the scan/pack contracts. Unsupported content stays visible as incomplete coverage and blocks
 `pack`. Scanning does not upload data or modify originals. Reports can still

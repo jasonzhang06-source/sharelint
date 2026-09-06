@@ -61,8 +61,9 @@ and production signing remain evidence-gated work, not current claims.
 
 ### Policy profiles and auditable exceptions
 
-Add named profiles for recurring sharing contexts and narrowly scoped
-exceptions that have a reason, owner, creation time, and expiry. A report must
+Named profiles shipped in 1.1; handoff plans and batch preflight shipped in
+2.0/2.1. Still planned: narrowly scoped exceptions that have a reason, owner,
+creation time, and expiry. A report must
 show the resolved policy and every exception applied; an expired or malformed
 exception must fail closed. This replaces ad-hoc suppression without making a
 profile a compliance certificate.
@@ -78,12 +79,12 @@ working tree.
 
 ### Reviewable cleaning into a new output
 
-Design `sharelint clean --plan` before enabling transformations. The plan must
-list proposed operations without changing source bytes. An apply mode must
-write a distinct output, never modify the original, rescan the completed
-output, and issue a transformation receipt binding input, plan, output, policy,
-and measured coverage. Early transforms should be narrow and format-specific;
-ShareLint must not claim to remove all metadata.
+Implemented in 3.0 as `sharelint redact plan`, `inspect`, `apply`, and `verify`.
+The initial surface is bounded UTF-8 text, not general document cleanup.
+Plans omit source text, application preserves originals and rechecks source,
+and new output must be rescanned with complete coverage and no known findings.
+A distinct receipt binds plan/output/report/policy. Private-key blocks, document
+containers, metadata removal, and format-aware cleaning remain unsupported.
 
 ## P1 coverage and review gaps
 

@@ -98,9 +98,9 @@ Python 3.11+ 软件包会在 Ubuntu、Windows 和 macOS 上测试；独立包矩
 写出报告、演示包、压缩包和回执时，目标文件系统必须支持硬链接，ShareLint 才能保持“不覆盖既有
 目标”的安全契约。验证矩阵、Windows 注意事项和文件系统限制见[平台支持说明](docs/platform-support.md)。
 
-> **ShareLint 2.0。** 新增可审查的交付计划，打包时要求输入和策略仍与计划一致。
-> 新回执使用 2.0.0 格式，以 ZIP 条目序号替代文件名；扫描报告仍为 1.0.0。
-> 自动化使用者请看[迁移说明](docs/migration-2.md)。PDF 页面和图片像素仍不进行 OCR，不完整覆盖仍阻止打包。
+> **ShareLint 3.0。** 审查文本脱敏计划后，生成新的、经过复扫的副本，始终保留原文件。
+> 扫描报告仍为 1.0.0，ZIP 回执仍为 2.0.0；文本脱敏使用独立的计划和回执格式。
+> 详见[兼容性说明](docs/migration-3.md)。仍不进行 OCR，不完整覆盖仍阻止打包。
 
 你正准备发送一个 ZIP：代码没有问题，但演示文稿还留着演讲者备注，工作簿里藏着
 `veryHidden` 工作表，PDF 暴露了作者姓名，图片则记录了位置。专注 Git 仓库的密钥扫描器
@@ -283,7 +283,7 @@ ShareLint 是预检工具，不是证明系统。一次通过只表示：在该�
 
 - 它不能保证文件包安全、匿名、合规或完全不含敏感数据。
 - 它目前不对 PDF 页面或图片像素做 OCR。
-- 它不清洗或修改原文件；请在专门的分享副本中修复，然后重新扫描。
+- 它不修改原文件。文本脱敏只生成独立副本；其他格式仍需在分享副本中手动修复并重新扫描。
 - 它无法判断检测到的凭证是否有效，也无法判断个人数据是否有意保留。
 - 不支持、加密、损坏或因资源预算受限的内容会继续显示为覆盖缺口。
 
@@ -331,6 +331,18 @@ sharelint batch ./handoff-a ./handoff-b --format html -o batch.html
 
 各输入独立记录结果，共享有限的扫描字节预算；失败和未扫描项不会被省略。
 汇总只用输入顺序编号，不回显文件名。支持可重复使用的私有 TOML 清单，详见[批量扫描](docs/batch.md)。
+
+## 生成可审查的文本脱敏副本
+
+```bash
+sharelint redact plan private.log --name public.log -o redaction.plan.json
+sharelint redact inspect redaction.plan.json
+sharelint redact apply private.log --plan redaction.plan.json -o public.log
+```
+
+仅支持最多 4 MiB 的 UTF-8 文本。计划只记录修改位置、规则和摘要，不保存匹配原文。
+应用时重新核对源文件，副本必须覆盖完整、且没有剩余已知发现才能发布。
+私钥块、PDF、Office 和图片不会被自动清洗。详见[文本脱敏副本](docs/redaction.md)。
 
 ## 项目状态与方向
 

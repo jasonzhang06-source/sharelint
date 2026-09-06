@@ -112,9 +112,9 @@ the destination filesystem so ShareLint can preserve its no-overwrite contract.
 See [platform support](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/platform-support.md)
 for the validation matrix, Windows notes, and filesystem limitations.
 
-> **ShareLint 2.0.** Create a reviewable handoff plan, then pack only if source and policy still match.
-> New receipt schema 2.0.0 replaces filenames with ZIP entry indices; native scan reports remain 1.0.0.
-> Read the [migration guide](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/migration-2.md).
+> **ShareLint 3.0.** Review a text-redaction plan, then create a new, rescanned derivative without changing the original.
+> Native reports remain schema 1.0.0 and ZIP receipts remain 2.0.0; redaction has separate plan/receipt contracts.
+> Read the [compatibility review](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/migration-3.md).
 > PDF pages and image pixels are not OCR-scanned; incomplete coverage still blocks `pack`.
 
 You are about to send a ZIP. The code is clean, but the deck still has speaker notes, the workbook
@@ -310,7 +310,7 @@ on the surfaces listed in that report under that policy.
 
 - It cannot guarantee that a bundle is safe, anonymous, compliant, or free of sensitive data.
 - It does not currently OCR PDF pages or image pixels.
-- It does not sanitize or modify originals; fix issues in a share-specific copy, then rescan.
+- It never modifies originals. Text redaction creates a separately reviewed derivative; other formats need manual fixes in a copy.
 - It cannot determine whether a detected credential is live or whether personal data was intended.
 - Unsupported, encrypted, malformed, or budget-limited content remains a visible coverage gap.
 
@@ -367,10 +367,24 @@ Each input has a separate result and shares a finite inspection-byte budget.
 Failures and unattempted targets remain visible; aggregate output uses input-order
 IDs, not filenames. See [batch preflight](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/batch.md).
 
+## Create a reviewed text derivative
+
+```bash
+sharelint redact plan private.log --name public.log -o redaction.plan.json
+sharelint redact inspect redaction.plan.json
+sharelint redact apply private.log --plan redaction.plan.json -o public.log
+```
+
+UTF-8 text only, bounded to 4 MiB. Plans contain positions and rules, not original
+text. The source is rechecked and a reopened output rescan must have complete
+coverage and no known findings before publication. Private-key blocks and
+document/image containers are not automatically cleaned. See
+[text derivatives](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/redaction.md).
+
 ## Project status and direction
 
 ShareLint adds explicit policy profiles, offline receipt verification, report
-comparison, and reviewable handoff plans to the scanning/packaging workflow. The maintenance priority
+comparison, batch checks, handoff plans, and reviewed UTF-8 text derivatives to the scanning/packaging workflow. The maintenance priority
 is synthetic regression tests, conservative coverage, and compatibility. Local OCR, policy exceptions,
 pre-send hooks, and a desktop interface remain future work. See the
 [roadmap](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/roadmap.md).

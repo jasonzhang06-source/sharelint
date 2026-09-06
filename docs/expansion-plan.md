@@ -12,9 +12,9 @@ keeps Python 3.11+ and a dependency-free core.
 | 1.2.0 | Offline receipt, report, and artifact verification | Published and installed from public PyPI |
 | 1.2.1 | Cancellation, closed-pipe, and rollback regressions | Published and installed from public PyPI |
 | 1.3.0 | Validated report comparison and coverage-change review | Published and installed from public PyPI |
-| 2.0.0 | Reviewable handoff plans and privacy-minimized receipt migration | Published; public installation verification |
-| 2.1.0 | Bounded batch scanning with per-target results | Local gates passed; native CI preparation |
-| 3.0.0 | Reviewable text-redaction plans and rescanned new outputs | Planned |
+| 2.0.0 | Reviewable handoff plans and privacy-minimized receipt migration | Published and installed from public PyPI |
+| 2.1.0 | Bounded batch scanning with per-target results | Published and installed from public PyPI |
+| 3.0.0 | Reviewable text-redaction plans and rescanned new outputs | Local gates passed; native CI preparation |
 | 3.1.0 | Bounded encoded-content inspection with explicit provenance | Planned |
 | 4.0.0 | Private local review workspace and auditable decisions | Planned |
 | 4.1.0 | Exact Git staged-content scanning and hook integration | Planned |
@@ -79,3 +79,15 @@ versions and workflow links below as work proceeds.
   lint/format/types and fresh Python 3.11 wheel installation passed, including
   batch checks of both a source directory and a packed archive. Python 3.11
   batch unit tests also passed; native publication is not yet claimed.
+- 2.0.0 public-PyPI reinstall and exact-tag Python 3.11 installed smoke passed,
+  including planned packing, v2 receipts, and offline verification.
+- 2.1.0 source `5df14e9`: all 17 [native checks](https://github.com/jasonzhang06-source/sharelint/actions/runs/34047524808)
+  and [publication](https://github.com/jasonzhang06-source/sharelint/actions/runs/34047826495)
+  passed. A cache-free public PyPI reinstall passed the exact-tag isolated
+  Python 3.11 smoke, including both targets in batch preflight.
+- 3.0.0 local gates: 216 tests passed, two platform skips, 85.59% branch coverage;
+  text-plan and publication modules reached 99% and 97%. Lint/format/types,
+  Python 3.11 redaction regressions, package metadata, and isolated installed
+  wheel plan/apply/verify checks passed. Original preservation, source changes,
+  cancellation, non-overwrite, long token tails, malformed documents, and
+  forged-checksum/fresh-scan separation have synthetic regression coverage.

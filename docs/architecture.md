@@ -97,6 +97,23 @@ reconstruct coverage from finding counts.
 7. The context becomes a structured `ScanReport`. Verdict precedence is
    incomplete coverage, then blocking findings, then pass.
 
+## Text-derivative lifecycle
+
+`scanners/text.py` exposes internal offset-only match records, shared by normal
+masked scanning and `text_edits.py`. The latter validates bounded UTF-8 input,
+merges supported overlapping spans, and applies only fixed replacements in
+memory. Private-key blocks are not transformed.
+
+`redaction.py` creates and validates data-only plans with aggregate source/output
+snapshots, while `redaction_export.py` owns fresh-check publication and offline
+verification. It reuses packing's anchored non-overwrite transaction helpers;
+it does not create a second weaker file-write implementation. Prospective bytes
+must pass a zero-known-findings preflight before a temporary file is written.
+After reopening/scanning that file and rechecking source, the derivative,
+native output report, and separate redaction receipt are committed together.
+No source text is embedded in plans or receipts, and no scan command gains an
+implicit write mode. See [text derivatives](redaction.md).
+
 ## Pack lifecycle
 
 `pack()` deliberately repeats work to bind the published bytes to the policy:

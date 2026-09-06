@@ -5,6 +5,13 @@ from .batch import BatchLimits, BatchResult, scan_batch
 from .comparison import ReportComparison, compare_reports
 from .models import Finding, ScanLimits, ScanReport, ScanSurface, Severity
 from .planning import HandoffPlan, create_plan, read_plan
+from .redaction import RedactionBlocked, RedactionPlan, create_redaction_plan, read_redaction_plan
+from .redaction_export import (
+    RedactedArtifact,
+    RedactionVerification,
+    apply_redaction_plan,
+    verify_redaction,
+)
 from .scanner import scan
 from .verification import VerificationError, VerificationResult, verify_receipt
 
@@ -14,6 +21,10 @@ __all__ = [
     "Finding",
     "HandoffPlan",
     "ReportComparison",
+    "RedactedArtifact",
+    "RedactionBlocked",
+    "RedactionPlan",
+    "RedactionVerification",
     "ScanLimits",
     "ScanReport",
     "ScanSurface",
@@ -22,9 +33,13 @@ __all__ = [
     "VerificationResult",
     "__version__",
     "compare_reports",
+    "apply_redaction_plan",
+    "create_redaction_plan",
     "create_plan",
     "read_plan",
+    "read_redaction_plan",
     "scan",
     "scan_batch",
     "verify_receipt",
+    "verify_redaction",
 ]

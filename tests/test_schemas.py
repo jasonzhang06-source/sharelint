@@ -15,6 +15,8 @@ from sharelint.batch import BatchLimits, scan_batch
 from sharelint.comparison import compare_reports
 from sharelint.packing import PackBlocked, pack
 from sharelint.planning import create_plan
+from sharelint.redaction import create_redaction_plan
+from sharelint.redaction_export import apply_redaction_plan
 from sharelint.reporters import render_json
 from sharelint.scanner import scan
 from tests.helpers import FICTIONAL_SECRET
@@ -85,6 +87,22 @@ class SchemaContractTests(unittest.TestCase):
         self.assertFalse(self.validator("receipt.schema.json").is_valid(document))
         document["plan"]["raw_report"] = {"private": "PRIVATE_MARKER"}
         self.assertFalse(self.validator("receipt-v2.schema.json").is_valid(document))
+
+    def test_text_redaction_has_distinct_plan_and_receipt_schemas(self) -> None:
+        source = self.root / "private.txt"
+        source.write_text(FICTIONAL_SECRET + "\ncontact: person@example.test\n", encoding="utf-8")
+        plan = create_redaction_plan(source)
+        self.validator("redaction-plan.schema.json").validate(plan.document)
+        plan_path = self.root / "redaction-plan.json"
+        plan_path.write_bytes(plan.payload)
+        artifact = apply_redaction_plan(source, plan_path, self.root / "redacted.txt")
+        document = json.loads(artifact.receipt.read_bytes())
+        self.validator("redaction-receipt.schema.json").validate(document)
+        self.assertFalse(self.validator("receipt-v2.schema.json").is_valid(document))
+        document["source"]["path"] = "PRIVATE_MARKER"
+        self.assertFalse(self.validator("redaction-receipt.schema.json").is_valid(document))
+        blocked = create_redaction_plan(source, rules=["SL.PII.EMAIL"])
+        self.validator("redaction-plan.schema.json").validate(blocked.document)
 
     def test_packed_and_blocked_receipts_match_published_schema(self) -> None:
         validator = self.validator("receipt-v2.schema.json")
