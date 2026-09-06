@@ -11,7 +11,9 @@ except ImportError:  # pragma: no cover - dependency-free source checks intentio
     Draft202012Validator = None  # type: ignore[assignment,misc]
 
 import tests.bootstrap  # noqa: F401
+from sharelint.comparison import compare_reports
 from sharelint.packing import PackBlocked, pack
+from sharelint.reporters import render_json
 from sharelint.scanner import scan
 from tests.helpers import FICTIONAL_SECRET
 
@@ -34,6 +36,20 @@ class SchemaContractTests(unittest.TestCase):
         target.write_text("ordinary synthetic public text\n", encoding="utf-8")
 
         self.validator("report.schema.json").validate(scan(target).to_dict())
+
+    def test_comparison_matches_its_separate_schema(self) -> None:
+        target = self.root / "ordinary.txt"
+        target.write_text("ordinary synthetic public text\n", encoding="utf-8")
+        before = self.root / "before.json"
+        after = self.root / "after.json"
+        before.write_text(render_json(scan(target)), encoding="utf-8")
+        target.write_text(FICTIONAL_SECRET, encoding="utf-8")
+        after.write_text(render_json(scan(target)), encoding="utf-8")
+        result = compare_reports(before, after).to_dict()
+        validator = self.validator("comparison.schema.json")
+        validator.validate(result)
+        result["raw_evidence"] = "PRIVATE_MARKER"
+        self.assertFalse(validator.is_valid(result))
 
     def test_packed_and_blocked_receipts_match_published_schema(self) -> None:
         validator = self.validator("receipt.schema.json")

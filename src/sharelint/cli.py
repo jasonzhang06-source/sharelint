@@ -12,6 +12,7 @@ from contextlib import suppress
 from pathlib import Path
 
 from . import __version__
+from .comparison import compare_reports
 from .config import CONFIG_TEMPLATE, ConfigurationError, resolve_settings
 from .demo import create_demo_bundle, render_demo_console
 from .input_io import DocumentInputError
@@ -214,6 +215,16 @@ def _parser() -> argparse.ArgumentParser:
         "--expected-receipt-sha256", help="receipt digest from a separately trusted channel"
     )
     verify_parser.add_argument("--format", choices=("console", "json"), default="console")
+    diff_parser = subparsers.add_parser(
+        "diff", help="compare validated report counts without revealing evidence"
+    )
+    diff_parser.add_argument("before", type=Path, help="earlier native JSON report")
+    diff_parser.add_argument("after", type=Path, help="later native JSON report")
+    diff_parser.add_argument("--fail-on", type=_severity, help="explicit common blocking threshold")
+    diff_parser.add_argument("--format", choices=("console", "json", "html"), default="console")
+    diff_parser.add_argument(
+        "-o", "--output", type=Path, help="new comparison output; required for HTML"
+    )
     return parser
 
 
@@ -479,6 +490,16 @@ def _verify_command(arguments: argparse.Namespace) -> int:
     return 0 if result.status == "verified" else 1
 
 
+def _diff_command(arguments: argparse.Namespace) -> int:
+    if arguments.format == "html" and arguments.output is None:
+        raise ScanInputError("HTML comparison requires an explicit --output file")
+    _validate_scan_output(arguments.before, arguments.output)
+    _validate_scan_output(arguments.after, arguments.output)
+    comparison = compare_reports(arguments.before, arguments.after, fail_on=arguments.fail_on)
+    _write_or_print(comparison.render(arguments.format), arguments.output)
+    return 1 if comparison.requires_review else 0
+
+
 def _main(argv: Sequence[str] | None = None) -> int:
     _configure_standard_streams()
     parser = _parser()
@@ -498,6 +519,8 @@ def _main(argv: Sequence[str] | None = None) -> int:
             return _config_command(arguments)
         if arguments.command == "verify":
             return _verify_command(arguments)
+        if arguments.command == "diff":
+            return _diff_command(arguments)
     except BrokenPipeError:
         raise
     except (ScanInputError, PackError, ConfigurationError, DocumentInputError, OSError) as exc:

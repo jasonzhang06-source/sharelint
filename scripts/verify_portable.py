@@ -255,6 +255,19 @@ def verify(executable: Path) -> None:
         _expect(verified, 0, "receipt verification")
         if _json(verified, "receipt verification").get("status") != "verified":
             raise VerificationError("frozen executable did not verify its pack receipt")
+        compared = _run(
+            executable,
+            work,
+            environment,
+            "diff",
+            str(report),
+            str(report),
+            "--format",
+            "json",
+        )
+        _expect(compared, 0, "report comparison")
+        if _json(compared, "report comparison").get("decision") != "no-regression-observed":
+            raise VerificationError("frozen executable report comparison is inconsistent")
 
 
 def _parser() -> argparse.ArgumentParser:

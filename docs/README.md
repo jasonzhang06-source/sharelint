@@ -18,6 +18,8 @@ sensitive data.
 ## Integrate reports
 
 - [Offline receipt and artifact verification](verification.md)
+- [Report comparison and coverage-change review](comparison.md)
+- [Comparison JSON Schema](../schemas/comparison.schema.json)
 - [Native JSON, SARIF, and receipt contracts](report-format.md)
 - [Native report JSON Schema](../schemas/report.schema.json)
 - [Pack receipt JSON Schema](../schemas/receipt.schema.json)

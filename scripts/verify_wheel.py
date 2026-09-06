@@ -174,6 +174,10 @@ def verify() -> None:
         _expect(verified, 0, "receipt verification")
         if json.loads(verified.stdout).get("status") != "verified":
             raise WheelVerificationError("installed wheel did not verify its pack receipt")
+        compared = _run(work, environment, "diff", str(report), str(report), "--format", "json")
+        _expect(compared, 0, "report comparison")
+        if json.loads(compared.stdout).get("decision") != "no-regression-observed":
+            raise WheelVerificationError("installed wheel report comparison is inconsistent")
 
 
 def main() -> int:

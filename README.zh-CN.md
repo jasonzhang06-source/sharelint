@@ -301,6 +301,17 @@ sharelint verify release.zip --receipt release.zip.sharelint.json --report relea
 不上传文件，也不解压到磁盘。哈希一致不等于数字签名、来源可信或隐私安全保证，核验不会重新扫描隐私。
 回执和报告仍可能包含上下文信息，请妥善保护。详见[离线核验说明](docs/verification.md)。
 
+### 对比两次检查
+
+```bash
+sharelint diff before.json after.json
+sharelint diff before.json after.json --format html -o comparison.html
+```
+
+1.3 按规则和严重程度对比数量，并提示覆盖不完整、检查量减少和配置变动。
+不会把跨报告指纹当成稳定身份，也不会将“数量减少”直接解释为“问题已修复”。
+输出不回显导入报告中的文件名和隐私原文。详见[报告对比说明](docs/comparison.md)。
+
 ## 项目状态与方向
 
 ShareLint `1.0.0` 稳定现有本地扫描和打包流程，完善首次使用说明和发行验证。后续优先处理具体问题、

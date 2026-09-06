@@ -9,9 +9,9 @@ keeps Python 3.11+ and a dependency-free core.
 | Version | Intended outcome | State |
 | --- | --- | --- |
 | 1.1.0 | Explicit TOML configuration, reusable policy profiles, bounded scan limits | Published and installed from public PyPI |
-| 1.2.0 | Offline receipt, report, and artifact verification | Native CI passed; publishing |
-| 1.2.1 | Cancellation, closed-pipe, and rollback regressions | Local validation |
-| 1.3.0 | Validated report comparison and coverage-change review | Planned |
+| 1.2.0 | Offline receipt, report, and artifact verification | Published and installed from public PyPI |
+| 1.2.1 | Cancellation, closed-pipe, and rollback regressions | Native CI passed; release preparation |
+| 1.3.0 | Validated report comparison and coverage-change review | Local validation passed |
 | 2.0.0 | Reviewable handoff plans bound to input and effective policy | Planned |
 | 2.1.0 | Bounded batch scanning with per-target results | Planned |
 | 3.0.0 | Reviewable text-redaction plans and rescanned new outputs | Planned |
@@ -50,5 +50,14 @@ versions and workflow links below as work proceeds.
   An exact-commit wheel also passed isolated Python 3.11 installation tests;
   real public-1.1 receipts passed verification. The release tag points to the
   corrected commit, never the failed candidate.
+- 1.2.0: [publication](https://github.com/jasonzhang06-source/sharelint/actions/runs/34044812594)
+  passed; the publicly served PyPI wheel was reinstalled without cache and
+  passed the isolated Python 3.11 smoke test, including receipt verification.
+- 1.2.1: exact source `74d84a5`, 143 tests passed and two skipped, 80.66%
+  coverage, lint/format/types, build metadata, and isolated Python 3.11 wheel
+  smoke passed. [Native CI](https://github.com/jasonzhang06-source/sharelint/actions/runs/34045217834)
+  passed all operating-system and standalone targets.
+- 1.3.0 local gate: 155 tests passed and two skipped, 81.50% coverage; comparison
+  schema, privacy, CLI, and Python 3.11 tests passed. No public release claimed yet.
 - The existing long-running Goal is paused; no background continuation was
   enabled by this work. Progress in the active conversation is checkpointed here.

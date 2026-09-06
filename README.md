@@ -332,6 +332,19 @@ scan, or a guarantee of safe sharing. See the
 [verification contract](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/verification.md)
 for blocked receipts, independent digest pinning, budgets, and exit codes.
 
+### Review what changed
+
+```bash
+sharelint diff before.json after.json
+sharelint diff before.json after.json --format html -o comparison.html
+```
+
+Version 1.3 compares rule/severity counts and coverage. It flags increased
+blockers, incomplete coverage, reduced inspection, and changed settings for
+review. It never treats report-scoped fingerprints as stable evidence IDs, and
+fewer findings do not prove a particular issue was fixed. See the
+[comparison guide](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/comparison.md).
+
 ## Project status and direction
 
 ShareLint 1.x builds on the stable scanning and packaging workflow: 1.1 adds explicit
