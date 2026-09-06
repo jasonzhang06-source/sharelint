@@ -17,7 +17,7 @@ work with focused usability fixes; no new scanning features are introduced.
 
 - Configured native PyInstaller `onefile` build and smoke-test jobs for glibc
   Linux x86-64, Windows x86-64, Intel macOS, and Apple silicon macOS.
-- Configured the next release pipeline to validate exact standalone archive
+- Configured the release pipeline to validate exact standalone archive
   contents, publish same-named SHA-256 files, and request GitHub artifact
   attestations before attaching assets or publishing to PyPI.
 - Added format-version 2 `BUILD-INFO.json` records with the native target,
@@ -49,6 +49,8 @@ work with focused usability fixes; no new scanning features are introduced.
   public Python exports, and versioned report/receipt formats.
 - Corrected the pack help example to use fully inspectable input and made its
   coverage requirement explicit. Unknown rule errors no longer echo input.
+- Reconciled Windows executable-data entries and added exact Microsoft runtime
+  mappings with upstream redistribution notices to the standalone build gate.
 
 ### Documentation
 
@@ -110,7 +112,8 @@ work with focused usability fixes; no new scanning features are introduced.
 - A branch-aware 75% coverage floor enforced in CI and release verification.
 - CodeQL analysis, dependency update automation, and a Trusted Publishing release workflow.
 
-[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.2...v1.0.0
 [0.1.2]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/jasonzhang06-source/sharelint/releases/tag/v0.1.0

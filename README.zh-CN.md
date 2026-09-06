@@ -126,15 +126,15 @@ Python 3.11+ 软件包会在 Ubuntu、Windows 和 macOS 上测试；即将提供
 
 演示命令会在临时目录创建一个完全由合成数据组成、用完即弃的交付包。控制台会先明确提示数据为合成数据，
 且没有读取个人文件。它会展示嵌套 Office 内容、PDF 元数据、主动内容、脱敏证据，以及一个明确的 PDF
-覆盖缺口，不会操作你的文件。以下为节选输出：
+覆盖缺口，不会操作你的文件。以下为 Linux 上的节选输出（文件系统元数据的检查数量可能因平台不同）：
 
 ```text
 SYNTHETIC DEMO · generated sample only
 No personal files were read; this run scanned only files created by ShareLint.
 
 ShareLint 1.0.0 · local privacy preflight
-INCOMPLETE · 5 policy-blocking finding(s) · 9 total · 13 surface(s)
-Coverage · 12 scanned · 1 partial · 0 skipped · 0 error(s)
+INCOMPLETE · 5 policy-blocking finding(s) · 9 total · 14 surface(s)
+Coverage · 13 scanned · 1 partial · 0 skipped · 0 error(s)
 
 CRITICAL SL.SECRET.AWS_ACCESS_KEY · AWS access key identifier
          client-handoff.zip -> deck.pptx -> ppt/embeddings/clients.xlsx
@@ -144,7 +144,7 @@ Coverage gaps
   PARTIAL client-handoff.zip -> report.pdf · rendered-page OCR is not enabled
 
 Original untouched · 0 bytes uploaded · matched values hidden
-A pass means no configured blocker was found on the listed surfaces; it is not a safety guarantee.
+Incomplete means one or more listed surfaces were not fully inspected.
 ```
 
 > 觉得有用？可以给 [ShareLint 一个 Star](https://github.com/jasonzhang06-source/sharelint)、

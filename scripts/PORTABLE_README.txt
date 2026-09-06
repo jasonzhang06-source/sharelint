@@ -65,7 +65,7 @@ Files in this folder
   size, SHA-256, and CArchive typecode, the target's reviewed static-component
   evidence, and equal digests of PyInstaller's canonical Analysis and PKG
   name/type inventories
-* LICENSE.txt — ShareLint MIT license
+* LICENSE.txt — ShareLint MIT license (not a license for bundled runtimes)
 * PYTHON-LICENSE.txt — license shipped with the embedded Python runtime
 * PYINSTALLER-LICENSE.txt — freezer license and bootloader exception
 * THIRD-PARTY-NOTICES.txt — reviewed notices for the CPython and native-library

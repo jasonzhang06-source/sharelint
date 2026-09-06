@@ -99,6 +99,13 @@ cores, two separate Windows zlib records (PyInstaller bootloader 1.3.2 and
 CPython core 1.3.1), and SQLite 3.50.4 when `_sqlite3*.so` is present in either
 macOS target. The catalog also covers the other matched native components.
 
+Windows additionally records Microsoft runtime DLLs and API-set forwarders
+against an exact filename allowlist and CPython's upstream redistribution
+notice. These runtime components are not covered by ShareLint's MIT license.
+PyInstaller can encode executable data with typecode `b`; on Windows this also
+includes the generated CPython `base_library.zip`. Such entries remain hashed
+and reconciled against the Analysis data inventory and PKG inventory.
+
 This mechanism is deliberately fail closed, but its catalog remains a reviewed
 project artifact rather than an automated legal opinion. A new CPython,
 PyInstaller, runner image, or native dependency can change the inventory and

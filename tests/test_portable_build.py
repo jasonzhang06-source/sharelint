@@ -14,6 +14,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 from scripts.build_portable import (
+    WINDOWS_MICROSOFT_RUNTIME,
     ArchiveMember,
     PortableBuildError,
     PortableTarget,
@@ -147,7 +148,9 @@ class PortableBuildTests(unittest.TestCase):
                 "python3.13/lib-dynload/_ssl.cpython-313-x86_64-linux-gnu.so",
             ),
             "windows-x86_64": (
+                "VCRUNTIME140.dll",
                 "_ssl.pyd",
+                "base_library.zip",
                 "libcrypto-3-x64.dll",
                 "python313.dll",
             ),
@@ -169,11 +172,14 @@ class PortableBuildTests(unittest.TestCase):
 
     def test_static_native_components_are_derived_from_locked_platform_rules(self) -> None:
         windows = classify_native_runtime(("_bz2.pyd", "python313.dll"), "windows-x86_64")
-        self.assertEqual(windows.components, ("bzip2", "cpython", "mimalloc", "zlib"))
+        self.assertEqual(
+            windows.components, ("bzip2", "cpython", "microsoft-runtime", "mimalloc", "zlib")
+        )
         self.assertEqual(
             {(item.component, item.version) for item in windows.static_components},
             {
                 ("bzip2", "1.0.8"),
+                ("microsoft-runtime", "CPython-3.13.15-Windows-runtime"),
                 ("mimalloc", "2.1.2"),
                 ("zlib", "1.3.1"),
                 ("zlib", "1.3.2"),
@@ -231,6 +237,51 @@ class PortableBuildTests(unittest.TestCase):
         with self.assertRaises(PortableBuildError):
             _read_toc_native_inventory(analysis, inventory_index=15, expected_tuple_length=20)
 
+    def test_windows_runtime_mapping_is_exact_and_target_specific(self) -> None:
+        files = tuple(sorted(WINDOWS_MICROSOFT_RUNTIME | {"python313.dll"}))
+        inventory = classify_native_runtime(files, "windows-x86_64")
+        self.assertIn("microsoft-runtime", inventory.components)
+        for name in (
+            "VCRUNTIME140D.dll",
+            "api-ms-win-crt-unknown-l1-1-0.dll",
+            "nested/VCRUNTIME140.dll",
+            "unreviewed_library.zip",
+        ):
+            with self.subTest(name=name), self.assertRaises(PortableBuildError):
+                classify_native_runtime(tuple(sorted((name, "python313.dll"))), "windows-x86_64")
+        with self.assertRaises(PortableBuildError):
+            classify_native_runtime(files, "linux-glibc-x86_64")
+
+    def test_executable_data_is_reconciled_between_analysis_and_package(self) -> None:
+        binaries = [("python313.dll", "C:/Python/python313.dll", "BINARY")]
+        data = [("base_library.zip", "C:/build/base_library.zip", "DATA")]
+        analysis_value = [None] * 20
+        analysis_value[15] = binaries
+        analysis_value[18] = data
+        package_value = [None] * 11
+        package_value[2] = binaries + data
+        analysis = self.root / "Analysis-00.toc"
+        package = self.root / "PKG-00.toc"
+        analysis.write_text(repr(tuple(analysis_value)), encoding="utf-8")
+        package.write_text(repr(tuple(package_value)), encoding="utf-8")
+        for executable in (True, False):
+            with mock.patch("scripts.build_portable.os.access", return_value=executable):
+                left = _read_toc_native_inventory(
+                    analysis,
+                    inventory_index=15,
+                    expected_tuple_length=20,
+                    data_inventory_index=18,
+                    include_executable_data=True,
+                )
+                right = _read_toc_native_inventory(
+                    package,
+                    inventory_index=2,
+                    expected_tuple_length=11,
+                    include_executable_data=True,
+                )
+            self.assertEqual(left, right)
+            self.assertEqual("base_library.zip" in left[0], executable)
+
     def test_final_carchive_native_files_are_hashed_by_identity(self) -> None:
         executable = self.root / "sharelint.exe"
         executable.write_bytes(b"synthetic executable")
@@ -264,7 +315,7 @@ class PortableBuildTests(unittest.TestCase):
 
     def test_native_runtime_inventory_fails_closed_on_unknown_or_ambiguous_files(self) -> None:
         for files in (
-            ("python313.dll", "VCRUNTIME140.dll"),
+            ("VCRUNTIME140D.dll", "python313.dll"),
             ("python313.dll", "python313.dll"),
             ("../python313.dll",),
         ):

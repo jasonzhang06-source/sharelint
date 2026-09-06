@@ -33,10 +33,62 @@ This file is assembled from version-pinned upstream license sources:
   https://github.com/madler/zlib/blob/v1.3.1/LICENSE
 * SQLite 3.50.4 as built by the CPython 3.13.15 macOS installer recipe
   https://www.sqlite.org/copyright.html
+* Microsoft Distributable Code used by the Windows CPython runtime
+  https://github.com/python/cpython/blob/v3.13.15/PC/crtlicense.txt
+  https://learn.microsoft.com/en-us/visualstudio/releases/2022/redistribution
+  https://learn.microsoft.com/en-us/cpp/porting/upgrade-your-code-to-the-universal-crt
+  The Windows archive includes VCRUNTIME140.dll, ucrtbase.dll, and the
+  explicitly catalogued API-set forwarders. These are Microsoft components,
+  not MIT-licensed ShareLint code. Their exact bytes are listed in BUILD-INFO.
 
 Target Python distributions may use a legacy public-domain liblzma or a newer
 0BSD liblzma, so the relevant upstream notices are reproduced. A notice being
 present does not imply that every target contains that component.
+
+========================================================================
+MICROSOFT DISTRIBUTABLE CODE (WINDOWS CPYTHON RUNTIME)
+========================================================================
+
+Source: CPython 3.13.15 PC/crtlicense.txt
+
+Additional Conditions for this Windows binary build
+---------------------------------------------------
+
+This program is linked with and uses Microsoft Distributable Code,
+copyrighted by Microsoft Corporation. The Microsoft Distributable Code
+is embedded in each .exe, .dll and .pyd file as a result of running
+the code through a linker.
+
+If you further distribute programs that include the Microsoft
+Distributable Code, you must comply with the restrictions on
+distribution specified by Microsoft. In particular, you must require
+distributors and external end users to agree to terms that protect the
+Microsoft Distributable Code at least as much as Microsoft's own
+requirements for the Distributable Code. See Microsoft's documentation
+(included in its developer tools and on its website at microsoft.com)
+for specific details.
+
+Redistribution of the Windows binary build of the Python interpreter
+complies with this agreement, provided that you do not:
+
+- alter any copyright, trademark or patent notice in Microsoft's
+Distributable Code;
+
+- use Microsoft's trademarks in your programs' names or in a way that
+suggests your programs come from or are endorsed by Microsoft;
+
+- distribute Microsoft's Distributable Code to run on a platform other
+than Microsoft operating systems, run-time technologies or application
+platforms; or
+
+- include Microsoft Distributable Code in malicious, deceptive or
+unlawful programs.
+
+These restrictions apply only to the Microsoft Distributable Code as
+defined above, not to Python itself or any programs running on the
+Python interpreter. The redistribution of the Python interpreter and
+libraries is governed by the Python Software License included with this
+file, or by other licenses as marked.
 
 ========================================================================
 CPYTHON 3.13.15 HISTORY, LICENSE, AND INCORPORATED SOFTWARE LICENSES

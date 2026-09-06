@@ -41,6 +41,57 @@ MAX_TOC_BYTES = 16 * 1024 * 1024
 MAX_TOC_ENTRIES = 10_000
 MAX_NATIVE_FILES = 2_048
 
+# Exact runtime files observed with the locked Windows toolchain. Do not accept
+# arbitrary DLLs by prefix: new runtime entries require a catalog review.
+WINDOWS_MICROSOFT_RUNTIME = frozenset(
+    [
+        "vcruntime140.dll",
+        "ucrtbase.dll",
+        "api-ms-win-core-console-l1-1-0.dll",
+        "api-ms-win-core-datetime-l1-1-0.dll",
+        "api-ms-win-core-debug-l1-1-0.dll",
+        "api-ms-win-core-errorhandling-l1-1-0.dll",
+        "api-ms-win-core-fibers-l1-1-0.dll",
+        "api-ms-win-core-fibers-l1-1-1.dll",
+        "api-ms-win-core-file-l1-1-0.dll",
+        "api-ms-win-core-file-l1-2-0.dll",
+        "api-ms-win-core-file-l2-1-0.dll",
+        "api-ms-win-core-handle-l1-1-0.dll",
+        "api-ms-win-core-heap-l1-1-0.dll",
+        "api-ms-win-core-interlocked-l1-1-0.dll",
+        "api-ms-win-core-kernel32-legacy-l1-1-1.dll",
+        "api-ms-win-core-libraryloader-l1-1-0.dll",
+        "api-ms-win-core-localization-l1-2-0.dll",
+        "api-ms-win-core-memory-l1-1-0.dll",
+        "api-ms-win-core-namedpipe-l1-1-0.dll",
+        "api-ms-win-core-processenvironment-l1-1-0.dll",
+        "api-ms-win-core-processthreads-l1-1-0.dll",
+        "api-ms-win-core-processthreads-l1-1-1.dll",
+        "api-ms-win-core-profile-l1-1-0.dll",
+        "api-ms-win-core-rtlsupport-l1-1-0.dll",
+        "api-ms-win-core-string-l1-1-0.dll",
+        "api-ms-win-core-synch-l1-1-0.dll",
+        "api-ms-win-core-synch-l1-2-0.dll",
+        "api-ms-win-core-sysinfo-l1-1-0.dll",
+        "api-ms-win-core-sysinfo-l1-2-0.dll",
+        "api-ms-win-core-timezone-l1-1-0.dll",
+        "api-ms-win-core-util-l1-1-0.dll",
+        "api-ms-win-crt-conio-l1-1-0.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-process-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+    ]
+)
+
 
 class PortableBuildError(RuntimeError):
     """Raised when a portable build cannot be made safely or unambiguously."""
@@ -370,6 +421,13 @@ def _native_component(name: str, target: str) -> str | None:
         return None
     lowered = name.lower()
     basename = lowered.rsplit("/", 1)[-1]
+    if target == "windows-x86_64" and "/" not in lowered:
+        if lowered in WINDOWS_MICROSOFT_RUNTIME:
+            return "microsoft-runtime"
+        if lowered == "base_library.zip":
+            # PyInstaller encodes executable DATA as `b`. Windows X_OK is true
+            # for this generated standard-library ZIP; it is not a native DLL.
+            return "cpython"
     if "/lib-dynload/" in f"/{lowered}" and basename.endswith((".so", ".dylib", ".pyd")):
         return "cpython"
     if target == "windows-x86_64" and "/" not in lowered and basename.endswith(".pyd"):
@@ -470,7 +528,12 @@ def _valid_native_name(name: str) -> bool:
 
 
 def _read_toc_native_inventory(
-    path: Path, *, inventory_index: int, expected_tuple_length: int
+    path: Path,
+    *,
+    inventory_index: int,
+    expected_tuple_length: int,
+    data_inventory_index: int | None = None,
+    include_executable_data: bool = False,
 ) -> tuple[tuple[str, ...], str]:
     """Read a bounded PyInstaller TOC without retaining host source paths."""
 
@@ -495,6 +558,13 @@ def _read_toc_native_inventory(
     entries = value[inventory_index]
     if not isinstance(entries, list) or len(entries) > MAX_TOC_ENTRIES:
         raise PortableBuildError(f"PyInstaller inventory entry list is invalid: {path.name}")
+    if data_inventory_index is not None:
+        data_entries = value[data_inventory_index]
+        if not isinstance(data_entries, list) or len(data_entries) > MAX_TOC_ENTRIES:
+            raise PortableBuildError(f"PyInstaller data inventory is invalid: {path.name}")
+        entries = entries + data_entries
+        if len(entries) > MAX_TOC_ENTRIES:
+            raise PortableBuildError(f"PyInstaller combined inventory is too large: {path.name}")
     records: list[tuple[str, str]] = []
     for entry in entries:
         if not isinstance(entry, tuple) or len(entry) != 3:
@@ -502,7 +572,13 @@ def _read_toc_native_inventory(
         destination, source, kind = entry
         if not isinstance(destination, str) or not isinstance(kind, str):
             raise PortableBuildError(f"PyInstaller inventory entry is malformed: {path.name}")
-        if kind not in {"BINARY", "EXTENSION"}:
+        executable_data = (
+            include_executable_data
+            and kind == "DATA"
+            and isinstance(source, str)
+            and os.access(source, os.X_OK)
+        )
+        if kind not in {"BINARY", "EXTENSION"} and not executable_data:
             continue
         if (
             not isinstance(source, str)
@@ -599,10 +675,17 @@ def _read_native_runtime(
     if build_root is not None:
         work = build_root / "work" / "sharelint"
         analysis_names, analysis_digest = _read_toc_native_inventory(
-            work / "Analysis-00.toc", inventory_index=15, expected_tuple_length=20
+            work / "Analysis-00.toc",
+            inventory_index=15,
+            expected_tuple_length=20,
+            data_inventory_index=18,
+            include_executable_data=True,
         )
         package_names, package_digest = _read_toc_native_inventory(
-            work / "PKG-00.toc", inventory_index=2, expected_tuple_length=11
+            work / "PKG-00.toc",
+            inventory_index=2,
+            expected_tuple_length=11,
+            include_executable_data=True,
         )
         if (
             analysis_names != package_names

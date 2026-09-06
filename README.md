@@ -143,15 +143,16 @@ It is intentionally composable with those controls rather than a replacement for
 The demo builds a disposable, entirely synthetic handoff bundle in a temporary directory. Its
 console output starts with a banner confirming that the data is synthetic and no personal files
 were read. It shows nested Office content, PDF metadata, active content, redacted evidence, and an
-explicit PDF coverage gap without touching your files. Abridged output:
+explicit PDF coverage gap without touching your files. Abridged Linux output
+(filesystem metadata surface counts may vary by platform):
 
 ```text
 SYNTHETIC DEMO · generated sample only
 No personal files were read; this run scanned only files created by ShareLint.
 
 ShareLint 1.0.0 · local privacy preflight
-INCOMPLETE · 5 policy-blocking finding(s) · 9 total · 13 surface(s)
-Coverage · 12 scanned · 1 partial · 0 skipped · 0 error(s)
+INCOMPLETE · 5 policy-blocking finding(s) · 9 total · 14 surface(s)
+Coverage · 13 scanned · 1 partial · 0 skipped · 0 error(s)
 
 CRITICAL SL.SECRET.AWS_ACCESS_KEY · AWS access key identifier
          client-handoff.zip -> deck.pptx -> ppt/embeddings/clients.xlsx
@@ -161,7 +162,7 @@ Coverage gaps
   PARTIAL client-handoff.zip -> report.pdf · rendered-page OCR is not enabled
 
 Original untouched · 0 bytes uploaded · matched values hidden
-A pass means no configured blocker was found on the listed surfaces; it is not a safety guarantee.
+Incomplete means one or more listed surfaces were not fully inspected.
 ```
 
 > Found it useful? [Star ShareLint](https://github.com/jasonzhang06-source/sharelint),
