@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml"><img src="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/jasonzhang06-source/sharelint/actions/workflows/codeql.yml"><img src="https://github.com/jasonzhang06-source/sharelint/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
-  <a href="https://pypi.org/project/sharelint/"><img src="https://img.shields.io/pypi/v/sharelint.svg" alt="PyPI version"></a>
+  <a href="https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/release-1.0.0-38F2C2" alt="ShareLint 1.0.0"></a>
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Python_package_dependencies-0-38F2C2" alt="No third-party Python package dependencies">
   <a href="https://github.com/jasonzhang06-source/sharelint/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-54A9FF" alt="MIT license"></a>
@@ -26,6 +26,9 @@
 </p>
 
 ## Quick start
+
+The current GitHub release is **1.0.0**. This branch contains the 1.0.0 source
+and its maintained documentation. The commands below explicitly select that version.
 
 ### No Python: standalone archive
 
@@ -54,24 +57,24 @@ Install uv for your operating system, then
 run the synthetic demo without persistently installing ShareLint:
 
 ```bash
-uvx sharelint demo
+uvx --from sharelint==1.0.0 sharelint demo
 ```
 
 For regular use, install the tool persistently and make its command available to a new shell:
 
 ```bash
-uv tool install sharelint
+uv tool install sharelint==1.0.0
 uv tool update-shell
 ```
 
 Open a new terminal after `uv tool update-shell`, then run `sharelint demo`. In the current shell,
-`uvx sharelint demo` continues to work immediately.
+`uvx --from sharelint==1.0.0 sharelint demo` continues to work immediately.
 
 If Python 3.11+ and [pipx](https://pipx.pypa.io/stable/) are already installed, pipx remains a
 supported alternative:
 
 ```bash
-pipx install sharelint
+pipx install sharelint==1.0.0
 sharelint demo
 ```
 

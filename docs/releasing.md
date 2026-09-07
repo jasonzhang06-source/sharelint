@@ -1,5 +1,33 @@
 # Releasing ShareLint
 
+## Current manual publication policy
+
+The current GitHub release is [ShareLint 1.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0).
+The `Publish release` workflow is disabled in GitHub Actions. Keep it disabled
+unless the maintainer explicitly approves returning to automated publication.
+Pushing documentation to `main` does not authorize a new package or release.
+
+To manage a release manually:
+
+1. Sign in as `jasonzhang06-source` and use the repository's **Releases** page.
+2. Select the existing, verified tag. Never move `v1.0.0` to a different commit.
+3. Create a draft under the personal account; confirm that its author is correct.
+   Editing or publishing a bot-created draft does not change its original author.
+4. Use the matching release notes and verified original assets. The 1.0.0 set
+   contains four native archives and four matching `.sha256` files.
+5. Verify the complete asset set before selecting **Publish release**. Review
+   the public page, its author, and its downloads after publication.
+
+GitHub Release publication and PyPI publication are separate operations. Do not
+upload a replacement for an existing Python package version. Installation
+instructions for this release must explicitly select `sharelint==1.0.0`.
+
+## Build and automated-pipeline reference (inactive)
+
+The sections below document the existing build contracts and the pipeline used
+to produce the 1.0.0 artifacts. They are not instructions to enable or run the
+currently disabled publishing workflow.
+
 This checklist keeps GitHub, PyPI, source metadata, Python distributions, and
 native standalone assets aligned. PyPI versions, release tags, and attached
 release assets are immutable records: never reuse a version, move a published
@@ -172,11 +200,11 @@ upload the pre-normalized sdist or bypass the check.
 
    Set `sharelint_version` to the version being released. Never tag an unverified commit.
 
-## Publish and verify
+## Historical automated publication and verification
 
-1. Pushing the annotated `v*` tag triggers `.github/workflows/release.yml`.
-   Do not manually publish a Release for that tag. The workflow first creates
-   or reuses an unpublished draft, then:
+1. When enabled, `.github/workflows/release.yml` responds to an annotated `v*`
+   tag. It is currently disabled; the manual policy above applies. The historical
+   workflow first creates or reuses an unpublished draft, then:
 
    - re-runs the source checks and builds the Python distributions;
    - normalizes the sdist and independently checks its canonical bytes;

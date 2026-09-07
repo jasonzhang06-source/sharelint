@@ -46,7 +46,8 @@ Each job builds and exercises a PyInstaller `onefile` executable. The release
 gate uses CPython 3.13.15 and hash-locked build wheels, then checks the exact
 archive contents, embedded `BUILD-INFO.json` byte bindings, a same-named
 SHA-256 file, and GitHub artifact provenance before attaching assets. The
-GitHub Release remains a private draft until PyPI publication also succeeds.
+Original 1.0 artifacts were built through that gated pipeline. The publishing
+workflow is currently disabled; see the [manual release policy](releasing.md).
 Release `v0.1.2` and earlier do not include these archives. All four archives
 and their checksums are attached to `v1.0.0`; the
 [release workflow](https://github.com/jasonzhang06-source/sharelint/actions/runs/34035839879)

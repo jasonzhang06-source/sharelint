@@ -1,7 +1,8 @@
 # Installation and troubleshooting
 
 ShareLint is published as a Python 3.11+ package on
-[PyPI](https://pypi.org/project/sharelint/). The 1.0 release pipeline also builds
+[PyPI](https://pypi.org/project/sharelint/1.0.0/). This guide targets ShareLint 1.0.0.
+The 1.0 release pipeline also builds
 zero-Python standalone archives, available in
 [v1.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0).
 Installation and provenance
@@ -52,23 +53,24 @@ Open a new terminal if the installer changed `PATH`, then run the disposable,
 synthetic demo:
 
 ```bash
-uvx sharelint demo
+uvx --from sharelint==1.0.0 sharelint demo
 ```
 
 For regular use, install ShareLint persistently:
 
 ```bash
-uv tool install sharelint
+uv tool install sharelint==1.0.0
 uv tool update-shell
 ```
 
 Close and reopen the terminal after `uv tool update-shell`, then run
-`sharelint --version` and `sharelint demo`. Until then, `uvx sharelint demo`
+`sharelint --version` and `sharelint demo`. Until then,
+`uvx --from sharelint==1.0.0 sharelint demo`
 still works in the current shell.
-Upgrade or remove it later with:
+To explicitly select 1.0.0 in an existing installation, or remove it:
 
 ```bash
-uv tool upgrade sharelint
+uv tool install --force sharelint==1.0.0
 uv tool uninstall sharelint
 ```
 
@@ -78,15 +80,15 @@ Use [pipx](https://pipx.pypa.io/stable/) only when Python 3.11+ and pipx are
 already installed:
 
 ```bash
-pipx install sharelint
+pipx install sharelint==1.0.0
 sharelint --version
 sharelint demo
 ```
 
-Upgrade or remove it later with:
+To explicitly select 1.0.0 in an existing installation, or remove it:
 
 ```bash
-pipx upgrade sharelint
+pipx install --force sharelint==1.0.0
 pipx uninstall sharelint
 ```
 
@@ -98,7 +100,7 @@ On Linux or macOS:
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install sharelint
+python -m pip install sharelint==1.0.0
 sharelint --version
 sharelint demo
 ```
@@ -109,7 +111,7 @@ On Windows PowerShell:
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install sharelint
+python -m pip install sharelint==1.0.0
 sharelint --version
 sharelint demo
 ```
@@ -119,7 +121,7 @@ Call the environment's executables directly:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install sharelint
+.\.venv\Scripts\python.exe -m pip install sharelint==1.0.0
 .\.venv\Scripts\sharelint.exe demo
 ```
 

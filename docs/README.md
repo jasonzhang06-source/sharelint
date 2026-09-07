@@ -1,9 +1,12 @@
 # ShareLint documentation
 
 Use this page as the stable map of ShareLint's user, integration, contributor,
-and maintainer documentation for ShareLint 1.x. Documented
+and maintainer documentation for ShareLint 1.0.0. Documented
 coverage is a measured boundary, not a guarantee that a file is safe or free of
 sensitive data.
+
+Current release: [ShareLint 1.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0).
+Use the version-pinned installation commands in the quick start.
 
 ## Use ShareLint
 

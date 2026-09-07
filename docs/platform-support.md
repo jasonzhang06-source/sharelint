@@ -133,20 +133,20 @@ have Python. Alternatively, use `uvx`, which can obtain a compatible Python
 automatically:
 
 ```text
-uvx sharelint demo
+uvx --from sharelint==1.0.0 sharelint demo
 ```
 
 For a persistent uv installation:
 
 ```text
-uv tool install sharelint
+uv tool install sharelint==1.0.0
 uv tool update-shell
 ```
 
 `pipx` remains appropriate when Python 3.11+ and pipx are already installed:
 
 ```text
-pipx install sharelint
+pipx install sharelint==1.0.0
 ```
 
 The shell-specific virtual-environment commands are documented in

@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/sharelint/"><img src="https://img.shields.io/pypi/v/sharelint.svg" alt="PyPI 版本"></a>
+  <a href="https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/release-1.0.0-38F2C2" alt="ShareLint 1.0.0"></a>
   <a href="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml"><img src="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml/badge.svg" alt="持续集成"></a>
 </p>
 
@@ -22,6 +22,9 @@
 </p>
 
 ## 快速开始
+
+当前 GitHub 发行版为 **1.0.0**，主分支保留 1.0.0 源码及其维护文档。
+以下安装命令均明确指定该版本。
 
 ### 没有 Python：独立包
 
@@ -47,23 +50,23 @@
 按照当前系统的说明安装 uv 后，无需持久安装 ShareLint 即可运行合成数据演示：
 
 ```bash
-uvx sharelint demo
+uvx --from sharelint==1.0.0 sharelint demo
 ```
 
 日常使用可以持久安装，并让新终端找到 `sharelint` 命令：
 
 ```bash
-uv tool install sharelint
+uv tool install sharelint==1.0.0
 uv tool update-shell
 ```
 
 执行 `uv tool update-shell` 后请关闭并重新打开终端，再运行 `sharelint demo`；当前终端中仍可直接使用
-`uvx sharelint demo`。
+`uvx --from sharelint==1.0.0 sharelint demo`。
 
 如果已经安装 Python 3.11+ 和 [pipx](https://pipx.pypa.io/stable/)，pipx 仍是受支持的次要方案：
 
 ```bash
-pipx install sharelint
+pipx install sharelint==1.0.0
 sharelint demo
 ```
 
