@@ -11,8 +11,8 @@ To manage a release manually:
 
 1. Sign in as `jasonzhang06-source` and use the repository's **Releases** page.
 2. Select the existing, verified tag. Never move `v1.0.0` to a different commit.
-3. Create a draft under the personal account; confirm that its author is correct.
-   Editing or publishing a bot-created draft does not change its original author.
+3. Create the draft while signed in to that account and confirm that its author
+   is `jasonzhang06-source`.
 4. Use the matching release notes and verified original assets. The 1.0.0 set
    contains four native archives and four matching `.sha256` files.
 5. Verify the complete asset set before selecting **Publish release**. Review

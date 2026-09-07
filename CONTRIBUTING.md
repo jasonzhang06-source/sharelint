@@ -75,11 +75,17 @@ ShareLint operates on potentially sensitive files. Contributions must:
   than silently declaring it clean;
 - bound recursion, decompression, file sizes, and other attacker-controlled
   work;
+- inspect untrusted archive members through bounded streams without extracting
+  them to disk;
 - preserve originals unless an explicitly documented command says otherwise;
 - never send scanned content, findings, filenames, or telemetry over a
   network;
+- keep the default runtime dependency-free and compatible with Python 3.11+;
 - describe results as policy and coverage findings, not as a guarantee that a
   file is anonymous or safe.
+
+Add or update tests whenever a rule, parser, resource limit, output contract,
+or exit code changes.
 
 New scanners should document supported surfaces, known blind spots, resource
 limits, and stable finding identifiers. Include nominal, malformed-input, and
