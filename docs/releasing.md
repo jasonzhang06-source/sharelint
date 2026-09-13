@@ -2,40 +2,69 @@
 
 ## Current manual publication policy
 
-The current GitHub release is [ShareLint 1.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0).
+The current GitHub release is [ShareLint 2.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0).
 The `Publish release` workflow is disabled in GitHub Actions. Keep it disabled
 unless the maintainer explicitly approves returning to automated publication.
 Pushing documentation to `main` does not authorize a new package or release.
 
-To manage a release manually:
+The 2026-09-14 republication restores the original `v2.0.0` tag at
+`2dc9f29d0aed9fde3b1f37486f5bc8c8441a320e` and the original native asset bytes.
+Do not rebuild replacements, edit the tagged source, retarget the tag, or
+restore intermediate 1.1/1.2/1.2.1/1.3 GitHub tags or releases. Their development
+changes are presented together as 2.0 compared with 1.0.
+
+To manage this release manually:
 
 1. Sign in as `jasonzhang06-source` and use the repository's **Releases** page.
-2. Select the existing, verified tag. Never move `v1.0.0` to a different commit.
+2. Select the existing, verified `v2.0.0` tag and confirm the exact commit above.
+   Preserve `v1.0.0` and its historical release unchanged.
 3. Create the draft while signed in to that account and confirm that its author
    is `jasonzhang06-source`.
-4. Use the matching release notes and verified original assets. The 1.0.0 set
+4. Use the [2.0.0 release notes](releases/v2.0.0.md), covering changes since 1.0,
+   and verified original assets. The 2.0.0 set
    contains four native archives and four matching `.sha256` files.
 5. Verify the complete asset set before selecting **Publish release**. Review
    the public page, its author, and its downloads after publication.
 
-GitHub Release publication and PyPI publication are separate operations. Do not
-upload a replacement for an existing Python package version. Installation
-instructions for this release must explicitly select `sharelint==1.0.0`.
+Run source checks and CI independently of publication. A successful CI run
+validates the tested commit; it does not authorize or perform publication.
+Keep the automated publishing workflow disabled even when restoring the tag.
+
+GitHub Release publication and PyPI publication are separate operations.
+The original PyPI 2.0.0 files were deleted and their filenames cannot be reused.
+The currently available PyPI version is 1.0.0. This restoration publishes no
+Python package to PyPI.
+Current installation guidance must select the GitHub 2.0.0 native downloads or
+the fixed `git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0` source
+with Python 3.11+ and Git. Do not suggest an ordinary package-index upgrade as a
+way to obtain 2.0.0.
+
+Verify all eight archived files with the repository's asset contract checker,
+compare their SHA-256 digests to the preserved originals, then download the
+published files and confirm the same bytes again. A Linux smoke test exercises
+only the Linux executable. Preserve original native build evidence separately
+from checks performed during this republication.
+
+Previous GitHub attestations were removed. Restoring the eight assets does not
+restore those hosted records, so do not claim a successful attestation check.
+Keep each archive's original `BUILD-INFO.json` and notices intact. Checksums and
+embedded build information do not independently authenticate the publisher.
 
 ## Build and automated-pipeline reference (inactive)
 
 The sections below document the existing build contracts and the pipeline used
-to produce the 1.0.0 artifacts. They are not instructions to enable or run the
-currently disabled publishing workflow.
+to produce the original native artifacts. They are not instructions to enable
+or run the currently disabled publishing workflow, recreate the 2.0.0 tag, or
+republish 2.0.0 to PyPI.
 
 This checklist keeps GitHub, PyPI, source metadata, Python distributions, and
 native standalone assets aligned. PyPI versions, release tags, and attached
 release assets are immutable records: never reuse a version, move a published
 tag, or replace a published file.
 
-## One-time trusted publishing setup
+## Historical trusted publishing setup (inactive)
 
-ShareLint publishes with PyPI Trusted Publishing, not a long-lived API token.
+The original pipeline used PyPI Trusted Publishing, not a long-lived API token.
 
 1. In the GitHub repository, create an environment named `pypi` under
    **Settings → Environments**. Add a required reviewer when the account and plan support it.
@@ -86,8 +115,8 @@ build-component versions, lock-file and executable digests, target-specific
 static-component evidence, and the exact `THIRD-PARTY-NOTICES.txt` digest. Its
 `native_runtime.files` value is a canonical list of objects whose only fields
 are `name`, `size`, `sha256`, and `typecode`; every recorded CArchive native file
-must have typecode `b`. This is a transparency record inside the checksummed and
-attested archive—not an independent trust root, complete SBOM, legal
+must have typecode `b`. This is a transparency record inside the checksummed
+archive—not an independent trust root, complete SBOM, legal
 certification, or reproducible-build proof.
 
 Every native target must reconcile the executable's CArchive entries with its
@@ -113,10 +142,11 @@ The catalog contains additional matched components. Update it and the notice
 source only after inspecting a real native build; never add a wildcard merely
 to make CI green.
 
-Release `v0.1.2` and earlier do not have these standalone assets. The four
-native outputs and their license inventories still require a complete CI run
-for the next tagged release. Do not document an asset as downloadable until it
-is visibly attached to a completed GitHub Release.
+Release `v0.1.2` and earlier do not have these standalone assets. A newly built
+native output and its license inventory require native CI validation. The
+2.0.0 restoration reuses the original archives rather than rebuilding them.
+Do not document an asset as downloadable until it is visibly attached to a
+completed GitHub Release.
 
 ## Source distribution normalization contract
 
@@ -136,7 +166,11 @@ the wheel, the four native executables, or the mutable runner OS reproducible.
 If normalization or the independent byte check fails, stop the release; do not
 upload the pre-normalized sdist or bypass the check.
 
-## Prepare a release
+## Historical new-version preparation checklist (inactive)
+
+This checklist applies to creating a new version, not restoring 2.0.0. The
+current manual publication policy above takes precedence. None of the steps
+below authorize a new tag, package version, or publication.
 
 1. Update `src/sharelint/_version.py` and move the release notes from `Unreleased` into a dated
    section in `CHANGELOG.md`.
@@ -219,9 +253,9 @@ upload the pre-normalized sdist or bypass the check.
      and
    - makes the draft public only after PyPI succeeds.
 
-   A failure leaves the GitHub Release private and stops the remaining jobs.
-   Diagnose or rerun the failed workflow instead of publishing the draft or
-   replacing an asset manually.
+   In that historical flow, a failure left the GitHub Release private and
+   stopped the remaining jobs. It is not the procedure for this manual
+   restoration: the publishing workflow remains disabled.
 2. Confirm that the release workflow succeeded, all eight standalone files are
    visible on the Release page, and PyPI shows the expected version and verified
    project links.
@@ -265,8 +299,10 @@ Keep these claims separate in release notes and support responses:
 
 - A `.sha256` file detects a mismatch with the checksum the user obtained. It
   does not identify the publisher if both files can be replaced.
-- `actions/attest@v4` records GitHub build provenance for the exact release
-  bytes. It does not prove the program is safe or make the build reproducible.
+- When hosted attestations exist, `actions/attest@v4` records GitHub build
+  provenance for exact release bytes. Previous attestations were removed and
+  are not restored by the 2.0.0 republication. Build provenance would not prove
+  the program is safe or make the build reproducible.
 - The first Windows standalone line has no Authenticode signature. SmartScreen
   may report an unrecognized publisher.
 - The first macOS standalone line uses PyInstaller's ad-hoc signing only. It has

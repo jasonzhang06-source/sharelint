@@ -46,7 +46,7 @@ Each job builds and exercises a PyInstaller `onefile` executable. The release
 gate uses CPython 3.13.15 and hash-locked build wheels, then checks the exact
 archive contents, embedded `BUILD-INFO.json` byte bindings, a same-named
 SHA-256 file, and GitHub artifact provenance before attaching assets. The
-Original 1.0 artifacts were built through that gated pipeline. The publishing
+original 1.0 artifacts were built through that gated pipeline. The publishing
 workflow is currently disabled; see the [manual release policy](releasing.md).
 Release `v0.1.2` and earlier do not include these archives. All four archives
 and their checksums are attached to `v1.0.0`; the
@@ -58,12 +58,32 @@ The initial Windows target is unsigned, and the initial macOS targets are
 ad-hoc signed but not Developer ID signed or notarized. Reproducible binaries
 and production signing remain evidence-gated work, not current claims.
 
+## Shipped in 2.0: reviewable handoffs
+
+[Version 2.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0)
+combines the following changes since 1.0:
+
+- Explicit TOML configuration, named policy profiles, and reusable resource limits.
+- Offline receipt, report, and ZIP integrity verification, including legacy receipts.
+- Aggregate report comparison with conservative coverage and policy-change review.
+- Local handoff plans and packing that rejects changed source, policy, or scan snapshots.
+- Receipt schema 2.0.0 with ZIP entry indices instead of repeated filenames;
+  native scan reports retain schema 1.0.0.
+- Predictable cancellation and output-pipe failures, plus file-race hardening.
+
+The 2026-09-14 republication restores the original source tag and native archive
+bytes. Intermediate 1.1/1.2/1.2.1/1.3 notes are historical development records;
+their tags and releases are not being restored. PyPI currently provides 1.0.0,
+so install 2.0.0 from GitHub downloads or its fixed source tag. Previous build
+attestations were removed and are not restored by copying the original assets.
+See [release details](releases/v2.0.0.md) and [receipt migration](migration-2.md).
+
 ## Next P0 workflow gaps
 
-### Policy profiles and auditable exceptions
+### Auditable policy exceptions
 
-Add named profiles for recurring sharing contexts and narrowly scoped
-exceptions that have a reason, owner, creation time, and expiry. A report must
+Named policy profiles are included in 2.0. Narrowly scoped exceptions remain
+future work and would need a reason, owner, creation time, and expiry. A report must
 show the resolved policy and every exception applied; an expired or malformed
 exception must fail closed. This replaces ad-hoc suppression without making a
 profile a compliance certificate.
@@ -97,9 +117,9 @@ ShareLint must not claim to remove all metadata.
   per-page coverage. Pages that were not processed successfully must remain
   explicit gaps; no OCR coverage may be inferred when the capability was not
   run and verified.
-- Add `sharelint verify` to validate receipt schemas and byte bindings, with
-  optional receipt signatures when a documented key model exists. Verification
-  of a receipt is not a rescan or a safety verdict.
+- `sharelint verify` is included in 2.0 and validates receipt structures and byte bindings.
+  Optional signatures remain future work until a documented key model exists.
+  Verification of a receipt is not a rescan or a safety verdict.
 - Build desktop drag-and-drop and file-manager integration on the same scanner,
   policy, report, and no-overwrite contracts instead of creating a second
   scanning engine.

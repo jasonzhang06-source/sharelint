@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/release-1.0.0-38F2C2" alt="ShareLint 1.0.0"></a>
+  <a href="https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0"><img src="https://img.shields.io/badge/release-2.0.0-38F2C2" alt="ShareLint 2.0.0"></a>
   <a href="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml"><img src="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml/badge.svg" alt="持续集成"></a>
 </p>
 
@@ -23,52 +23,40 @@
 
 ## 快速开始
 
-当前 GitHub 发行版为 **1.0.0**，主分支保留 1.0.0 源码及其维护文档。
-以下安装命令均明确指定该版本。
+当前 GitHub 发行版为 **2.0.0**，主分支保留原始 2.0.0 源码及维护文档。
+2026-09-14 重发恢复原标签与原独立包；[发布说明](docs/releases/v2.0.0.md)汇总相对 1.0 的变化。
 
 ### 没有 Python：独立包
 
 从已完成的 [GitHub Release](https://github.com/jasonzhang06-source/sharelint/releases)
 下载对应系统的独立包。独立包包含 ShareLint 与 Python 运行时，目标电脑无需另装 Python、pip、uv 或 pipx。
-**[ShareLint 1.0.0 已发布](https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0)**，
-以下四个目标均已通过原生构建和验证：
+**[ShareLint 2.0.0 已发布](https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0)**，
+提供以下四个原生目标：
 
 | 电脑 | 发行目标 |
 | --- | --- |
-| 使用 glibc 的 x86-64 Linux | [下载 Linux 版](https://github.com/jasonzhang06-source/sharelint/releases/download/v1.0.0/sharelint-v1.0.0-linux-glibc-x86_64.tar.gz) |
-| 64 位 Windows | [下载 Windows 版](https://github.com/jasonzhang06-source/sharelint/releases/download/v1.0.0/sharelint-v1.0.0-windows-x86_64.zip) |
-| Intel Mac | [下载 Intel Mac 版](https://github.com/jasonzhang06-source/sharelint/releases/download/v1.0.0/sharelint-v1.0.0-macos-x86_64.tar.gz) |
-| Apple 芯片 Mac | [下载 Apple 芯片 Mac 版](https://github.com/jasonzhang06-source/sharelint/releases/download/v1.0.0/sharelint-v1.0.0-macos-arm64.tar.gz) |
+| 使用 glibc 的 x86-64 Linux | [下载 Linux 版](https://github.com/jasonzhang06-source/sharelint/releases/download/v2.0.0/sharelint-v2.0.0-linux-glibc-x86_64.tar.gz) |
+| 64 位 Windows | [下载 Windows 版](https://github.com/jasonzhang06-source/sharelint/releases/download/v2.0.0/sharelint-v2.0.0-windows-x86_64.zip) |
+| Intel Mac | [下载 Intel Mac 版](https://github.com/jasonzhang06-source/sharelint/releases/download/v2.0.0/sharelint-v2.0.0-macos-x86_64.tar.gz) |
+| Apple 芯片 Mac | [下载 Apple 芯片 Mac 版](https://github.com/jasonzhang06-source/sharelint/releases/download/v2.0.0/sharelint-v2.0.0-macos-arm64.tar.gz) |
 
 **v0.1.2 及更早的发行版没有这些独立包。** 只使用已完成 Release 的附件，不要把普通 CI 构件当作正式发行。
 请同时下载压缩包与同名 `.sha256` 文件，再按照
 [校验与首次运行说明](docs/troubleshooting.md#standalone-archive-verification)操作。
 
-### 通过 uv 运行
+### 从 Python 源码安装
 
-也可以使用 [uv](https://docs.astral.sh/uv/)，它能够自动获取兼容的 Python；
-按照当前系统的说明安装 uv 后，无需持久安装 ShareLint 即可运行合成数据演示：
-
-```bash
-uvx --from sharelint==1.0.0 sharelint demo
-```
-
-日常使用可以持久安装，并让新终端找到 `sharelint` 命令：
+已经安装 Python 3.11+、Git 和 [pipx](https://pipx.pypa.io/stable/) 时，
+可以明确选择原始 2.0.0 标签：
 
 ```bash
-uv tool install sharelint==1.0.0
-uv tool update-shell
-```
-
-执行 `uv tool update-shell` 后请关闭并重新打开终端，再运行 `sharelint demo`；当前终端中仍可直接使用
-`uvx --from sharelint==1.0.0 sharelint demo`。
-
-如果已经安装 Python 3.11+ 和 [pipx](https://pipx.pypa.io/stable/)，pipx 仍是受支持的次要方案：
-
-```bash
-pipx install sharelint==1.0.0
+pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
+sharelint --version
 sharelint demo
 ```
+
+**PyPI 不提供 2.0.0。** 原版本文件已删除且原文件名不可复用，目前 PyPI 可用版本为 1.0.0。
+常规包索引安装或升级不会获得 GitHub 上的 2.0.0。安装需要联网，扫描过程保持本地运行。
 
 还可以把同一组合成扫描生成为完全本地、可直接打开的 HTML 报告：
 
@@ -76,7 +64,7 @@ sharelint demo
 sharelint demo --format html --report sharelint-demo.html
 ```
 
-也可以使用标准虚拟环境和 `pip`。从零安装 uv、独立包校验、升级、PATH 修复以及系统 Python 被标记为
+也可以使用标准虚拟环境和 `pip` 安装同一固定标签。独立包校验、源码安装、PATH 修复以及系统 Python 被标记为
 externally managed 时的处理方式，见分系统的[安装与排错](docs/troubleshooting.md)。
 
 开发时可从源码检出安装：
@@ -101,9 +89,9 @@ Python 3.11+ 软件包会在 Ubuntu、Windows 和 macOS 上测试；独立包矩
 写出报告、演示包、压缩包和回执时，目标文件系统必须支持硬链接，ShareLint 才能保持“不覆盖既有
 目标”的安全契约。验证矩阵、Windows 注意事项和文件系统限制见[平台支持说明](docs/platform-support.md)。
 
-> **ShareLint 1.0。** 现有扫描、报告和打包流程进入稳定维护版本，命令行退出码及版本化 JSON
-> 契约与 0.1.x 保持兼容。检查范围不变：PDF 页面和图片像素仍不进行 OCR，覆盖不完整时仍会阻止
-> `pack`。兼容性约定见 [1.x 维护政策](docs/stability.md)。
+> **ShareLint 2.0。** 新增可审查的交付计划，打包时要求输入和策略仍与计划一致。
+> 新回执使用 2.0.0 格式，以 ZIP 条目序号替代文件名；扫描报告仍为 1.0.0。
+> 自动化使用者请看[迁移说明](docs/migration-2.md)。PDF 页面和图片像素仍不进行 OCR，不完整覆盖仍阻止打包。
 
 你正准备发送一个 ZIP：代码没有问题，但演示文稿还留着演讲者备注，工作簿里藏着
 `veryHidden` 工作表，PDF 暴露了作者姓名，图片则记录了位置。专注 Git 仓库的密钥扫描器
@@ -136,7 +124,7 @@ Python 3.11+ 软件包会在 Ubuntu、Windows 和 macOS 上测试；独立包矩
 SYNTHETIC DEMO · generated sample only
 No personal files were read; this run scanned only files created by ShareLint.
 
-ShareLint 1.0.0 · local privacy preflight
+ShareLint 2.0.0 · local privacy preflight
 INCOMPLETE · 5 policy-blocking finding(s) · 9 total · 14 surface(s)
 Coverage · 13 scanned · 1 partial · 0 skipped · 0 error(s)
 
@@ -156,6 +144,17 @@ Incomplete means one or more listed surfaces were not fully inspected.
 > 或[申请支持新格式](https://github.com/jasonzhang06-source/sharelint/issues/new?template=feature_request.yml)。
 
 ## 使用方法
+
+复用检查策略：
+
+```bash
+sharelint scan ./client-handoff --profile public
+sharelint config init -o sharelint.toml
+sharelint config show --config sharelint.toml --profile client
+```
+
+配置只会在指定 `--config` 时加载，不会从待扫描文件夹自动读取。
+`pack` 始终要求完整覆盖，不能通过配置绕过。详见[配置与策略说明](docs/configuration.md)。
 
 扫描文件、目录、ZIP 或 Office 文档：
 
@@ -190,7 +189,7 @@ sharelint pack ./approved-files -o release.zip
 `release.zip.sharelint.report.json`。回执绑定输出哈希、策略、实测覆盖和伴随报告哈希摘要。失败时不会发布
 压缩包。显式指定 `--receipt blocked.json` 可为失败尝试写出 `blocked.json` 和
 `blocked.report.json`；它绝不是成功回执。伴随报告包含已掩码的发现项及上下文文件名，即使匹配原文
-保持隐藏，也应作为敏感记录妥善保护。成功回执还会列出压缩包成员路径，应与压缩包一同妥善保护。
+保持隐藏，也应作为敏感记录妥善保护。新回执使用 ZIP 条目序号，不再重复文件名，仍应妥善保护。
 
 `pack` 始终拒绝任何 `partial`、`skipped` 或报错的覆盖结果，并且刻意不提供绕过开关：只有所有必需
 表面都完成检查时，打包回执才有意义。
@@ -209,6 +208,7 @@ sharelint explain SL.OFFICE.NOTES
 | `0` | 命令已完成，所选门禁没有阻止操作。 |
 | `1` | 发现项达到阈值、严格覆盖失败，或 `pack` 被阻止。 |
 | `2` | 参数无效、输入不可读，或发生其他运行错误。 |
+| `130` | 用户中断了命令。再次运行前检查是否已有完成的输出。 |
 
 `sharelint demo` 在展示完合成的被阻止案例后会有意返回 `0`。
 
@@ -283,10 +283,42 @@ ShareLint 是预检工具，不是证明系统。一次通过只表示：在该�
 [报告与回执契约](docs/report-format.md)，不要解析控制台文本。
 用于自动校验的 JSON Schema 位于 [`schemas/`](schemas/)。
 
+### 离线核验交付包
+
+```bash
+sharelint verify release.zip --receipt release.zip.sharelint.json --report release.zip.sharelint.report.json
+```
+
+核验命令会核对报告和 ZIP 的精确哈希、重新计算报告统计，并检查策略绑定与包内文件清单。
+不上传文件，也不解压到磁盘。哈希一致不等于数字签名、来源可信或隐私安全保证，核验不会重新扫描隐私。
+回执和报告仍可能包含上下文信息，请妥善保护。详见[离线核验说明](docs/verification.md)。
+
+### 对比两次检查
+
+```bash
+sharelint diff before.json after.json
+sharelint diff before.json after.json --format html -o comparison.html
+```
+
+报告对比按规则和严重程度统计数量，并提示覆盖不完整、检查量减少和配置变动。
+不会把跨报告指纹当成稳定身份，也不会将“数量减少”直接解释为“问题已修复”。
+输出不回显导入报告中的文件名和隐私原文。详见[报告对比说明](docs/comparison.md)。
+
+## 先审查，再交付
+
+```bash
+sharelint plan create ./handoff -o handoff.plan.json
+sharelint plan inspect handoff.plan.json
+sharelint pack ./handoff -o delivery.zip --plan handoff.plan.json
+```
+
+计划记录输入边界、策略和扫描快照；打包时重新扫描，变化就要求重新生成和审查计划。
+计划保存在本机，不代表签名、授权或安全保证。详见[交付计划](docs/handoff-plans.md)。
+
 ## 项目状态与方向
 
-ShareLint `1.0.0` 稳定现有本地扫描和打包流程，完善首次使用说明和发行验证。后续优先处理具体问题、
-补充合成回归测试并保持兼容性。本地 OCR、策略例外、回执核验命令、发送前钩子和桌面界面仍属于
+现有本地扫描和打包流程已加入显式策略配置、离线回执核验、报告对比和可审查的交付计划。
+后续优先处理具体问题、补充合成回归测试和明确兼容边界。本地 OCR、策略例外、发送前钩子和桌面界面仍属于
 后续方向。详见[路线图](docs/roadmap.md)。
 
 项目以三个可验证承诺保持长期价值：输入留在本地、证据始终隐藏、不完整覆盖绝不伪装成干净扫描。

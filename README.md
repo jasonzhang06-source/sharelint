@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml"><img src="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/jasonzhang06-source/sharelint/actions/workflows/codeql.yml"><img src="https://github.com/jasonzhang06-source/sharelint/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
-  <a href="https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/release-1.0.0-38F2C2" alt="ShareLint 1.0.0"></a>
+  <a href="https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0"><img src="https://img.shields.io/badge/release-2.0.0-38F2C2" alt="ShareLint 2.0.0"></a>
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Python_package_dependencies-0-38F2C2" alt="No third-party Python package dependencies">
   <a href="https://github.com/jasonzhang06-source/sharelint/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-54A9FF" alt="MIT license"></a>
@@ -27,56 +27,46 @@
 
 ## Quick start
 
-The current GitHub release is **1.0.0**. This branch contains the 1.0.0 source
-and its maintained documentation. The commands below explicitly select that version.
+The current GitHub release is **2.0.0**. This branch contains the original 2.0.0
+source and maintained documentation. The 2026-09-14 republication restores the
+original tag and standalone assets; see [what changed since 1.0](docs/releases/v2.0.0.md).
 
 ### No Python: standalone archive
 
 Download a matching archive from a completed
 [GitHub Release](https://github.com/jasonzhang06-source/sharelint/releases). Standalone archives
 include ShareLint and its Python runtime, so they do not require Python, pip, uv, or pipx on the
-destination computer. **[ShareLint 1.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0)
-is available** for four natively built and verified targets:
+destination computer. **[ShareLint 2.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0)
+is available** for four native targets:
 
 | Computer | Release target |
 | --- | --- |
-| x86-64 Linux with glibc | [Download Linux](https://github.com/jasonzhang06-source/sharelint/releases/download/v1.0.0/sharelint-v1.0.0-linux-glibc-x86_64.tar.gz) |
-| 64-bit Windows | [Download Windows](https://github.com/jasonzhang06-source/sharelint/releases/download/v1.0.0/sharelint-v1.0.0-windows-x86_64.zip) |
-| Intel Mac | [Download Intel Mac](https://github.com/jasonzhang06-source/sharelint/releases/download/v1.0.0/sharelint-v1.0.0-macos-x86_64.tar.gz) |
-| Apple silicon Mac | [Download Apple silicon Mac](https://github.com/jasonzhang06-source/sharelint/releases/download/v1.0.0/sharelint-v1.0.0-macos-arm64.tar.gz) |
+| x86-64 Linux with glibc | [Download Linux](https://github.com/jasonzhang06-source/sharelint/releases/download/v2.0.0/sharelint-v2.0.0-linux-glibc-x86_64.tar.gz) |
+| 64-bit Windows | [Download Windows](https://github.com/jasonzhang06-source/sharelint/releases/download/v2.0.0/sharelint-v2.0.0-windows-x86_64.zip) |
+| Intel Mac | [Download Intel Mac](https://github.com/jasonzhang06-source/sharelint/releases/download/v2.0.0/sharelint-v2.0.0-macos-x86_64.tar.gz) |
+| Apple silicon Mac | [Download Apple silicon Mac](https://github.com/jasonzhang06-source/sharelint/releases/download/v2.0.0/sharelint-v2.0.0-macos-arm64.tar.gz) |
 
 **Release v0.1.2 and earlier do not contain these standalone archives.** Use only files attached to
 a completed release, not ordinary CI artifacts. Download the archive and its same-named `.sha256`
 file, then follow the
 [verification and first-run instructions](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/troubleshooting.md#standalone-archive-verification).
 
-### Run with uv
+### Python source installation
 
-Alternatively, [uv](https://docs.astral.sh/uv/) can obtain a compatible Python automatically.
-Install uv for your operating system, then
-run the synthetic demo without persistently installing ShareLint:
-
-```bash
-uvx --from sharelint==1.0.0 sharelint demo
-```
-
-For regular use, install the tool persistently and make its command available to a new shell:
+With Python 3.11+, Git, and [pipx](https://pipx.pypa.io/stable/) installed, select
+the original 2.0.0 source explicitly:
 
 ```bash
-uv tool install sharelint==1.0.0
-uv tool update-shell
-```
-
-Open a new terminal after `uv tool update-shell`, then run `sharelint demo`. In the current shell,
-`uvx --from sharelint==1.0.0 sharelint demo` continues to work immediately.
-
-If Python 3.11+ and [pipx](https://pipx.pypa.io/stable/) are already installed, pipx remains a
-supported alternative:
-
-```bash
-pipx install sharelint==1.0.0
+pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
+sharelint --version
 sharelint demo
 ```
+
+**PyPI does not provide 2.0.0.** Its original files were deleted and their
+filenames cannot be reused; the currently available PyPI version is 1.0.0.
+A normal package-index install or
+upgrade does not obtain the GitHub 2.0.0 release. Installation uses the network;
+scanning stays local.
 
 Preview the same synthetic scan as a self-contained local HTML report:
 
@@ -84,9 +74,9 @@ Preview the same synthetic scan as a self-contained local HTML report:
 sharelint demo --format html --report sharelint-demo.html
 ```
 
-A standard virtual environment and `pip` also work. See the OS-specific
+A standard virtual environment and `pip` can install the same fixed tag. See the
 [installation and troubleshooting](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/troubleshooting.md)
-guide for installing uv from zero, standalone archive verification, upgrades, PATH fixes, and
+guide for standalone archive verification, source installation, PATH fixes, and
 externally managed Python environments.
 
 For development, install from a source checkout:
@@ -115,10 +105,10 @@ the destination filesystem so ShareLint can preserve its no-overwrite contract.
 See [platform support](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/platform-support.md)
 for the validation matrix, Windows notes, and filesystem limitations.
 
-> **ShareLint 1.0.** The existing scan, report, and pack workflow is now the stable release line.
-> CLI exit codes and versioned JSON contracts remain compatible with 0.1.x. Format coverage is
-> unchanged: PDF pages and image pixels are not OCR-scanned, and incomplete coverage blocks `pack`.
-> See the [1.x compatibility policy](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/stability.md).
+> **ShareLint 2.0.** Create a reviewable handoff plan, then pack only if source and policy still match.
+> New receipt schema 2.0.0 replaces filenames with ZIP entry indices; native scan reports remain 1.0.0.
+> Read the [migration guide](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/migration-2.md).
+> PDF pages and image pixels are not OCR-scanned; incomplete coverage still blocks `pack`.
 
 You are about to send a ZIP. The code is clean, but the deck still has speaker notes, the workbook
 contains a very-hidden sheet, the PDF names its author, and an image records a location. Git-focused
@@ -154,7 +144,7 @@ explicit PDF coverage gap without touching your files. Abridged Linux output
 SYNTHETIC DEMO · generated sample only
 No personal files were read; this run scanned only files created by ShareLint.
 
-ShareLint 1.0.0 · local privacy preflight
+ShareLint 2.0.0 · local privacy preflight
 INCOMPLETE · 5 policy-blocking finding(s) · 9 total · 14 surface(s)
 Coverage · 13 scanned · 1 partial · 0 skipped · 0 error(s)
 
@@ -174,6 +164,17 @@ Incomplete means one or more listed surfaces were not fully inspected.
 > or [request a format](https://github.com/jasonzhang06-source/sharelint/issues/new?template=feature_request.yml).
 
 ## Use it
+
+Use a repeatable policy:
+
+```bash
+sharelint scan ./client-handoff --profile public
+sharelint config init -o sharelint.toml
+sharelint config show --config sharelint.toml --profile client
+```
+
+See the [configuration guide](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/configuration.md).
+Configuration is explicit, never auto-discovered inside untrusted input.
 
 Scan a file, directory, ZIP, or Office document:
 
@@ -212,7 +213,7 @@ and companion report digest. On failure, no archive is published. An explicit
 `--receipt blocked.json` may write `blocked.json` plus `blocked.report.json` for the blocked attempt;
 it is never a success receipt. Companion reports include masked findings and contextual filenames,
 so protect them as sensitive records even though matched values remain hidden. Successful receipts
-also list archive member paths and should be protected alongside the archive.
+use ZIP entry indices instead of repeating filenames and should still be protected.
 
 `pack` always rejects partial, skipped, or errored coverage. There is deliberately no bypass flag:
 a pack receipt is only meaningful when every required surface was inspected.
@@ -231,6 +232,7 @@ sharelint explain SL.OFFICE.NOTES
 | `0` | Command completed and the selected gate did not block. |
 | `1` | Findings met the threshold, strict coverage failed, or `pack` was blocked. |
 | `2` | Invalid usage, unreadable input, or another operational error. |
+| `130` | The user interrupted the command. Review any completed outputs before retrying. |
 
 `sharelint demo` intentionally returns `0` after rendering its synthetic blocked example.
 
@@ -311,11 +313,49 @@ The security boundary and residual risks are documented in the
 [report and receipt contract](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/report-format.md), not parse console text.
 JSON Schema files for automated validation live in [`schemas/`](https://github.com/jasonzhang06-source/sharelint/tree/main/schemas).
 
+### Verify a delivered bundle offline
+
+```bash
+sharelint verify release.zip --receipt release.zip.sharelint.json --report release.zip.sharelint.report.json
+```
+
+The verifier checks exact report/archive bytes, recomputed report summaries,
+recorded policy settings, and ZIP file manifests. It does not upload or extract
+files. Integrity is not a signature, producer authentication, a new privacy
+scan, or a guarantee of safe sharing. See the
+[verification contract](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/verification.md)
+for blocked receipts, independent digest pinning, budgets, and exit codes.
+
+### Review what changed
+
+```bash
+sharelint diff before.json after.json
+sharelint diff before.json after.json --format html -o comparison.html
+```
+
+Report comparison checks rule/severity counts and coverage. It flags increased
+blockers, incomplete coverage, reduced inspection, and changed settings for
+review. It never treats report-scoped fingerprints as stable evidence IDs, and
+fewer findings do not prove a particular issue was fixed. See the
+[comparison guide](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/comparison.md).
+
+## Review before export
+
+```bash
+sharelint plan create ./handoff -o handoff.plan.json
+sharelint plan inspect handoff.plan.json
+sharelint pack ./handoff -o delivery.zip --plan handoff.plan.json
+```
+
+Packing repeats all strict checks and rejects changed source, policy, or scan
+snapshots. A plan is a private review record, not approval or a signature.
+See [handoff plans](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/handoff-plans.md).
+
 ## Project status and direction
 
-ShareLint `1.0.0` stabilizes the existing local scanning and packaging workflow with clearer
-first-run guidance and a validated release pipeline. The maintenance priority is focused fixes,
-synthetic regression tests, and compatibility. Local OCR, policy exceptions, receipt verification,
+ShareLint adds explicit policy profiles, offline receipt verification, report
+comparison, and reviewable handoff plans to the scanning/packaging workflow. The maintenance priority
+is synthetic regression tests, conservative coverage, and compatibility. Local OCR, policy exceptions,
 pre-send hooks, and a desktop interface remain future work. See the
 [roadmap](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/roadmap.md).
 

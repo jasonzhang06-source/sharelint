@@ -1,24 +1,22 @@
 # Installation and troubleshooting
 
-ShareLint is published as a Python 3.11+ package on
-[PyPI](https://pypi.org/project/sharelint/1.0.0/). This guide targets ShareLint 1.0.0.
-The 1.0 release pipeline also builds
-zero-Python standalone archives, available in
-[v1.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0).
-Installation and provenance
-checks use the network; scanning itself has no upload, telemetry, account, or
-network feature.
+This guide targets ShareLint 2.0.0. Download a standalone archive from
+[GitHub v2.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0),
+or install the original fixed-tag source with Python 3.11+ and Git.
+[PyPI currently provides 1.0.0](https://pypi.org/project/sharelint/1.0.0/);
+the original PyPI 2.0.0 files were deleted and their filenames cannot be reused.
+Ordinary package-index installation or upgrade commands do not obtain 2.0.0.
+Downloads and installation use the network; scanning itself has no upload,
+telemetry, account, or network feature.
 
 ## No Python installed
 
 ### First choice: standalone archive
 
-The standalone archive includes the interpreter and launcher. Release
-`v0.1.2` and earlier do not contain these files. Until the matching archive is
-visibly attached to a completed
-[GitHub Release](https://github.com/jasonzhang06-source/sharelint/releases), use
-the uv route below; do not guess an asset URL or treat a normal CI artifact as a
-release.
+The standalone archive includes the interpreter and launcher. Select your
+platform from the [2.0.0 downloads](../README.md#no-python-standalone-archive).
+Use only the archive and matching checksum visibly attached to that completed
+GitHub Release. An ordinary CI artifact is not a release download.
 
 The archive names and measured build runners are listed in the
 [standalone target matrix](platform-support.md#standalone-release-target-matrix).
@@ -26,69 +24,27 @@ For an archive attached to a completed release, complete
 [standalone archive verification](#standalone-archive-verification) before
 running the executable.
 
-### Alternative: install uv from zero
+## pipx source installation
 
-[uv](https://docs.astral.sh/uv/getting-started/installation/) is a standalone
-tool that can download a compatible Python automatically. On 64-bit Windows,
-open PowerShell and use WinGet:
-
-```powershell
-winget install --id=astral-sh.uv -e
-```
-
-On macOS with Homebrew:
+With Python 3.11+, Git, and [pipx](https://pipx.pypa.io/stable/) installed,
+install the fixed 2.0.0 source tag:
 
 ```bash
-brew install uv
-```
-
-On macOS or Linux, the official standalone installer is:
-
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-Review the linked uv installation page before running a downloaded installer.
-Open a new terminal if the installer changed `PATH`, then run the disposable,
-synthetic demo:
-
-```bash
-uvx --from sharelint==1.0.0 sharelint demo
-```
-
-For regular use, install ShareLint persistently:
-
-```bash
-uv tool install sharelint==1.0.0
-uv tool update-shell
-```
-
-Close and reopen the terminal after `uv tool update-shell`, then run
-`sharelint --version` and `sharelint demo`. Until then,
-`uvx --from sharelint==1.0.0 sharelint demo`
-still works in the current shell.
-To explicitly select 1.0.0 in an existing installation, or remove it:
-
-```bash
-uv tool install --force sharelint==1.0.0
-uv tool uninstall sharelint
-```
-
-## pipx for an existing Python installation
-
-Use [pipx](https://pipx.pypa.io/stable/) only when Python 3.11+ and pipx are
-already installed:
-
-```bash
-pipx install sharelint==1.0.0
+pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
 sharelint --version
 sharelint demo
 ```
 
-To explicitly select 1.0.0 in an existing installation, or remove it:
+The version command must print `ShareLint 2.0.0`. To replace an existing pipx
+installation with that same source version, use the explicit source again:
 
 ```bash
-pipx install --force sharelint==1.0.0
+pipx install --force 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
+```
+
+To remove a pipx installation:
+
+```bash
 pipx uninstall sharelint
 ```
 
@@ -100,7 +56,7 @@ On Linux or macOS:
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install sharelint==1.0.0
+python -m pip install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
 sharelint --version
 sharelint demo
 ```
@@ -111,7 +67,7 @@ On Windows PowerShell:
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install sharelint==1.0.0
+python -m pip install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
 sharelint --version
 sharelint demo
 ```
@@ -121,10 +77,11 @@ Call the environment's executables directly:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install sharelint==1.0.0
+.\.venv\Scripts\python.exe -m pip install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
 .\.venv\Scripts\sharelint.exe demo
 ```
 
+These source installation commands require Git as well as Python 3.11+.
 The same package targets Linux, Windows, and macOS, but validation is tied to a
 specific CI commit and writable outputs require filesystem hard-link support.
 Read [Platform support](platform-support.md) before using FAT/exFAT, network,
@@ -132,31 +89,31 @@ synchronized, or virtual filesystems.
 
 Do not use `sudo pip install` and do not bypass an
 `externally-managed-environment` error with `--break-system-packages`. That
-message means the operating system protects its Python installation. Use pipx,
-uv, or a virtual environment instead.
+message means the operating system protects its Python installation. Use the
+fixed-tag pipx installation or a virtual environment instead.
 
 ## Standalone archive verification
 
 This section applies only after a tagged GitHub Release actually lists the
-standalone archive and its same-named `.sha256` file. Substitute the version and
-target shown on that release page.
+standalone archive and its same-named `.sha256` file. The examples select
+2.0.0; use the target matching your computer.
 
 On Linux, verify the archive checksum before extraction:
 
 ```bash
-sha256sum --check sharelint-vX.Y.Z-linux-glibc-x86_64.tar.gz.sha256
+sha256sum --check sharelint-v2.0.0-linux-glibc-x86_64.tar.gz.sha256
 ```
 
 On macOS, use the matching Intel or Apple silicon filename:
 
 ```bash
-shasum -a 256 -c sharelint-vX.Y.Z-macos-arm64.tar.gz.sha256
+shasum -a 256 -c sharelint-v2.0.0-macos-arm64.tar.gz.sha256
 ```
 
 On Windows PowerShell:
 
 ```powershell
-$Archive = ".\sharelint-vX.Y.Z-windows-x86_64.zip"
+$Archive = ".\sharelint-v2.0.0-windows-x86_64.zip"
 $Expected = ((Get-Content "$Archive.sha256") -split '\s+')[0]
 $Actual = (Get-FileHash -Algorithm SHA256 $Archive).Hash
 if ($Actual.ToLowerInvariant() -ne $Expected.ToLowerInvariant()) {
@@ -165,24 +122,17 @@ if ($Actual.ToLowerInvariant() -ne $Expected.ToLowerInvariant()) {
 ```
 
 A matching checksum detects corruption or a mismatch with that checksum file;
-it does not prove who published either file. For build-source verification,
-install [GitHub CLI](https://cli.github.com/) and verify the archive's GitHub
-artifact attestation:
-
-```text
-gh attestation verify sharelint-vX.Y.Z-linux-glibc-x86_64.tar.gz --repo jasonzhang06-source/sharelint
-```
-
-Use the actual archive name on Windows or macOS. The attestation associates the
-exact archive bytes with this repository's workflow identity. It is not an
-operating-system code signature, Apple notarization, an independent
-reproducible-build result, or a claim that the program is safe.
+it does not prove who published either file. The 2026-09-14 republication
+restores the original archive bytes and checksum files. Previous GitHub
+attestations were removed; a working `gh attestation verify` result is not
+claimed for these restored downloads. The included `BUILD-INFO.json` preserves
+the original build record, but does not independently authenticate the publisher.
 
 After verification, extract and run on Linux:
 
 ```bash
-tar -xzf sharelint-vX.Y.Z-linux-glibc-x86_64.tar.gz
-cd sharelint-vX.Y.Z-linux-glibc-x86_64
+tar -xzf sharelint-v2.0.0-linux-glibc-x86_64.tar.gz
+cd sharelint-v2.0.0-linux-glibc-x86_64
 ./sharelint --version
 ./sharelint demo
 ```
@@ -190,8 +140,8 @@ cd sharelint-vX.Y.Z-linux-glibc-x86_64
 On Apple silicon macOS (use `macos-x86_64` instead on an Intel Mac):
 
 ```bash
-tar -xzf sharelint-vX.Y.Z-macos-arm64.tar.gz
-cd sharelint-vX.Y.Z-macos-arm64
+tar -xzf sharelint-v2.0.0-macos-arm64.tar.gz
+cd sharelint-v2.0.0-macos-arm64
 ./sharelint --version
 ./sharelint demo
 ```
@@ -199,8 +149,8 @@ cd sharelint-vX.Y.Z-macos-arm64
 On Windows PowerShell:
 
 ```powershell
-Expand-Archive .\sharelint-vX.Y.Z-windows-x86_64.zip -DestinationPath .
-Set-Location .\sharelint-vX.Y.Z-windows-x86_64
+Expand-Archive .\sharelint-v2.0.0-windows-x86_64.zip -DestinationPath .
+Set-Location .\sharelint-v2.0.0-windows-x86_64
 .\sharelint.exe --version
 .\sharelint.exe demo
 ```
@@ -218,8 +168,8 @@ PyInstaller's canonical Analysis and PKG name/type inventories. The native
 release gate rejects an unknown or malformed native entry, unequal summaries, a
 name mismatch with the executable's CArchive, a recorded identity that does not
 match the executable, or a required component without reviewed notice coverage.
-Because the record and notices are inside the archive, its checksum and
-attestation cover their exact bytes. They remain transparency evidence, not an
+Because the record and notices are inside the archive, its checksum covers
+their exact bytes. They remain transparency evidence, not an
 independent trust root, complete SBOM, legal certification, or
 reproducible-build proof.
 
@@ -234,8 +184,9 @@ listed on that release page; a normal CI artifact is not a substitute.
 First confirm that the target matches the host. `macos-arm64` is for Apple
 silicon, `macos-x86_64` is for Intel Macs, and the Linux archive requires an
 x86-64 glibc system. There is no standalone Linux ARM64, musl/Alpine, Windows
-ARM64, or 32-bit target in the first matrix. Use the uv/PyPI installation on an
-unlisted host where Python 3.11+ is available.
+ARM64, or 32-bit target in the matrix. The fixed-tag source installation is an
+alternative where Python 3.11+ and Git are available; unlisted hosts have not
+been validated by the native release matrix.
 
 On Linux or macOS, extraction should retain the executable bit. If a trusted,
 verified copy lost it, restore only the user execute bit:
@@ -271,7 +222,7 @@ The first Windows standalone executable is not Authenticode-signed. SmartScreen
 can report an unrecognized app, and managed policy may block it completely. The
 first macOS executables are ad-hoc signed but do not have Developer ID
 distribution signing or Apple notarization, so Gatekeeper can warn or block.
-After verifying the checksum and provenance, and only when the device owner's
+After verifying the checksum, and only when the device owner's
 policy permits unsigned software:
 
 - For one Windows file, open **More info → Run anyway** in the SmartScreen
@@ -281,7 +232,7 @@ policy permits unsigned software:
   that blocked file.
 
 If the per-file option is absent or managed policy blocks it, stop and use the
-uv/PyPI route. Do not disable SmartScreen or Gatekeeper globally, remove macOS
+fixed-tag source installation if permitted. Do not disable SmartScreen or Gatekeeper globally, remove macOS
 quarantine attributes, use `sudo`, or choose **Run as administrator**.
 
 ## `sharelint: command not found`
@@ -294,11 +245,10 @@ First confirm that the selected installer can see the application:
 
 ```bash
 pipx list
-uv tool list
 ```
 
-For uv, run `uv tool update-shell`; for pipx, run `pipx ensurepath`; then open a
-new terminal. For an ordinary virtual environment, activate it before running
+For pipx, run `pipx ensurepath`, then open a new terminal. For an ordinary
+virtual environment, activate it before running
 `sharelint`. You can also verify the package through the active interpreter:
 
 ```bash
@@ -334,6 +284,7 @@ The CLI uses these stable exit codes:
 | `0` | The command completed and the selected gate did not block. |
 | `1` | A finding met the threshold, strict coverage failed, or `pack` was blocked. |
 | `2` | Usage was invalid, the target was unreadable, or another operational error occurred. |
+| `130` | The user interrupted the command. Review completed outputs before retrying. |
 
 `sharelint demo` intentionally returns `0` after showing a synthetic blocked
 example; its console banner says that it generated synthetic data and read no

@@ -113,6 +113,28 @@ def verify(executable: Path) -> None:
         _expect(rules, 0, "rules")
         if "SL.SECRET.AWS_ACCESS_KEY" not in rules.stdout:
             raise VerificationError("frozen rule catalog is incomplete")
+
+        configuration = output_dir / "policy.toml"
+        _expect(
+            _run(executable, work, environment, "config", "init", "-o", str(configuration)),
+            0,
+            "config init",
+        )
+        configured = _run(
+            executable,
+            work,
+            environment,
+            "config",
+            "show",
+            "--config",
+            str(configuration),
+            "--profile",
+            "client",
+        )
+        _expect(configured, 0, "config show")
+        settings = _json(configured, "config show")
+        if settings.get("fail_on") != "medium" or settings.get("strict") is not True:
+            raise VerificationError("frozen configuration policy is inconsistent")
         explained = _run(executable, work, environment, "explain", "SL.SECRET.AWS_ACCESS_KEY")
         _expect(explained, 0, "explain")
 
@@ -197,6 +219,11 @@ def verify(executable: Path) -> None:
         bundle = output_dir / "safe-to-share.zip"
         receipt = output_dir / "private-receipt.json"
         report = output_dir / "private-report.json"
+        plan = output_dir / "private-plan.json"
+        planned = _run(
+            executable, work, environment, "plan", "create", str(pack_input), "-o", str(plan)
+        )
+        _expect(planned, 0, "handoff planning")
         packed = _run(
             executable,
             work,
@@ -209,6 +236,8 @@ def verify(executable: Path) -> None:
             str(receipt),
             "--report",
             str(report),
+            "--plan",
+            str(plan),
         )
         _expect(packed, 0, "pack")
         if not zipfile.is_zipfile(bundle):
@@ -217,6 +246,37 @@ def verify(executable: Path) -> None:
             parsed = json.loads(document.read_text(encoding="utf-8"))
             if not isinstance(parsed, dict):
                 raise VerificationError("frozen pack metadata root was not an object")
+        verified = _run(
+            executable,
+            work,
+            environment,
+            "verify",
+            str(bundle),
+            "--receipt",
+            str(receipt),
+            "--report",
+            str(report),
+            "--plan",
+            str(plan),
+            "--format",
+            "json",
+        )
+        _expect(verified, 0, "receipt verification")
+        if _json(verified, "receipt verification").get("status") != "verified":
+            raise VerificationError("frozen executable did not verify its pack receipt")
+        compared = _run(
+            executable,
+            work,
+            environment,
+            "diff",
+            str(report),
+            str(report),
+            "--format",
+            "json",
+        )
+        _expect(compared, 0, "report comparison")
+        if _json(compared, "report comparison").get("decision") != "no-regression-observed":
+            raise VerificationError("frozen executable report comparison is inconsistent")
 
 
 def _parser() -> argparse.ArgumentParser:

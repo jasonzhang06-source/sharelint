@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 import tempfile
@@ -11,12 +12,17 @@ from contextlib import suppress
 from pathlib import Path
 
 from . import __version__
+from .comparison import compare_reports
+from .config import CONFIG_TEMPLATE, ConfigurationError, resolve_settings
 from .demo import create_demo_bundle, render_demo_console
+from .input_io import DocumentInputError
 from .models import Severity
 from .packing import PackBlocked, PackError, pack
+from .planning import create_plan, read_plan
 from .reporters import render, render_console
 from .rules import RULES
 from .scanner import ScanInputError, scan
+from .verification import VerificationError, verify_receipt
 
 FORMATS = ("console", "json", "sarif", "html")
 _UNSAFE_TERMINAL_CODEPOINTS = {
@@ -42,6 +48,26 @@ def _severity(value: str) -> Severity:
         return Severity.parse(value)
     except ValueError as exc:
         raise argparse.ArgumentTypeError(str(exc)) from exc
+
+
+def _policy_arguments(parser: argparse.ArgumentParser, *, include_strict: bool = True) -> None:
+    parser.add_argument(
+        "--config", type=Path, help="explicit TOML configuration (never auto-discovered)"
+    )
+    parser.add_argument("--profile", help="built-in default/public/strict or a configured profile")
+    parser.add_argument(
+        "--fail-on",
+        type=_severity,
+        default=None,
+        help="override the policy blocking severity (default profile: high)",
+    )
+    if include_strict:
+        parser.add_argument(
+            "--strict",
+            action=argparse.BooleanOptionalAction,
+            default=None,
+            help="also fail on incomplete coverage; --no-strict overrides a profile for scan only",
+        )
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -82,17 +108,7 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         help="write the report to a new file instead of standard output",
     )
-    scan_parser.add_argument(
-        "--fail-on",
-        type=_severity,
-        default=Severity.HIGH,
-        help="exit 1 for findings at this severity or higher (default: high)",
-    )
-    scan_parser.add_argument(
-        "--strict",
-        action="store_true",
-        help="also fail when coverage is partial, skipped, or errored",
-    )
+    _policy_arguments(scan_parser)
     scan_parser.add_argument("--no-color", action="store_true", help="disable terminal colors")
 
     pack_parser = subparsers.add_parser(
@@ -133,12 +149,8 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         help="write the private hash-bound JSON report here (requires --receipt)",
     )
-    pack_parser.add_argument(
-        "--fail-on",
-        type=_severity,
-        default=Severity.HIGH,
-        help="block findings at this severity or higher (default: high)",
-    )
+    _policy_arguments(pack_parser, include_strict=False)
+    pack_parser.add_argument("--plan", type=Path, help="require a matching reviewed handoff plan")
     pack_parser.add_argument("--no-color", action="store_true", help="disable terminal colors")
 
     demo_parser = subparsers.add_parser(
@@ -178,6 +190,57 @@ def _parser() -> argparse.ArgumentParser:
     subparsers.add_parser("rules", help="list stable rule identifiers")
     explain_parser = subparsers.add_parser("explain", help="explain one rule")
     explain_parser.add_argument("rule_id")
+    config_parser = subparsers.add_parser(
+        "config", help="create or inspect an explicit policy configuration"
+    )
+    config_commands = config_parser.add_subparsers(dest="config_command", required=True)
+    config_init = config_commands.add_parser(
+        "init", help="write a commented TOML template to a new file"
+    )
+    config_init.add_argument("-o", "--output", type=Path, required=True)
+    config_show = config_commands.add_parser(
+        "show", help="show the complete effective policy as JSON"
+    )
+    _policy_arguments(config_show)
+
+    verify_parser = subparsers.add_parser(
+        "verify", help="verify a pack receipt, report, and archive entirely offline"
+    )
+    verify_parser.add_argument(
+        "artifact", type=Path, nargs="?", help="ZIP required for a packed receipt"
+    )
+    verify_parser.add_argument("--receipt", type=Path, required=True)
+    verify_parser.add_argument("--report", type=Path, required=True)
+    verify_parser.add_argument("--plan", type=Path, help="required for a planned v2 receipt")
+    verify_parser.add_argument("--config", type=Path, help="explicit verifier resource limits")
+    verify_parser.add_argument("--profile", help="profile supplying verifier resource limits")
+    verify_parser.add_argument(
+        "--expected-receipt-sha256", help="receipt digest from a separately trusted channel"
+    )
+    verify_parser.add_argument("--format", choices=("console", "json"), default="console")
+    diff_parser = subparsers.add_parser(
+        "diff", help="compare validated report counts without revealing evidence"
+    )
+    diff_parser.add_argument("before", type=Path, help="earlier native JSON report")
+    diff_parser.add_argument("after", type=Path, help="later native JSON report")
+    diff_parser.add_argument("--fail-on", type=_severity, help="explicit common blocking threshold")
+    diff_parser.add_argument("--format", choices=("console", "json", "html"), default="console")
+    diff_parser.add_argument(
+        "-o", "--output", type=Path, help="new comparison output; required for HTML"
+    )
+    plan_parser = subparsers.add_parser(
+        "plan", help="create and inspect a private handoff snapshot"
+    )
+    plan_commands = plan_parser.add_subparsers(dest="plan_command", required=True)
+    plan_create = plan_commands.add_parser("create", help="scan input into a new reviewable plan")
+    plan_create.add_argument("target", type=Path)
+    plan_create.add_argument("-o", "--output", type=Path, required=True)
+    _policy_arguments(plan_create, include_strict=False)
+    plan_inspect = plan_commands.add_parser(
+        "inspect", help="validate a plan and show privacy-safe counts"
+    )
+    plan_inspect.add_argument("plan", type=Path)
+    plan_inspect.add_argument("--format", choices=("console", "json"), default="console")
     return parser
 
 
@@ -247,22 +310,33 @@ def _display_path(path: Path) -> str:
 
 
 def _scan_command(arguments: argparse.Namespace) -> int:
+    settings = resolve_settings(
+        config=arguments.config,
+        profile=arguments.profile,
+        fail_on=arguments.fail_on,
+        strict=arguments.strict,
+    )
     _validate_scan_output(arguments.target, arguments.output)
-    report = scan(arguments.target)
+    report = scan(arguments.target, limits=settings.limits)
     rendered = render(
         report,
         arguments.format,
-        arguments.fail_on,
+        settings.fail_on,
         color=_use_color(arguments.no_color) and arguments.output is None,
     )
     _write_or_print(rendered, arguments.output)
-    blocked = report.count_at_or_above(arguments.fail_on) > 0
-    if arguments.strict and report.has_coverage_gaps:
+    blocked = report.count_at_or_above(settings.fail_on) > 0
+    if settings.strict and report.has_coverage_gaps:
         blocked = True
     return 1 if blocked else 0
 
 
 def _pack_command(arguments: argparse.Namespace) -> int:
+    settings = resolve_settings(
+        config=arguments.config,
+        profile=arguments.profile,
+        fail_on=arguments.fail_on,
+    )
     if arguments.report is not None and arguments.receipt is None:
         raise PackError("--report requires an explicit --receipt path")
     try:
@@ -272,11 +346,13 @@ def _pack_command(arguments: argparse.Namespace) -> int:
             receipt=arguments.receipt,
             report_output=arguments.report,
             write_receipt=not arguments.no_receipt,
-            fail_on=arguments.fail_on,
+            fail_on=settings.fail_on,
+            limits=settings.limits,
+            plan=arguments.plan,
         )
     except PackBlocked as exc:
         sys.stdout.write(
-            render_console(exc.report, arguments.fail_on, color=_use_color(arguments.no_color))
+            render_console(exc.report, settings.fail_on, color=_use_color(arguments.no_color))
         )
         messages = {
             "blocking_findings": "one or more findings met the blocking threshold",
@@ -379,7 +455,100 @@ def _explain_command(rule_id: str) -> int:
     return 0
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def _config_command(arguments: argparse.Namespace) -> int:
+    if arguments.config_command == "init":
+        _write_or_print(CONFIG_TEMPLATE, arguments.output)
+        sys.stdout.write("Configuration template created; pass it explicitly with --config.\n")
+        return 0
+    settings = resolve_settings(
+        config=arguments.config,
+        profile=arguments.profile,
+        fail_on=arguments.fail_on,
+        strict=arguments.strict,
+    )
+    sys.stdout.write(
+        json.dumps(settings.to_dict(), indent=2, sort_keys=True, allow_nan=False) + "\n"
+    )
+    return 0
+
+
+def _verify_command(arguments: argparse.Namespace) -> int:
+    settings = resolve_settings(config=arguments.config, profile=arguments.profile)
+    try:
+        result = verify_receipt(
+            arguments.receipt,
+            arguments.report,
+            arguments.artifact,
+            limits=settings.limits,
+            expected_receipt_sha256=arguments.expected_receipt_sha256,
+            plan_path=arguments.plan,
+        )
+    except VerificationError as exc:
+        if arguments.format == "json":
+            sys.stdout.write(
+                json.dumps(
+                    {
+                        "schema_version": "1.0.0",
+                        "verification_type": "sharelint.integrity",
+                        "status": "mismatch",
+                        "message": str(exc),
+                    },
+                    sort_keys=True,
+                )
+                + "\n"
+            )
+        else:
+            sys.stderr.write(f"INTEGRITY NOT VERIFIED: {exc}\n")
+        return 1
+    sys.stdout.write(
+        json.dumps(result.to_dict(), indent=2, sort_keys=True) + "\n"
+        if arguments.format == "json"
+        else result.render_console()
+    )
+    return 0 if result.status == "verified" else 1
+
+
+def _diff_command(arguments: argparse.Namespace) -> int:
+    if arguments.format == "html" and arguments.output is None:
+        raise ScanInputError("HTML comparison requires an explicit --output file")
+    _validate_scan_output(arguments.before, arguments.output)
+    _validate_scan_output(arguments.after, arguments.output)
+    comparison = compare_reports(arguments.before, arguments.after, fail_on=arguments.fail_on)
+    _write_or_print(comparison.render(arguments.format), arguments.output)
+    return 1 if comparison.requires_review else 0
+
+
+def _plan_command(arguments: argparse.Namespace) -> int:
+    if arguments.plan_command == "create":
+        settings = resolve_settings(
+            config=arguments.config,
+            profile=arguments.profile,
+            fail_on=arguments.fail_on,
+        )
+        _validate_scan_output(arguments.target, arguments.output)
+        plan = create_plan(arguments.target, limits=settings.limits, fail_on=settings.fail_on)
+        _write_or_print(plan.payload.decode("utf-8"), arguments.output)
+        sys.stdout.write(
+            f"PLAN {'READY' if plan.ready else 'BLOCKED'} · sha256:{plan.sha256}\n"
+            "Keep the plan private. It is a snapshot, not approval or a signature.\n"
+        )
+    else:
+        plan = read_plan(arguments.plan)
+        summary = plan.summary()
+        if arguments.format == "json":
+            sys.stdout.write(json.dumps(summary, sort_keys=True, indent=2) + "\n")
+        else:
+            sys.stdout.write(
+                f"PLAN {'READY' if plan.ready else 'BLOCKED'} · sha256:{plan.sha256}\n"
+                f"Producer matches installed version: {summary['producer_version_matches']}\n"
+                f"Findings: {summary['summary']['total_findings']} · "
+                f"coverage complete: {summary['summary']['coverage_complete']}\n"
+                f"{summary['claim']}\n"
+            )
+    return 0 if plan.ready else 1
+
+
+def _main(argv: Sequence[str] | None = None) -> int:
     _configure_standard_streams()
     parser = _parser()
     arguments = parser.parse_args(argv)
@@ -394,9 +563,71 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _rules_command()
         if arguments.command == "explain":
             return _explain_command(arguments.rule_id)
-    except (ScanInputError, PackError, OSError) as exc:
+        if arguments.command == "config":
+            return _config_command(arguments)
+        if arguments.command == "verify":
+            return _verify_command(arguments)
+        if arguments.command == "diff":
+            return _diff_command(arguments)
+        if arguments.command == "plan":
+            return _plan_command(arguments)
+    except BrokenPipeError:
+        raise
+    except (ScanInputError, PackError, ConfigurationError, DocumentInputError, OSError) as exc:
         message = "operating system operation failed" if isinstance(exc, OSError) else str(exc)
         sys.stderr.write(f"sharelint: {message}\n")
         return 2
     parser.error("unknown command")
     return 2
+
+
+def _discard_broken_stream(stream: object) -> None:
+    """Prevent an interpreter-shutdown flush from replacing our exit code with 120."""
+
+    descriptor: int | None = None
+    try:
+        fileno = getattr(stream, "fileno", None)
+        if fileno is None:
+            return
+        target = fileno()
+        descriptor = os.open(os.devnull, os.O_WRONLY | getattr(os, "O_BINARY", 0))
+        os.dup2(descriptor, target)
+    except (OSError, ValueError):
+        # An embedded caller can supply a memory stream without a descriptor.
+        pass
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+
+
+def _diagnostic(message: str) -> None:
+    try:
+        sys.stderr.write(f"sharelint: {message}\n")
+        sys.stderr.flush()
+    except (OSError, ValueError):
+        _discard_broken_stream(sys.stderr)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    try:
+        try:
+            result = _main(argv)
+        except SystemExit:
+            # argparse's help/version paths exit before the normal return.
+            sys.stdout.flush()
+            raise
+        sys.stdout.flush()
+        return result
+    except KeyboardInterrupt:
+        _diagnostic(
+            "interrupted; no successful completion is claimed; review any completed outputs"
+        )
+        return 130
+    except BrokenPipeError:
+        _discard_broken_stream(sys.stdout)
+        _diagnostic("output pipe closed; the result was not fully delivered")
+        return 2
+    except OSError:
+        _discard_broken_stream(sys.stdout)
+        _diagnostic("output could not be completed")
+        return 2

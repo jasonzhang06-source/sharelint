@@ -91,6 +91,25 @@ def verify() -> None:
         if "SL.OFFICE.NOTES" not in rules.stdout:
             raise WheelVerificationError("installed wheel rule catalog is incomplete")
 
+        configuration = outputs / "policy.toml"
+        _expect(
+            _run(work, environment, "config", "init", "-o", str(configuration)), 0, "config init"
+        )
+        configured = _run(
+            work,
+            environment,
+            "config",
+            "show",
+            "--config",
+            str(configuration),
+            "--profile",
+            "client",
+        )
+        _expect(configured, 0, "config show")
+        settings = json.loads(configured.stdout)
+        if settings.get("fail_on") != "medium" or settings.get("strict") is not True:
+            raise WheelVerificationError("installed configuration policy is inconsistent")
+
         demo = _run(work, environment, "demo")
         _expect(demo, 0, "demo")
         if "SYNTHETIC DEMO" not in demo.stdout or "No personal files were read" not in demo.stdout:
@@ -123,6 +142,11 @@ def verify() -> None:
             raise WheelVerificationError("installed wheel clean fixture produced findings")
 
         bundle = outputs / "shareable.zip"
+        receipt = outputs / "private-receipt.json"
+        report = outputs / "private-report.json"
+        plan = outputs / "private-plan.json"
+        planned = _run(work, environment, "plan", "create", str(handoff), "-o", str(plan))
+        _expect(planned, 0, "handoff planning")
         packed = _run(
             work,
             environment,
@@ -130,11 +154,37 @@ def verify() -> None:
             str(handoff),
             "--output",
             str(bundle),
-            "--no-receipt",
+            "--receipt",
+            str(receipt),
+            "--report",
+            str(report),
+            "--plan",
+            str(plan),
         )
         _expect(packed, 0, "clean pack")
         if not zipfile.is_zipfile(bundle) or "Shareable bundle" not in packed.stdout:
             raise WheelVerificationError("installed wheel did not complete a clean pack")
+        verified = _run(
+            work,
+            environment,
+            "verify",
+            str(bundle),
+            "--receipt",
+            str(receipt),
+            "--report",
+            str(report),
+            "--plan",
+            str(plan),
+            "--format",
+            "json",
+        )
+        _expect(verified, 0, "receipt verification")
+        if json.loads(verified.stdout).get("status") != "verified":
+            raise WheelVerificationError("installed wheel did not verify its pack receipt")
+        compared = _run(work, environment, "diff", str(report), str(report), "--format", "json")
+        _expect(compared, 0, "report comparison")
+        if json.loads(compared.stdout).get("decision") != "no-regression-observed":
+            raise WheelVerificationError("installed wheel report comparison is inconsistent")
 
 
 def main() -> int:

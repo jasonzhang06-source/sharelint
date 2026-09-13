@@ -7,6 +7,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-09-14 (republication)
+
+This section describes 2.0.0 compared with 1.0.0. The 2026-09-14 publication
+restores the original 2.0.0 source at
+`2dc9f29d0aed9fde3b1f37486f5bc8c8441a320e` and the original four native archives
+and four checksum files. The original source and asset bytes are unchanged;
+this date records the republication, not a new build or the original release
+date. Intermediate 1.1/1.2/1.2.1/1.3 development changes are consolidated below;
+their historical notes remain in `docs/releases/`, and their GitHub tags and
+releases are not being restored.
+
+### Added
+
+- Local handoff plans with bounded validation, masked snapshots, and explicit inspection.
+- Planned packing requires unchanged source, policy, producer version, and fresh scan results.
+- Exact plan-to-receipt binding and offline verification without trusting imported paths.
+- Versioned plan/receipt schemas, migration documentation, and installed-program regressions.
+- Explicit versioned TOML configuration with bounded, no-follow reads and strict validation.
+- Built-in public/strict profiles, reusable custom profiles, and configurable resource limits.
+- `config init` and `config show`, plus explicit policy overrides for `scan` and `pack`.
+- Optional `limits` for the Python `pack` API; every rescan and receipt uses the effective limits.
+- Offline `verify` command and public Python receipt verification API.
+- Bounded native JSON validation with duplicate-key and non-finite value rejection,
+  independent summary recomputation, and conservative coverage handling.
+- Exact receipt/report/ZIP bindings, recorded policy consistency, bounded ZIP
+  manifest inspection, and optional independently obtained receipt digest pinning.
+- Integrity-only verification results without imported filenames or evidence.
+- Offline aggregate report comparison through `diff` and `compare_reports`, with
+  rule/severity deltas and conservative review of coverage and settings changes.
+- Privacy-safe console/JSON output, script-free standalone HTML comparisons,
+  and a distinct versioned comparison schema.
+- Cross-platform policy, malformed-control-document, installed-wheel, and
+  native standalone regression coverage for the new workflows.
+
+### Changed
+
+- **Receipt schema 2.0.0:** all new receipt manifests replace `files[].path` with
+  zero-based `files[].entry`, preventing repetition of matched private filenames
+  when an operator permits non-blocking findings. Old v1 receipts remain verifiable.
+- Native scan reports remain schema 1.0.0; existing scan/pack safety gates remain.
+- No automatic configuration discovery, incomplete-coverage bypass, new OCR
+  coverage, or cross-report matched-value identity is introduced. Verification
+  is an integrity check, not authentication, a privacy rescan, or a safety guarantee.
+
+### Fixed
+
+- Handle Ctrl+C with an explicit, traceback-free cancellation exit `130`.
+- Flush command/help/version output inside the I/O error boundary, preventing
+  closed pipes from changing exit `2` into interpreter-shutdown exit `120`.
+- Discard failed output streams safely and keep native error details private.
+- Cover cancellation rollback and real subprocess pipe closure with regressions.
+- Source and publication verification opens use nonblocking file descriptors
+  where supported, so a regular-file-to-FIFO race cannot hang the operation.
+- Packing rechecks no-follow file identity and exact read size after reading.
+
+### Publication notes
+
+- GitHub publication uses the personal `jasonzhang06-source` account; the
+  automated publishing workflow remains disabled and CI remains separate.
+- GitHub native downloads and fixed-tag source installation are the 2.0.0
+  installation paths. The original PyPI 2.0.0 files were deleted and their
+  filenames cannot be reused; PyPI currently provides 1.0.0.
+- Previous GitHub attestations were removed. The restored archives retain their
+  original checksums and build records; hosted attestation verification is not
+  claimed for the republication.
+
 ## [1.0.0] - 2026-09-06
 
 The first stable release maintains the existing scanner and machine-readable
@@ -112,7 +178,8 @@ work with focused usability fixes; no new scanning features are introduced.
 - A branch-aware 75% coverage floor enforced in CI and release verification.
 - CodeQL analysis, dependency update automation, and a Trusted Publishing release workflow.
 
-[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/jasonzhang06-source/sharelint/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.2...v1.0.0
 [0.1.2]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.0...v0.1.1

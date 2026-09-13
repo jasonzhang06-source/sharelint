@@ -112,7 +112,7 @@ class PackReceiptTests(CliTestCase):
             (first_zip, second_zip),
             strict=True,
         ):
-            self.assertEqual(receipt.get("schema_version"), "1.0.0")
+            self.assertEqual(receipt.get("schema_version"), "2.0.0")
             self.assertEqual(receipt.get("status"), "packed")
             report_bytes = _report_path(receipt_path).read_bytes()
             self.assertEqual(
@@ -124,9 +124,9 @@ class PackReceiptTests(CliTestCase):
             self.assertIsInstance(report_document.get("findings"), list)
             self.assertIsInstance(report_document.get("surfaces"), list)
             manifest = _manifest(receipt)
-            self.assertEqual([item.get("path") for item in manifest], names)
+            self.assertEqual([item.get("entry") for item in manifest], list(range(len(names))))
             for item in manifest:
-                expected = (source / item["path"]).read_bytes()
+                expected = (source / names[item["entry"]]).read_bytes()
                 self.assertEqual(item.get("size"), len(expected))
                 self.assertEqual(
                     item.get("sha256"),
@@ -162,7 +162,7 @@ class PackReceiptTests(CliTestCase):
             "an explicitly requested blocked receipt needs its hash-bound scan report",
         )
         receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
-        self.assertEqual(receipt.get("schema_version"), "1.0.0")
+        self.assertEqual(receipt.get("schema_version"), "2.0.0")
         self.assertEqual(receipt.get("status"), "blocked")
         self.assertIsInstance(receipt.get("source"), dict)
         self.assertIsInstance(receipt.get("policy"), dict)

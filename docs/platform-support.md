@@ -39,19 +39,19 @@ macOS after the source suites pass.
 
 ## Standalone release target matrix
 
-**Available in [v1.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v1.0.0).**
-All four native builds and their final archives passed the
-[release workflow](https://github.com/jasonzhang06-source/sharelint/actions/runs/34035839879).
-The release has four archives, four SHA-256 files, and GitHub build attestations.
-On 2026-09-06, the public PyPI wheel and downloaded Linux archive were also
-installed/run outside the build environment and passed their smoke tests.
-This is runner-level evidence, not verification of every end-user machine.
+**Available in [v2.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0).**
+The 2026-09-14 republication restores four original native archives and their
+four original SHA-256 files from the original 2.0.0 source tag. The attached
+bytes and embedded build records are preserved. Previous GitHub attestations
+were removed; this republication does not claim a working attestation check.
+See the [release notes](releases/v2.0.0.md) for the verification evidence and its
+limits. An archive contract check on Linux does not execute Windows or macOS
+binaries or validate every end-user machine.
 
-The 1.0 release pipeline requires a native standalone build and smoke test for
-four OS/architecture targets. Release `v0.1.2` and earlier do not contain these
-archives; an asset is available
-only after it is visibly attached to a completed
-[GitHub Release](https://github.com/jasonzhang06-source/sharelint/releases).
+The native build contract covers four OS/architecture targets. An asset is
+available only after it is visibly attached to a completed GitHub Release.
+CI validation and publication by the personal account are separate operations;
+the publishing workflow remains disabled.
 
 | Native build runner | Target identifier | Release archive | Validation boundary |
 | --- | --- | --- | --- |
@@ -84,7 +84,7 @@ frozen native file is recorded as a `name`, `size`, `sha256`, and CArchive
 `typecode` (`b`) object. The record also contains target-specific
 static-component evidence and equal SHA-256 summaries of PyInstaller's
 canonical Analysis and PKG name/type inventories. The record and
-`THIRD-PARTY-NOTICES.txt` are carried inside the checksummed and attested
+`THIRD-PARTY-NOTICES.txt` are carried inside the checksummed
 archive. They are not an independent trust root, a complete SBOM, legal
 certification, or proof that the binary is reproducible.
 
@@ -129,25 +129,16 @@ where the standalone executable does not run.
 ## Installation order
 
 Use the matching standalone archive from a completed release if you do not
-have Python. Alternatively, use `uvx`, which can obtain a compatible Python
-automatically:
+have Python. With Python 3.11+, Git, and pipx already installed, the fixed-tag
+source installation is an alternative:
 
 ```text
-uvx --from sharelint==1.0.0 sharelint demo
+pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
 ```
 
-For a persistent uv installation:
-
-```text
-uv tool install sharelint==1.0.0
-uv tool update-shell
-```
-
-`pipx` remains appropriate when Python 3.11+ and pipx are already installed:
-
-```text
-pipx install sharelint==1.0.0
-```
+PyPI currently provides 1.0.0; the original 2.0.0 files were deleted and their
+filenames cannot be reused.
+Ordinary package-index installation or upgrade does not obtain GitHub 2.0.0.
 
 The shell-specific virtual-environment commands are documented in
 [Installation and troubleshooting](troubleshooting.md#standard-virtual-environment).
@@ -174,7 +165,7 @@ filesystem error. Elevation is unnecessary for scanning user-selected content
 and increases the impact of a compromised input, launcher, or temporary
 directory.
 
-The first standalone release line has these signing limitations:
+The restored 2.0.0 standalone archives retain these signing limitations:
 
 - **Windows:** the executable has no Authenticode publisher signature.
   Microsoft Defender SmartScreen can show an unrecognized-app warning, and
@@ -187,8 +178,8 @@ The first standalone release line has these signing limitations:
   manager or desktop trust-store integration claim.
 
 Do not disable SmartScreen or Gatekeeper globally. Verify the download first,
-follow the local or organizational security policy, and use the PyPI/uv path if
-unsigned standalone software is not permitted. Microsoft documents how
+follow the local or organizational security policy, and use fixed-tag source
+installation if permitted when unsigned standalone software is blocked. Microsoft documents how
 [SmartScreen reputation](https://learn.microsoft.com/windows/apps/package-and-deploy/smartscreen-reputation)
 works; Apple documents
 [Gatekeeper](https://support.apple.com/guide/security/gatekeeper-and-runtime-protection-sec5599b66df/web)
@@ -200,19 +191,13 @@ The release-side `.sha256` file lets a user detect a corrupted archive or a
 mismatch with the checksum they obtained. It does not identify the publisher:
 an attacker who can replace the archive may also be able to replace its checksum.
 
-The standalone release workflow also requests GitHub artifact attestations.
-After a release containing the assets exists, the archive's provenance can be
-checked with GitHub CLI:
-
-```text
-gh attestation verify sharelint-vX.Y.Z-linux-glibc-x86_64.tar.gz --repo jasonzhang06-source/sharelint
-```
-
-That verifies that GitHub has an attestation for those exact bytes associated
-with this repository's workflow identity. It does not certify that the code is
-safe, reproduce the build independently, create an Authenticode/Developer ID
-signature, or notarize a macOS binary. Conversely, an OS code signature would
-identify a platform publisher but would not replace a build-provenance check.
+The original build workflow requested GitHub artifact attestations, but those
+attestations were removed. Restoring original archive bytes does not restore
+the hosted attestations, so successful `gh attestation verify` is not a current
+2.0.0 installation requirement or claim. The embedded build record preserves
+information about the original build. Neither that record nor the checksum
+authenticates the publisher independently, reproduces the build, creates an
+Authenticode/Developer ID signature, or notarizes a macOS binary.
 
 These release checks are also separate from a `sharelint pack` receipt. A pack
 receipt binds a user's output archive to a scan report and policy; it says

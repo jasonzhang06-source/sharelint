@@ -12,7 +12,9 @@ integrity summary, not a replacement for the report.
 
 Draft 2020-12 schemas are published as
 [`schemas/report.schema.json`](../schemas/report.schema.json) and
-[`schemas/receipt.schema.json`](../schemas/receipt.schema.json).
+[`schemas/receipt-v2.schema.json`](../schemas/receipt-v2.schema.json).
+Legacy v1 receipts retain [`schemas/receipt.schema.json`](../schemas/receipt.schema.json).
+Comparison and handoff plans have separate schemas linked in the [documentation index](README.md).
 
 ## Common requirements
 
@@ -358,18 +360,18 @@ filenames and SHOULD be protected as a sensitive record.
 
 All receipts MUST omit finding objects, `masked_preview`,
 `evidence_fingerprint`, `fingerprint_scope`, finding locations, source chains,
-detector/parser messages, remediation, and raw exception text. A successful
-receipt does list ZIP member paths, sizes, and hashes because those paths are
-already observable in the artifact. A blocked receipt MUST NOT contain that
-file list.
+detector/parser messages, remediation, and raw exception text. A successful v2
+receipt lists ZIP entry indices, sizes, and hashes, never member paths. Legacy
+v1 receipts repeated paths; see the [2.0 migration](migration-2.md). A blocked
+receipt MUST NOT contain a file list or a plan binding.
 
 ### Common members
 
-Schema `1.0.0` requires these members in both states:
+Schema `2.0.0` requires these members in both states:
 
 | Member | Type | Meaning |
 | --- | --- | --- |
-| `schema_version` | string | Receipt schema, currently `1.0.0`. |
+| `schema_version` | string | Receipt schema, currently `2.0.0`; native reports remain `1.0.0`. |
 | `receipt_type` | string | Always `sharelint.pack`. |
 | `status` | `packed` or `blocked` | Whether an artifact was committed. |
 | `tool` | object | ShareLint name and version. |
@@ -410,7 +412,7 @@ A `packed` receipt additionally requires `archive`, `files`, and
 
 ```json
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "receipt_type": "sharelint.pack",
   "status": "packed",
   "tool": {
@@ -473,12 +475,12 @@ A `packed` receipt additionally requires `archive`, `files`, and
   },
   "files": [
     {
-      "path": "nested/a-first.txt",
+      "entry": 0,
       "size": 19,
       "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
     },
     {
-      "path": "z-last.txt",
+      "entry": 1,
       "size": 19,
       "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
     }
@@ -491,15 +493,18 @@ A `packed` receipt additionally requires `archive`, `files`, and
 }
 ```
 
-`files` is sorted by normalized POSIX member path. Every item has exactly
-`path`, `size`, and `sha256`. Paths are relative, contain no empty, `.` or `..`
-component, use `/`, and are the names present in the final ZIP. Duplicate paths
-are invalid. `size` is the exact uncompressed byte count and `sha256` hashes the
-exact uncompressed member bytes.
+`files` follows the canonical ZIP order, which is sorted by normalized POSIX
+member path internally. Every v2 item has exactly `entry`, `size`, and `sha256`.
+Entry indices MUST be contiguous zero-based integers, not booleans. `size` is
+the exact uncompressed byte count and `sha256` hashes exact uncompressed bytes.
+The exact archive digest binds names and order without repeating names here.
+The manifest MUST describe regular files only; directories are implicit and
+links/special files cannot appear in a successful pack.
 
-The list reveals bundle filenames and should be protected with the artifact. It
-MUST describe regular files only; directories are implicit and links/special
-files cannot appear in a successful pack.
+A planned successful pack additionally has a `plan` object with
+`schema_version: "1.0.0"`, exact plan `sha256`, `snapshot_sha256`, and
+`source_boundary_sha256`. Verification MUST require that explicit plan and
+validate all bindings. See [handoff plans](handoff-plans.md).
 
 ### Blocked-attempt receipt
 
@@ -508,7 +513,7 @@ record like this and writes no archive:
 
 ```json
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "receipt_type": "sharelint.pack",
   "status": "blocked",
   "tool": {
@@ -581,7 +586,8 @@ If coverage, rather than severity, blocked the attempt, `summary.verdict` is
   may reproduce the same archive bytes and digest; any byte-level difference
   changes the digest.
 - each `files[].sha256` hashes exact uncompressed member bytes; the ordered
-  path/size/hash list is the content-addressed manifest checked after reopening;
+  entry/size/hash list is the content manifest checked after reopening (legacy
+  v1 uses path/size/hash);
 - `report_sha256` hashes the exact bytes of the native report associated with
   the attempt, including its final newline if present;
 - `policy.sha256` hashes the canonical effective policy after defaults and
