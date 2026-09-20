@@ -13,8 +13,9 @@ This section describes 2.0.0 compared with 1.0.0. The 2026-09-14 publication
 restores the original 2.0.0 source at
 `2dc9f29d0aed9fde3b1f37486f5bc8c8441a320e` and the original four native archives
 and four checksum files. The original source and asset bytes are unchanged;
-this date records the republication, not a new build or the original release
-date. Intermediate 1.1/1.2/1.2.1/1.3 development changes are consolidated below;
+this date records the republication, not a new native build or the original
+release date. PyPI uses a new wheel build with unchanged runtime code, as noted
+below. Intermediate 1.1/1.2/1.2.1/1.3 development changes are consolidated below;
 their historical notes remain in `docs/releases/`, and their GitHub tags and
 releases are not being restored.
 
@@ -66,9 +67,13 @@ releases are not being restored.
 
 - GitHub publication uses the personal `jasonzhang06-source` account; the
   automated publishing workflow remains disabled and CI remains separate.
-- GitHub native downloads and fixed-tag source installation are the 2.0.0
-  installation paths. The original PyPI 2.0.0 files were deleted and their
-  filenames cannot be reused; PyPI currently provides 1.0.0.
+- On 2026-09-21 (Asia/Shanghai), PyPI published `sharelint-2.0.0-1-py3-none-any.whl`, a standard wheel build
+  `1` with package version `2.0.0` and unchanged runtime code. Its description
+  and wheel build metadata are updated; the wheel file list and hashes are
+  regenerated. The original PyPI filenames cannot be reused and no new sdist
+  is published. See the [publication record](docs/releasing.md#pypi-200-build-1).
+- Pinned PyPI installation, GitHub native downloads, and fixed-tag source
+  installation are the 2.0.0 installation paths.
 - Previous GitHub attestations were removed. The restored archives retain their
   original checksums and build records; hosted attestation verification is not
   claimed for the republication.

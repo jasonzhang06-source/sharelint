@@ -27,7 +27,7 @@
 
 ## Quick start
 
-The current GitHub release is **2.0.0**. This branch contains the original 2.0.0
+The current GitHub and PyPI release is **2.0.0**. This branch contains the original 2.0.0
 source and maintained documentation. The 2026-09-14 republication restores the
 original tag and standalone assets; see [what changed since 1.0](docs/releases/v2.0.0.md).
 
@@ -51,22 +51,24 @@ a completed release, not ordinary CI artifacts. Download the archive and its sam
 file, then follow the
 [verification and first-run instructions](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/troubleshooting.md#standalone-archive-verification).
 
-### Python source installation
+### Python package installation
 
-With Python 3.11+, Git, and [pipx](https://pipx.pypa.io/stable/) installed, select
-the original 2.0.0 source explicitly:
+With Python 3.11+ and [pipx](https://pipx.pypa.io/stable/) installed:
 
 ```bash
-pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
+pipx install 'sharelint==2.0.0'
 sharelint --version
 sharelint demo
 ```
 
-**PyPI does not provide 2.0.0.** Its original files were deleted and their
-filenames cannot be reused; the currently available PyPI version is 1.0.0.
-A normal package-index install or
-upgrade does not obtain the GitHub 2.0.0 release. Installation uses the network;
-scanning stays local.
+Alternatively, use `uv tool install 'sharelint==2.0.0'`. To replace an existing
+pipx installation with exactly 2.0.0, run `pipx install --force 'sharelint==2.0.0'`.
+For an existing uv installation, use `uv tool install --force 'sharelint==2.0.0'`.
+Choose one installation method. Installation uses the network; scanning stays local.
+
+The [PyPI 2.0.0 wheel](https://pypi.org/project/sharelint/2.0.0/) uses build tag `1`
+with unchanged runtime code. See the [publication record](docs/releasing.md#pypi-200-build-1)
+for the packaging-only changes and deleted-file history.
 
 Preview the same synthetic scan as a self-contained local HTML report:
 
@@ -74,9 +76,11 @@ Preview the same synthetic scan as a self-contained local HTML report:
 sharelint demo --format html --report sharelint-demo.html
 ```
 
-A standard virtual environment and `pip` can install the same fixed tag. See the
+A standard virtual environment and `pip` can install the same pinned package.
+With Git installed, `pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'`
+remains a source-installation alternative. See the
 [installation and troubleshooting](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/troubleshooting.md)
-guide for standalone archive verification, source installation, PATH fixes, and
+guide for standalone archive verification, Python installation, PATH fixes, and
 externally managed Python environments.
 
 For development, install from a source checkout:

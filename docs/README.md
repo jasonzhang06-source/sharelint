@@ -6,9 +6,9 @@ coverage is a measured boundary, not a guarantee that a file is safe or free of
 sensitive data.
 
 Current release: [ShareLint 2.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0).
-Use the GitHub standalone downloads or fixed-tag source installation in the quick
-start. PyPI currently provides 1.0.0; the original PyPI 2.0.0 files were deleted
-and their filenames cannot be reused.
+Use the GitHub standalone downloads or pinned
+[PyPI 2.0.0 package](https://pypi.org/project/sharelint/2.0.0/) in the quick start.
+The fixed-tag source installation remains an alternative.
 
 ## Use ShareLint
 

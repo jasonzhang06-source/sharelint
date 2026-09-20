@@ -31,13 +31,7 @@ validates the tested commit; it does not authorize or perform publication.
 Keep the automated publishing workflow disabled even when restoring the tag.
 
 GitHub Release publication and PyPI publication are separate operations.
-The original PyPI 2.0.0 files were deleted and their filenames cannot be reused.
-The currently available PyPI version is 1.0.0. This restoration publishes no
-Python package to PyPI.
-Current installation guidance must select the GitHub 2.0.0 native downloads or
-the fixed `git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0` source
-with Python 3.11+ and Git. Do not suggest an ordinary package-index upgrade as a
-way to obtain 2.0.0.
+The manual PyPI publication below does not enable the GitHub publishing workflow.
 
 Verify all eight archived files with the repository's asset contract checker,
 compare their SHA-256 digests to the preserved originals, then download the
@@ -50,17 +44,62 @@ restore those hosted records, so do not claim a successful attestation check.
 Keep each archive's original `BUILD-INFO.json` and notices intact. Checksums and
 embedded build information do not independently authenticate the publisher.
 
+## PyPI 2.0.0 build 1
+
+Published on **2026-09-21 (Asia/Shanghai)**, separately from the GitHub
+republication on 2026-09-14. The upload was accepted at
+`2026-09-20T16:21:23Z` (UTC).
+
+[PyPI 2.0.0](https://pypi.org/project/sharelint/2.0.0/) provides
+`sharelint-2.0.0-1-py3-none-any.whl`, published through the maintainer's
+`Jason_Zhang111` PyPI account. The package version remains `2.0.0`; `1` is a
+standard wheel build tag, not a new software version or an intermediate release.
+
+The original PyPI 2.0.0 files were deleted and their filenames cannot be reused.
+The old wheel and sdist are not restored. This publication adds only the new
+wheel filename and no new sdist. Use the preserved GitHub `v2.0.0` source tag
+if a source installation is needed.
+
+The wheel retains the original runtime code. Its package description is corrected
+for the current release, its `WHEEL` metadata records `Build: 1`, and `RECORD`
+is regenerated for the resulting contents. This is a metadata-only wheel rebuild,
+not the original wheel renamed, and does not import later development changes.
+The GitHub tag and all eight native archive/checksum files remain unchanged.
+
+The published wheel's SHA-256 is
+`3a310738e96e24ddb48a100ce3e31aac08ae470814d49889a986ccd4dadee51a`.
+Its public download was compared byte-for-byte with the validated local wheel.
+An isolated installation from the public PyPI index selected version `2.0.0`
+and build `1`; version, demo, and dependency checks passed.
+
+Keep the original and new package hashes and metadata, the runtime-file
+comparison, package checks, upload result, and public-download installation
+checks together as publication evidence. Never store a PyPI token in the
+repository or publication logs. CI results are separate from the identity
+and authorization used to publish.
+
+Current Python installation guidance selects `sharelint==2.0.0` with pipx, uv,
+or a virtual environment. GitHub native downloads and the fixed
+`git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0` source remain
+alternatives. Select an explicit version when upgrading from 1.0; verify the
+installed program reports `ShareLint 2.0.0`.
+
+See the [wheel build-tag specification](https://packaging.python.org/en/latest/specifications/binary-distribution-format/)
+and [PyPI filename-reuse policy](https://pypi.org/help/#file-name-reuse).
+
 ## Build and automated-pipeline reference (inactive)
 
 The sections below document the existing build contracts and the pipeline used
 to produce the original native artifacts. They are not instructions to enable
 or run the currently disabled publishing workflow, recreate the 2.0.0 tag, or
-republish 2.0.0 to PyPI.
+repeat its PyPI upload.
 
 This checklist keeps GitHub, PyPI, source metadata, Python distributions, and
 native standalone assets aligned. PyPI versions, release tags, and attached
-release assets are immutable records: never reuse a version, move a published
-tag, or replace a published file.
+release assets are immutable records: never use a published version for changed
+runtime code, move a published tag, or replace a published file. The documented
+2.0.0 metadata-only build above does not permit replacing files or changing
+runtime code.
 
 ## Historical trusted publishing setup (inactive)
 

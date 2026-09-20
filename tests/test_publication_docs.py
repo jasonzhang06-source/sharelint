@@ -17,12 +17,17 @@ class PublicationDocumentationTests(unittest.TestCase):
         for name in ("README.md", "README.zh-CN.md"):
             with self.subTest(name=name):
                 text = (ROOT / name).read_text(encoding="utf-8")
+                self.assertIn("pipx install 'sharelint==2.0.0'", text)
+                self.assertIn("pipx install --force 'sharelint==2.0.0'", text)
+                self.assertIn("uv tool install 'sharelint==2.0.0'", text)
+                self.assertIn("uv tool install --force 'sharelint==2.0.0'", text)
                 self.assertIn(
                     "pipx install 'git+https://github.com/"
                     "jasonzhang06-source/sharelint.git@v2.0.0'",
                     text,
                 )
                 self.assertIn("badge/release-2.0.0-", text)
+                self.assertIn("https://pypi.org/project/sharelint/2.0.0/", text)
                 self.assertNotIn("img.shields.io/pypi/v/sharelint", text)
                 for target, extension in (
                     ("linux-glibc-x86_64", "tar.gz"),
@@ -41,12 +46,40 @@ class PublicationDocumentationTests(unittest.TestCase):
         for path in paths:
             with self.subTest(path=path.name):
                 text = path.read_text(encoding="utf-8")
+                self.assertIn("pipx install 'sharelint==2.0.0'", text)
                 self.assertNotRegex(
-                    text, r"\b(?:pipx install|uv tool install|pip install) sharelint\b"
+                    text,
+                    r"\b(?:pipx install|uv tool install|pip install)"
+                    r"(?: --[\w-]+)* ['\"]?sharelint(?=[\s'\"`]|$)",
+                )
+                self.assertEqual(
+                    set(re.findall(r"['\"]sharelint==([^'\"]+)['\"]", text)), {"2.0.0"}
                 )
                 self.assertNotIn("--from sharelint==", text)
                 self.assertNotIn("uvx sharelint demo", text)
                 self.assertNotRegex(text, r"\b(?:pipx|uv tool) upgrade sharelint\b")
+
+    def test_current_guides_do_not_claim_pypi_2_is_unavailable(self) -> None:
+        paths = [ROOT / name for name in ("README.md", "README.zh-CN.md", "CHANGELOG.md")]
+        paths.extend(
+            ROOT / "docs" / name
+            for name in (
+                "README.md",
+                "releasing.md",
+                "platform-support.md",
+                "roadmap.md",
+                "troubleshooting.md",
+                "expansion-plan.md",
+                "releases/v2.0.0.md",
+            )
+        )
+        for path in paths:
+            with self.subTest(path=path.name):
+                text = " ".join(path.read_text(encoding="utf-8").split())
+                self.assertNotIn("PyPI currently provides 1.0.0", text)
+                self.assertNotIn("PyPI does not provide 2.0.0", text)
+                self.assertNotIn("2.0.0 is not currently available on PyPI", text)
+                self.assertNotIn("PyPI 不提供 2.0.0", text)
 
     def test_release_notes_match_the_public_release(self) -> None:
         for path in (ROOT / "docs" / "releases").glob("v*.md"):
@@ -72,6 +105,11 @@ class PublicationDocumentationTests(unittest.TestCase):
         self.assertIn("Sign in as `jasonzhang06-source`", text)
         self.assertIn("2dc9f29d0aed9fde3b1f37486f5bc8c8441a320e", text)
         self.assertIn("filenames cannot be reused", text)
+        self.assertIn("`Jason_Zhang111` PyPI account", text)
+        self.assertIn("sharelint-2.0.0-1-py3-none-any.whl", text)
+        self.assertIn("`Build: 1`", text)
+        self.assertIn("no new sdist", text)
+        self.assertIn("original runtime code", text)
         self.assertIn("Previous GitHub attestations were removed", text)
 
 

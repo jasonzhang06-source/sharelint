@@ -73,8 +73,9 @@ combines the following changes since 1.0:
 
 The 2026-09-14 republication restores the original source tag and native archive
 bytes. Intermediate 1.1/1.2/1.2.1/1.3 notes are historical development records;
-their tags and releases are not being restored. PyPI currently provides 1.0.0,
-so install 2.0.0 from GitHub downloads or its fixed source tag. Previous build
+their tags and releases are not being restored. Install 2.0.0 from GitHub
+downloads, its PyPI wheel, or its fixed source tag. The PyPI build `1` preserves
+the original runtime code; it is not a new feature release. Previous build
 attestations were removed and are not restored by copying the original assets.
 See [release details](releases/v2.0.0.md) and [receipt migration](migration-2.md).
 

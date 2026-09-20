@@ -2,10 +2,8 @@
 
 This guide targets ShareLint 2.0.0. Download a standalone archive from
 [GitHub v2.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0),
-or install the original fixed-tag source with Python 3.11+ and Git.
-[PyPI currently provides 1.0.0](https://pypi.org/project/sharelint/1.0.0/);
-the original PyPI 2.0.0 files were deleted and their filenames cannot be reused.
-Ordinary package-index installation or upgrade commands do not obtain 2.0.0.
+or install the pinned [PyPI package](https://pypi.org/project/sharelint/2.0.0/)
+with Python 3.11+. The original fixed-tag source remains an alternative with Git.
 Downloads and installation use the network; scanning itself has no upload,
 telemetry, account, or network feature.
 
@@ -24,29 +22,53 @@ For an archive attached to a completed release, complete
 [standalone archive verification](#standalone-archive-verification) before
 running the executable.
 
-## pipx source installation
+## pipx or uv installation
 
-With Python 3.11+, Git, and [pipx](https://pipx.pypa.io/stable/) installed,
-install the fixed 2.0.0 source tag:
+With Python 3.11+ and [pipx](https://pipx.pypa.io/stable/) installed,
+install exactly 2.0.0:
 
 ```bash
-pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
+pipx install 'sharelint==2.0.0'
 sharelint --version
 sharelint demo
 ```
 
 The version command must print `ShareLint 2.0.0`. To replace an existing pipx
-installation with that same source version, use the explicit source again:
+installation, including a prior source-tag installation, with this PyPI version:
 
 ```bash
-pipx install --force 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
+pipx install --force 'sharelint==2.0.0'
 ```
+
+If you use uv instead, install with `uv tool install 'sharelint==2.0.0'` or
+replace an existing installation with `uv tool install --force 'sharelint==2.0.0'`.
+Choose pipx or uv, not both, to avoid competing launchers on your PATH.
 
 To remove a pipx installation:
 
 ```bash
 pipx uninstall sharelint
 ```
+
+### Fixed-tag source alternative
+
+With Git installed, you can still select the original source tag explicitly:
+
+```bash
+pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
+```
+
+Add `--force` after `install` only to replace an existing pipx installation.
+This source path is an alternative to the wheel, not a prerequisite.
+
+### Why the wheel filename contains an extra `1`
+
+`sharelint-2.0.0-1-py3-none-any.whl` is package version `2.0.0`, wheel build `1`.
+The original 2.0.0 files were deleted and their filenames cannot be reused.
+The new wheel retains the original runtime code and updates only its package
+description and build records. There is no new PyPI source distribution; use
+the fixed tag if you require source installation. See the
+[publication record](releasing.md#pypi-200-build-1).
 
 ## Standard virtual environment
 
@@ -56,7 +78,7 @@ On Linux or macOS:
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
+python -m pip install 'sharelint==2.0.0'
 sharelint --version
 sharelint demo
 ```
@@ -67,7 +89,7 @@ On Windows PowerShell:
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
+python -m pip install 'sharelint==2.0.0'
 sharelint --version
 sharelint demo
 ```
@@ -77,11 +99,11 @@ Call the environment's executables directly:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
+.\.venv\Scripts\python.exe -m pip install 'sharelint==2.0.0'
 .\.venv\Scripts\sharelint.exe demo
 ```
 
-These source installation commands require Git as well as Python 3.11+.
+These wheel installation commands require Python 3.11+, but not Git.
 The same package targets Linux, Windows, and macOS, but validation is tied to a
 specific CI commit and writable outputs require filesystem hard-link support.
 Read [Platform support](platform-support.md) before using FAT/exFAT, network,
@@ -90,7 +112,7 @@ synchronized, or virtual filesystems.
 Do not use `sudo pip install` and do not bypass an
 `externally-managed-environment` error with `--break-system-packages`. That
 message means the operating system protects its Python installation. Use the
-fixed-tag pipx installation or a virtual environment instead.
+pipx/uv installation or a virtual environment instead.
 
 ## Standalone archive verification
 

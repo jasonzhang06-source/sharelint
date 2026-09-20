@@ -129,16 +129,15 @@ where the standalone executable does not run.
 ## Installation order
 
 Use the matching standalone archive from a completed release if you do not
-have Python. With Python 3.11+, Git, and pipx already installed, the fixed-tag
-source installation is an alternative:
+have Python. With Python 3.11+ and pipx already installed, use the pinned package:
 
 ```text
-pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
+pipx install 'sharelint==2.0.0'
 ```
 
-PyPI currently provides 1.0.0; the original 2.0.0 files were deleted and their
-filenames cannot be reused.
-Ordinary package-index installation or upgrade does not obtain GitHub 2.0.0.
+Alternatively, use `uv tool install 'sharelint==2.0.0'`. The Python wheel does
+not require Git. The fixed-tag source installation remains available when Git
+is installed: `pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'`.
 
 The shell-specific virtual-environment commands are documented in
 [Installation and troubleshooting](troubleshooting.md#standard-virtual-environment).

@@ -4,9 +4,10 @@ This record preserves the development checkpoints originally recorded in
 September 2026. It is not a current installation guide or a promise that the
 intermediate releases remain downloadable. As of the 2026-09-14 republication,
 the public upgrade path is 1.0 to 2.0: the original 2.0 source and native assets
-are restored, while intermediate GitHub tags/releases remain removed. PyPI
-currently provides 1.0.0; the original 2.0.0 files were deleted and their filenames
-cannot be reused.
+are restored, while intermediate GitHub tags/releases remain removed.
+The separate 2026-09-21 PyPI publication provides 2.0.0 as a new wheel build `1`
+with unchanged runtime code; this does not restore deleted files or
+intermediate releases.
 
 | Historical checkpoint | Included work | Current disposition |
 | --- | --- | --- |

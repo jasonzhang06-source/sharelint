@@ -23,7 +23,7 @@
 
 ## 快速开始
 
-当前 GitHub 发行版为 **2.0.0**，主分支保留原始 2.0.0 源码及维护文档。
+当前 GitHub 与 PyPI 发行版均为 **2.0.0**，主分支保留原始 2.0.0 源码及维护文档。
 2026-09-14 重发恢复原标签与原独立包；[发布说明](docs/releases/v2.0.0.md)汇总相对 1.0 的变化。
 
 ### 没有 Python：独立包
@@ -44,19 +44,22 @@
 请同时下载压缩包与同名 `.sha256` 文件，再按照
 [校验与首次运行说明](docs/troubleshooting.md#standalone-archive-verification)操作。
 
-### 从 Python 源码安装
+### 安装 Python 包
 
-已经安装 Python 3.11+、Git 和 [pipx](https://pipx.pypa.io/stable/) 时，
-可以明确选择原始 2.0.0 标签：
+已经安装 Python 3.11+ 和 [pipx](https://pipx.pypa.io/stable/) 时：
 
 ```bash
-pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
+pipx install 'sharelint==2.0.0'
 sharelint --version
 sharelint demo
 ```
 
-**PyPI 不提供 2.0.0。** 原版本文件已删除且原文件名不可复用，目前 PyPI 可用版本为 1.0.0。
-常规包索引安装或升级不会获得 GitHub 上的 2.0.0。安装需要联网，扫描过程保持本地运行。
+也可以使用 `uv tool install 'sharelint==2.0.0'`。已有 pipx 安装时，执行
+`pipx install --force 'sharelint==2.0.0'` 即可替换为指定的 2.0.0；已有 uv 安装时，使用
+`uv tool install --force 'sharelint==2.0.0'`。选择一种安装方式即可。安装需要联网，扫描保持本地运行。
+
+[PyPI 2.0.0 的 wheel](https://pypi.org/project/sharelint/2.0.0/) 使用构建编号 `1`，运行时代码未变。
+仅涉及打包的变化与原文件删除记录见[发布记录](docs/releasing.md#pypi-200-build-1)。
 
 还可以把同一组合成扫描生成为完全本地、可直接打开的 HTML 报告：
 
@@ -64,7 +67,9 @@ sharelint demo
 sharelint demo --format html --report sharelint-demo.html
 ```
 
-也可以使用标准虚拟环境和 `pip` 安装同一固定标签。独立包校验、源码安装、PATH 修复以及系统 Python 被标记为
+也可以使用标准虚拟环境和 `pip` 安装同一固定版本。已安装 Git 时，仍可通过
+`pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'` 从原标签源码安装。
+独立包校验、Python 包安装、PATH 修复以及系统 Python 被标记为
 externally managed 时的处理方式，见分系统的[安装与排错](docs/troubleshooting.md)。
 
 开发时可从源码检出安装：
