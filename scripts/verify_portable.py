@@ -277,6 +277,72 @@ def verify(executable: Path) -> None:
         _expect(compared, 0, "report comparison")
         if _json(compared, "report comparison").get("decision") != "no-regression-observed":
             raise VerificationError("frozen executable report comparison is inconsistent")
+        batched = _run(
+            executable, work, environment, "batch", str(pack_input), str(bundle), "--format", "json"
+        )
+        _expect(batched, 0, "batch preflight")
+        batch_summary = _json(batched, "batch preflight").get("summary")
+        if not isinstance(batch_summary, dict) or batch_summary.get("target_count") != 2:
+            raise VerificationError("frozen batch did not inspect both targets")
+        redaction_source = input_dir / "redaction-source.txt"
+        redaction_source.write_bytes(b"contact: person@example.test\n")
+        redaction_plan = output_dir / "redaction-plan.json"
+        derivative = output_dir / "redacted.txt"
+        _expect(
+            _run(
+                executable,
+                work,
+                environment,
+                "redact",
+                "plan",
+                str(redaction_source),
+                "-o",
+                str(redaction_plan),
+            ),
+            0,
+            "redaction planning",
+        )
+        _expect(
+            _run(
+                executable,
+                work,
+                environment,
+                "redact",
+                "apply",
+                str(redaction_source),
+                "--plan",
+                str(redaction_plan),
+                "-o",
+                str(derivative),
+            ),
+            0,
+            "redaction application",
+        )
+        if (
+            redaction_source.read_bytes() != b"contact: person@example.test\n"
+            or derivative.read_bytes() != b"contact: [REDACTED]\n"
+        ):
+            raise VerificationError(
+                "frozen text derivative did not preserve source or intended output"
+            )
+        _expect(
+            _run(
+                executable,
+                work,
+                environment,
+                "redact",
+                "verify",
+                str(derivative),
+                "--plan",
+                str(redaction_plan),
+                "--receipt",
+                f"{derivative}.sharelint-redact.json",
+                "--report",
+                f"{derivative}.sharelint-redact.report.json",
+            ),
+            0,
+            "redaction verification",
+        )
 
 
 def _parser() -> argparse.ArgumentParser:

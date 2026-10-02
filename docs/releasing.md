@@ -2,49 +2,42 @@
 
 ## Current manual publication policy
 
-The current GitHub release is [ShareLint 2.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0).
-The `Publish release` workflow is disabled in GitHub Actions. Keep it disabled
-unless the maintainer explicitly approves returning to automated publication.
-Pushing documentation to `main` does not authorize a new package or release.
+The current GitHub and PyPI release is [ShareLint 3.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v3.0.0).
+The release was published manually by `jasonzhang06-source`; the PyPI upload was
+made from the maintainer's `Jason_Zhang111` account with a project-scoped token.
+The `Publish release` workflow is disabled in GitHub Actions. Keep it disabled:
+the project must not silently publish from a tag or impersonate a bot.
 
-The 2026-09-14 republication restores the original `v2.0.0` tag at
-`2dc9f29d0aed9fde3b1f37486f5bc8c8441a320e` and the original native asset bytes.
-Do not rebuild replacements, edit the tagged source, retarget the tag, or
-restore intermediate 1.1/1.2/1.2.1/1.3 GitHub tags or releases. Their development
-changes are presented together as 2.0 compared with 1.0.
+The v3.0.0 GitHub release contains one verified Python wheel,
+`sharelint-3.0.0-1-py3-none-any.whl`, with SHA-256
+`b84ef05cd4a46e99823e4d5d45d6ee721550490f0839fa7661b6cc7bb9564313`.
+It is a wheel-only release; the verified native Linux, Windows, and macOS
+archives remain attached to v2.0.0 until a separately reviewed native build is
+made. Do not invent v3 native download URLs.
 
 To manage this release manually:
 
 1. Sign in as `jasonzhang06-source` and use the repository's **Releases** page.
-2. Select the existing, verified `v2.0.0` tag and confirm the exact commit above.
-   Preserve `v1.0.0` and its historical release unchanged.
-3. Create the draft while signed in to that account and confirm that its author
-   is `jasonzhang06-source`.
-4. Use the [2.0.0 release notes](releases/v2.0.0.md), covering changes since 1.0,
-   and verified original assets. The 2.0.0 set
-   contains four native archives and four matching `.sha256` files.
-5. Verify the complete asset set before selecting **Publish release**. Review
-   the public page, its author, and its downloads after publication.
+2. Select the existing, verified `v3.0.0` tag and confirm the exact commit.
+3. Create the draft while signed in to that account and confirm the author is
+   `jasonzhang06-source`, then click **Publish release** yourself.
+4. Separately upload the single wheel to PyPI as `Jason_Zhang111`; do not use
+   Trusted Publishing or store the token in the repository.
+5. Review the public author, version, asset filename, digest, and installation
+   result after each publication.
 
 Run source checks and CI independently of publication. A successful CI run
 validates the tested commit; it does not authorize or perform publication.
-Keep the automated publishing workflow disabled even when restoring the tag.
+Pushing documentation to `main` does not create a release or upload a package.
 
-GitHub Release publication and PyPI publication are separate operations.
-The manual PyPI publication below does not enable the GitHub publishing workflow.
+## PyPI 3.0.0 build 1
 
-Verify all eight archived files with the repository's asset contract checker,
-compare their SHA-256 digests to the preserved originals, then download the
-published files and confirm the same bytes again. A Linux smoke test exercises
-only the Linux executable. Preserve original native build evidence separately
-from checks performed during this republication.
+Published on **2026-10-02 (Asia/Shanghai)** from the maintainer account.
+The public file is [sharelint-3.0.0-1-py3-none-any.whl](https://pypi.org/project/sharelint/3.0.0/)
+and its public download matched the recorded digest above. The wheel reports
+`ShareLint 3.0.0`; a fresh isolated installation and demo smoke test passed.
 
-Previous GitHub attestations were removed. Restoring the eight assets does not
-restore those hosted records, so do not claim a successful attestation check.
-Keep each archive's original `BUILD-INFO.json` and notices intact. Checksums and
-embedded build information do not independently authenticate the publisher.
-
-## PyPI 2.0.0 build 1
+## Historical PyPI 2.0.0 build 1
 
 Published on **2026-09-21 (Asia/Shanghai)**, separately from the GitHub
 republication on 2026-09-14. The upload was accepted at
@@ -78,11 +71,10 @@ checks together as publication evidence. Never store a PyPI token in the
 repository or publication logs. CI results are separate from the identity
 and authorization used to publish.
 
-Current Python installation guidance selects `sharelint==2.0.0` with pipx, uv,
-or a virtual environment. GitHub native downloads and the fixed
+Historical 2.0 Python installation guidance selected `sharelint==2.0.0`; the
+current guidance above selects 3.0.0. GitHub native downloads and the fixed
 `git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0` source remain
-alternatives. Select an explicit version when upgrading from 1.0; verify the
-installed program reports `ShareLint 2.0.0`.
+the historical native alternatives.
 
 See the [wheel build-tag specification](https://packaging.python.org/en/latest/specifications/binary-distribution-format/)
 and [PyPI filename-reuse policy](https://pypi.org/help/#file-name-reuse).

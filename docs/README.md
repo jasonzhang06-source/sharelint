@@ -1,13 +1,13 @@
 # ShareLint documentation
 
 Use this page as the stable map of ShareLint's user, integration, contributor,
-and maintainer documentation for ShareLint 2.0.0. Documented
+and maintainer documentation for ShareLint 3.0.0. Documented
 coverage is a measured boundary, not a guarantee that a file is safe or free of
 sensitive data.
 
-Current release: [ShareLint 2.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0).
-Use the GitHub standalone downloads or pinned
-[PyPI 2.0.0 package](https://pypi.org/project/sharelint/2.0.0/) in the quick start.
+Current release: [ShareLint 3.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v3.0.0).
+Use the pinned [PyPI 3.0.0 package](https://pypi.org/project/sharelint/3.0.0/) in
+the quick start. The verified native standalone downloads remain on v2.0.0.
 The fixed-tag source installation remains an alternative.
 
 ## Use ShareLint
@@ -19,6 +19,9 @@ The fixed-tag source installation remains an alternative.
 - [Rules and stable identifiers](rules.md)
 - [Explicit configuration and policy profiles](configuration.md)
 - [Reviewable handoff plans](handoff-plans.md)
+- [Bounded batch preflight](batch.md)
+- [Reviewed text derivatives](redaction.md)
+- [3.0 compatibility review](migration-3.md)
 - [Migrating receipt consumers to 2.0](migration-2.md)
 - [Project direction and non-goals](roadmap.md)
 
@@ -32,6 +35,9 @@ The fixed-tag source installation remains an alternative.
 - [Pack receipt v2 JSON Schema](../schemas/receipt-v2.schema.json)
 - [Legacy receipt v1 JSON Schema](../schemas/receipt.schema.json)
 - [Handoff plan JSON Schema](../schemas/handoff-plan.schema.json)
+- [Aggregate batch JSON Schema](../schemas/batch.schema.json)
+- [Text-redaction plan JSON Schema](../schemas/redaction-plan.schema.json)
+- [Text-redaction receipt JSON Schema](../schemas/redaction-receipt.schema.json)
 
 Machine consumers should prefer the native JSON report when they need complete
 ShareLint coverage semantics. SARIF is an integration projection, and a pack
@@ -52,6 +58,7 @@ issue or pull request.
 ## Maintain and release
 
 - [Release process](releasing.md)
+- [3.0 release notes](releases/v3.0.0.md)
 - [2.0 changes since 1.0 and republication details](releases/v2.0.0.md)
 - [Security policy](../SECURITY.md)
 - [Support policy](../SUPPORT.md)

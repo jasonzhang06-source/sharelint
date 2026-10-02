@@ -463,6 +463,19 @@ def scan(
     limits: ScanLimits | None = None,
     logical_name: str | None = None,
 ) -> ScanReport:
+    return _scan_with_context(
+        target, ScanContext(limits or ScanLimits()), logical_name=logical_name
+    )
+
+
+def _scan_with_context(
+    target: str | os.PathLike[str],
+    context: ScanContext,
+    *,
+    logical_name: str | None = None,
+) -> ScanReport:
+    """Internal entry point exposing exact charged usage to bounded orchestrators."""
+
     path = Path(target)
     try:
         target_metadata = path.stat(follow_symlinks=False)
@@ -473,7 +486,6 @@ def scan(
     supported_kind = stat.S_ISREG(target_metadata.st_mode) or stat.S_ISDIR(target_metadata.st_mode)
     if not supported_kind and not metadata_is_filesystem_link(target_metadata):
         raise ScanInputError("target is not a regular file or directory")
-    context = ScanContext(limits or ScanLimits())
     raw_target_name = logical_name or path.name or "share-boundary"
     target_name = context.display_path(raw_target_name)
     scan_name(raw_target_name, (target_name,), context)

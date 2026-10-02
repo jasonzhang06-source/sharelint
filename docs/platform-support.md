@@ -128,16 +128,17 @@ where the standalone executable does not run.
 
 ## Installation order
 
-Use the matching standalone archive from a completed release if you do not
-have Python. With Python 3.11+ and pipx already installed, use the pinned package:
+Use the matching standalone archive from the completed v2.0.0 release if you do not
+have Python. The current v3.0.0 release is Python-wheel-only. With Python 3.11+
+and pipx already installed, use the pinned package:
 
 ```text
-pipx install 'sharelint==2.0.0'
+pipx install 'sharelint==3.0.0'
 ```
 
-Alternatively, use `uv tool install 'sharelint==2.0.0'`. The Python wheel does
+Alternatively, use `uv tool install 'sharelint==3.0.0'`. The Python wheel does
 not require Git. The fixed-tag source installation remains available when Git
-is installed: `pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'`.
+is installed: `pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v3.0.0'`.
 
 The shell-specific virtual-environment commands are documented in
 [Installation and troubleshooting](troubleshooting.md#standard-virtual-environment).

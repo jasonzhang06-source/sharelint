@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 import re
 from collections.abc import Iterator
+from dataclasses import dataclass
 
 from ..context import ScanContext
 
@@ -102,18 +103,19 @@ def _matches(
         yield match, line
 
 
-def scan_text(
-    text: str,
-    source_chain: tuple[str, ...],
-    context: ScanContext,
-    *,
-    location_prefix: str = "",
-) -> None:
-    text = text[: context.limits.max_text_chars]
+@dataclass(frozen=True, slots=True)
+class TextMatch:
+    """Internal offsets only: never keep evidence in a printable match object."""
 
-    def location(line: int) -> str:
-        item = f"line {line}"
-        return f"{location_prefix}, {item}" if location_prefix else item
+    rule_id: str
+    start: int
+    end: int
+    line: int
+    evidence_kind: str
+
+
+def iter_text_matches(text: str) -> Iterator[TextMatch]:
+    """Yield detector spans over an already bounded decoded text buffer."""
 
     specifications = (
         ("SL.SECRET.PRIVATE_KEY", PRIVATE_KEY_RE, "private_key"),
@@ -126,39 +128,37 @@ def scan_text(
     )
     for rule_id, pattern, evidence_kind in specifications:
         for match, line in _matches(pattern, text):
-            if context.finding_limit_reached:
-                return
-            evidence = match.group(1) if match.lastindex else match.group(0)
-            context.add_finding(
-                rule_id,
-                source_chain,
-                location(line),
-                evidence,
-                evidence_kind=evidence_kind,
-            )
+            start, end = match.span(1 if match.lastindex else 0)
+            yield TextMatch(rule_id, start, end, line, evidence_kind)
 
     for match, line in _matches(GENERIC_SECRET_RE, text):
-        if context.finding_limit_reached:
-            return
         evidence = match.group(1)
         if _likely_real_secret(evidence):
-            context.add_finding(
-                "SL.SECRET.GENERIC_ASSIGNMENT",
-                source_chain,
-                location(line),
-                evidence,
-                evidence_kind="secret",
-            )
+            yield TextMatch("SL.SECRET.GENERIC_ASSIGNMENT", *match.span(1), line, "secret")
 
     for match, line in _matches(CARD_RE, text):
-        if context.finding_limit_reached:
-            return
         evidence = match.group(0)
         if _luhn_valid(evidence):
-            context.add_finding(
-                "SL.PII.PAYMENT_CARD",
-                source_chain,
-                location(line),
-                evidence,
-                evidence_kind="card",
-            )
+            yield TextMatch("SL.PII.PAYMENT_CARD", *match.span(0), line, "card")
+
+
+def scan_text(
+    text: str,
+    source_chain: tuple[str, ...],
+    context: ScanContext,
+    *,
+    location_prefix: str = "",
+) -> None:
+    text = text[: context.limits.max_text_chars]
+    for match in iter_text_matches(text):
+        if context.finding_limit_reached:
+            return
+        item = f"line {match.line}"
+        location = f"{location_prefix}, {item}" if location_prefix else item
+        context.add_finding(
+            match.rule_id,
+            source_chain,
+            location,
+            text[match.start : match.end],
+            evidence_kind=match.evidence_kind,
+        )

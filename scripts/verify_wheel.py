@@ -185,6 +185,66 @@ def verify() -> None:
         _expect(compared, 0, "report comparison")
         if json.loads(compared.stdout).get("decision") != "no-regression-observed":
             raise WheelVerificationError("installed wheel report comparison is inconsistent")
+        batched = _run(work, environment, "batch", str(handoff), str(bundle), "--format", "json")
+        _expect(batched, 0, "batch preflight")
+        if json.loads(batched.stdout).get("summary", {}).get("target_count") != 2:
+            raise WheelVerificationError("installed wheel batch did not inspect both targets")
+        redaction_source = inputs / "redaction-source.txt"
+        redaction_source.write_bytes(b"contact: person@example.test\n")
+        redaction_plan = outputs / "redaction-plan.json"
+        derivative = outputs / "redacted.txt"
+        _expect(
+            _run(
+                work,
+                environment,
+                "redact",
+                "plan",
+                str(redaction_source),
+                "-o",
+                str(redaction_plan),
+            ),
+            0,
+            "redaction planning",
+        )
+        _expect(
+            _run(
+                work,
+                environment,
+                "redact",
+                "apply",
+                str(redaction_source),
+                "--plan",
+                str(redaction_plan),
+                "-o",
+                str(derivative),
+            ),
+            0,
+            "redaction application",
+        )
+        if (
+            redaction_source.read_bytes() != b"contact: person@example.test\n"
+            or derivative.read_bytes() != b"contact: [REDACTED]\n"
+        ):
+            raise WheelVerificationError(
+                "text derivative did not preserve its source or exact intended output"
+            )
+        _expect(
+            _run(
+                work,
+                environment,
+                "redact",
+                "verify",
+                str(derivative),
+                "--plan",
+                str(redaction_plan),
+                "--receipt",
+                f"{derivative}.sharelint-redact.json",
+                "--report",
+                f"{derivative}.sharelint-redact.report.json",
+            ),
+            0,
+            "redaction verification",
+        )
 
 
 def main() -> int:

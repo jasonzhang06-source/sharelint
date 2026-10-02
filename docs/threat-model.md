@@ -1,6 +1,6 @@
 # Threat model
 
-This document defines the security boundary for the ShareLint 2.x line. The words
+This document defines the security boundary for the ShareLint 3.x line. The words
 **MUST**, **MUST NOT**, **SHOULD**, and **MAY** describe requirements for the
 scanner, reporters, and `pack` workflow.
 
@@ -146,6 +146,14 @@ The baseline limit set is:
 
 Duplicate members and content reached through different container chains count
 again. OOXML packages consume the same ZIP budgets as ordinary archives.
+Batch preflight scans explicitly selected targets sequentially with independent
+report scopes and finite per-target limits. A shared charged-byte budget reduces
+each remaining target's effective limit. Target-count validation occurs before
+scanning; errors and budget-skipped targets remain explicit. Aggregate reports
+MUST NOT copy filenames or matched evidence, and the batch MUST NOT pass unless
+every target has complete coverage and no blocking findings. This is not an
+atomic snapshot across targets or a total system-I/O/time/memory quota.
+
 Counters use actual streamed bytes. Overflow, negative metadata, impossible
 sizes, and inconsistent end-of-stream values are parser errors.
 
@@ -277,6 +285,33 @@ unsigned, self-asserted review records, never approval or authorization. Their
 digests bind content, not a trusted person; a malicious operator can replace
 the plan and artifact together. Plans and their contextual reports remain
 sensitive and MUST use protected non-overwriting publication.
+
+## Explicit text derivatives
+
+The `redact` family is a separate opt-in transformation, not an implicit mode
+of `scan` or `pack`. It accepts only bounded complete UTF-8 text, at most 4 MiB
+and 10,000 candidate edits with lower effective limits respected. Plans contain
+offsets, fixed replacement operations, selected known rules, hashes, counts,
+and versioned policy bindings, never original text, filenames, previews, or
+matched-value fingerprints. Checksums do not authenticate a plan.
+
+Application MUST regenerate edits from the current source and compare all plan
+bindings. Existing source/plan/output files MUST NOT be overwritten. A candidate
+MUST have complete in-memory coverage and zero known findings before its bytes
+reach a temporary file. The closed temporary candidate MUST be reopened and
+scanned with its intended basename, the source snapshot MUST be rechecked, and
+anchored publication MUST verify exact output/report/receipt identities. Normal
+failures and cancellation roll back only this operation's publications. A crash
+or hostile output directory remains outside an atomic whole-host guarantee.
+
+Private-key blocks MUST NOT be "cleaned" by removing only their detected headers;
+the initial redactor blocks them. Documents, archives, images, UTF-16, unsupported
+control-byte input, and source coverage gaps cannot produce a ready derivative.
+Text replacement does not preserve application semantics, validate document/code
+syntax, remove undetected secrets or personal prose, or make active text harmless.
+Originals are never written, and derivative reports remain private context.
+Offline derivative verification checks byte/plan/report bindings, not the current
+original source or filesystem metadata, and never claims authentication or safety.
 
 ## Non-promises and out-of-scope threats
 

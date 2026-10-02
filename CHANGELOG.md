@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-10-02 (publication)
+
+This release promotes the reviewed 3.0.0 feature line to the default branch.
+
+### Added
+
+- Explicit `redact plan`, `inspect`, `apply`, and `verify` commands and typed Python APIs.
+- Bounded UTF-8 span plans without source text, filenames, previews, or value fingerprints.
+- Source/policy/producer/output-name bindings, deterministic regenerated edits,
+  overlap merging, and full long-token-tail removal.
+- Non-overwriting derivative/report/receipt transactions with source rechecks,
+  reopened output scans, zero remaining known findings, and rollback regressions.
+- Separate redaction schemas, compatibility/security documentation, malformed
+  control-document tests, and installed wheel/standalone workflow checks.
+- Bounded sequential `batch` scanning with per-target results and shared inspection budgets.
+
+### Fixed
+
+- Report-output boundary resolution handles Python-version-specific symlink-loop
+  errors without a raw-path traceback.
+
+Originals remain unchanged. Private keys, document containers, images, OCR, and
+format-aware cleaning are unsupported. Existing native report and ZIP receipt
+contracts remain available; this major milestone adds an explicit write surface
+without making ordinary scans implicitly transformative.
+
 ## [2.0.0] - 2026-09-14 (republication)
 
 This section describes 2.0.0 compared with 1.0.0. The 2026-09-14 publication
@@ -18,7 +44,6 @@ release date. PyPI uses a new wheel build with unchanged runtime code, as noted
 below. Intermediate 1.1/1.2/1.2.1/1.3 development changes are consolidated below;
 their historical notes remain in `docs/releases/`, and their GitHub tags and
 releases are not being restored.
-
 ### Added
 
 - Local handoff plans with bounded validation, masked snapshots, and explicit inspection.
@@ -183,7 +208,8 @@ work with focused usability fixes; no new scanning features are introduced.
 - A branch-aware 75% coverage floor enforced in CI and release verification.
 - CodeQL analysis, dependency update automation, and a Trusted Publishing release workflow.
 
-[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/jasonzhang06-source/sharelint/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/jasonzhang06-source/sharelint/compare/v2.0.0...v3.0.0
 [2.0.0]: https://github.com/jasonzhang06-source/sharelint/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.2...v1.0.0
 [0.1.2]: https://github.com/jasonzhang06-source/sharelint/compare/v0.1.1...v0.1.2

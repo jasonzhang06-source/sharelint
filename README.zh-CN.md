@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0"><img src="https://img.shields.io/badge/release-2.0.0-38F2C2" alt="ShareLint 2.0.0"></a>
+  <a href="https://github.com/jasonzhang06-source/sharelint/releases/tag/v3.0.0"><img src="https://img.shields.io/badge/release-3.0.0-38F2C2" alt="ShareLint 3.0.0"></a>
   <a href="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml"><img src="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml/badge.svg" alt="持续集成"></a>
 </p>
 
@@ -23,15 +23,15 @@
 
 ## 快速开始
 
-当前 GitHub 与 PyPI 发行版均为 **2.0.0**，主分支保留原始 2.0.0 源码及维护文档。
-2026-09-14 重发恢复原标签与原独立包；[发布说明](docs/releases/v2.0.0.md)汇总相对 1.0 的变化。
+当前 GitHub 与 PyPI 发行版均为 **3.0.0**。3.0 在保留 2.0 扫描、打包和回执契约的基础上，
+增加了可审阅的本地文本衍生流程；详见[兼容性说明](docs/migration-3.md)和[发布说明](docs/releases/v3.0.0.md)。
 
 ### 没有 Python：独立包
 
 从已完成的 [GitHub Release](https://github.com/jasonzhang06-source/sharelint/releases)
 下载对应系统的独立包。独立包包含 ShareLint 与 Python 运行时，目标电脑无需另装 Python、pip、uv 或 pipx。
-**[ShareLint 2.0.0 已发布](https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0)**，
-提供以下四个原生目标：
+当前 3.0.0 GitHub Release 提供 Python wheel。已验证的原生独立包仍在
+**[ShareLint 2.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0)** 中，提供以下四个目标：
 
 | 电脑 | 发行目标 |
 | --- | --- |
@@ -49,17 +49,17 @@
 已经安装 Python 3.11+ 和 [pipx](https://pipx.pypa.io/stable/) 时：
 
 ```bash
-pipx install 'sharelint==2.0.0'
+pipx install 'sharelint==3.0.0'
 sharelint --version
 sharelint demo
 ```
 
-也可以使用 `uv tool install 'sharelint==2.0.0'`。已有 pipx 安装时，执行
-`pipx install --force 'sharelint==2.0.0'` 即可替换为指定的 2.0.0；已有 uv 安装时，使用
-`uv tool install --force 'sharelint==2.0.0'`。选择一种安装方式即可。安装需要联网，扫描保持本地运行。
+也可以使用 `uv tool install 'sharelint==3.0.0'`。已有 pipx 安装时，执行
+`pipx install --force 'sharelint==3.0.0'` 即可替换为指定的 3.0.0；已有 uv 安装时，使用
+`uv tool install --force 'sharelint==3.0.0'`。选择一种安装方式即可。安装需要联网，扫描保持本地运行。
 
-[PyPI 2.0.0 的 wheel](https://pypi.org/project/sharelint/2.0.0/) 使用构建编号 `1`，运行时代码未变。
-仅涉及打包的变化与原文件删除记录见[发布记录](docs/releasing.md#pypi-200-build-1)。
+[PyPI 3.0.0 的 wheel](https://pypi.org/project/sharelint/3.0.0/) 使用构建编号 `1`，由维护者手动上传；
+GitHub 发布工作流保持禁用。
 
 还可以把同一组合成扫描生成为完全本地、可直接打开的 HTML 报告：
 
@@ -68,7 +68,7 @@ sharelint demo --format html --report sharelint-demo.html
 ```
 
 也可以使用标准虚拟环境和 `pip` 安装同一固定版本。已安装 Git 时，仍可通过
-`pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'` 从原标签源码安装。
+`pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v3.0.0'` 从固定标签源码安装。
 独立包校验、Python 包安装、PATH 修复以及系统 Python 被标记为
 externally managed 时的处理方式，见分系统的[安装与排错](docs/troubleshooting.md)。
 
@@ -94,9 +94,9 @@ Python 3.11+ 软件包会在 Ubuntu、Windows 和 macOS 上测试；独立包矩
 写出报告、演示包、压缩包和回执时，目标文件系统必须支持硬链接，ShareLint 才能保持“不覆盖既有
 目标”的安全契约。验证矩阵、Windows 注意事项和文件系统限制见[平台支持说明](docs/platform-support.md)。
 
-> **ShareLint 2.0。** 新增可审查的交付计划，打包时要求输入和策略仍与计划一致。
-> 新回执使用 2.0.0 格式，以 ZIP 条目序号替代文件名；扫描报告仍为 1.0.0。
-> 自动化使用者请看[迁移说明](docs/migration-2.md)。PDF 页面和图片像素仍不进行 OCR，不完整覆盖仍阻止打包。
+> **ShareLint 3.0。** 审查文本脱敏计划后，生成新的、经过复扫的副本，始终保留原文件。
+> 扫描报告仍为 1.0.0，ZIP 回执仍为 2.0.0；文本脱敏使用独立的计划和回执格式。
+> 详见[兼容性说明](docs/migration-3.md)。仍不进行 OCR，不完整覆盖仍阻止打包。
 
 你正准备发送一个 ZIP：代码没有问题，但演示文稿还留着演讲者备注，工作簿里藏着
 `veryHidden` 工作表，PDF 暴露了作者姓名，图片则记录了位置。专注 Git 仓库的密钥扫描器
@@ -129,7 +129,7 @@ Python 3.11+ 软件包会在 Ubuntu、Windows 和 macOS 上测试；独立包矩
 SYNTHETIC DEMO · generated sample only
 No personal files were read; this run scanned only files created by ShareLint.
 
-ShareLint 2.0.0 · local privacy preflight
+ShareLint 3.0.0 · local privacy preflight
 INCOMPLETE · 5 policy-blocking finding(s) · 9 total · 14 surface(s)
 Coverage · 13 scanned · 1 partial · 0 skipped · 0 error(s)
 
@@ -280,7 +280,7 @@ ShareLint 是预检工具，不是证明系统。一次通过只表示：在该�
 
 - 它不能保证文件包安全、匿名、合规或完全不含敏感数据。
 - 它目前不对 PDF 页面或图片像素做 OCR。
-- 它不清洗或修改原文件；请在专门的分享副本中修复，然后重新扫描。
+- 它不修改原文件。文本脱敏只生成独立副本；其他格式仍需在分享副本中手动修复并重新扫描。
 - 它无法判断检测到的凭证是否有效，也无法判断个人数据是否有意保留。
 - 不支持、加密、损坏或因资源预算受限的内容会继续显示为覆盖缺口。
 
@@ -319,6 +319,27 @@ sharelint pack ./handoff -o delivery.zip --plan handoff.plan.json
 
 计划记录输入边界、策略和扫描快照；打包时重新扫描，变化就要求重新生成和审查计划。
 计划保存在本机，不代表签名、授权或安全保证。详见[交付计划](docs/handoff-plans.md)。
+
+## 一次检查多份交付文件
+
+```bash
+sharelint batch ./handoff-a ./handoff-b --format html -o batch.html
+```
+
+各输入独立记录结果，共享有限的扫描字节预算；失败和未扫描项不会被省略。
+汇总只用输入顺序编号，不回显文件名。支持可重复使用的私有 TOML 清单，详见[批量扫描](docs/batch.md)。
+
+## 生成可审查的文本脱敏副本
+
+```bash
+sharelint redact plan private.log --name public.log -o redaction.plan.json
+sharelint redact inspect redaction.plan.json
+sharelint redact apply private.log --plan redaction.plan.json -o public.log
+```
+
+仅支持最多 4 MiB 的 UTF-8 文本。计划只记录修改位置、规则和摘要，不保存匹配原文。
+应用时重新核对源文件，副本必须覆盖完整、且没有剩余已知发现才能发布。
+私钥块、PDF、Office 和图片不会被自动清洗。详见[文本脱敏副本](docs/redaction.md)。
 
 ## 项目状态与方向
 

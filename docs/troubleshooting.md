@@ -1,9 +1,9 @@
 # Installation and troubleshooting
 
-This guide targets ShareLint 2.0.0. Download a standalone archive from
-[GitHub v2.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0),
-or install the pinned [PyPI package](https://pypi.org/project/sharelint/2.0.0/)
-with Python 3.11+. The original fixed-tag source remains an alternative with Git.
+This guide targets ShareLint 3.0.0. The current release provides a pinned
+[PyPI package](https://pypi.org/project/sharelint/3.0.0/) and fixed-tag source;
+the verified standalone archives remain on [GitHub v2.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0).
+Python 3.11+ is required for the package. The fixed-tag source remains an alternative with Git.
 Downloads and installation use the network; scanning itself has no upload,
 telemetry, account, or network feature.
 
@@ -12,7 +12,7 @@ telemetry, account, or network feature.
 ### First choice: standalone archive
 
 The standalone archive includes the interpreter and launcher. Select your
-platform from the [2.0.0 downloads](../README.md#no-python-standalone-archive).
+platform from the [v2.0.0 downloads](../README.md#no-python-standalone-archive).
 Use only the archive and matching checksum visibly attached to that completed
 GitHub Release. An ordinary CI artifact is not a release download.
 
@@ -25,23 +25,23 @@ running the executable.
 ## pipx or uv installation
 
 With Python 3.11+ and [pipx](https://pipx.pypa.io/stable/) installed,
-install exactly 2.0.0:
+install exactly 3.0.0:
 
 ```bash
-pipx install 'sharelint==2.0.0'
+pipx install 'sharelint==3.0.0'
 sharelint --version
 sharelint demo
 ```
 
-The version command must print `ShareLint 2.0.0`. To replace an existing pipx
+The version command must print `ShareLint 3.0.0`. To replace an existing pipx
 installation, including a prior source-tag installation, with this PyPI version:
 
 ```bash
-pipx install --force 'sharelint==2.0.0'
+pipx install --force 'sharelint==3.0.0'
 ```
 
-If you use uv instead, install with `uv tool install 'sharelint==2.0.0'` or
-replace an existing installation with `uv tool install --force 'sharelint==2.0.0'`.
+If you use uv instead, install with `uv tool install 'sharelint==3.0.0'` or
+replace an existing installation with `uv tool install --force 'sharelint==3.0.0'`.
 Choose pipx or uv, not both, to avoid competing launchers on your PATH.
 
 To remove a pipx installation:
@@ -55,7 +55,7 @@ pipx uninstall sharelint
 With Git installed, you can still select the original source tag explicitly:
 
 ```bash
-pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'
+pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v3.0.0'
 ```
 
 Add `--force` after `install` only to replace an existing pipx installation.
@@ -63,12 +63,11 @@ This source path is an alternative to the wheel, not a prerequisite.
 
 ### Why the wheel filename contains an extra `1`
 
-`sharelint-2.0.0-1-py3-none-any.whl` is package version `2.0.0`, wheel build `1`.
-The original 2.0.0 files were deleted and their filenames cannot be reused.
-The new wheel retains the original runtime code and updates only its package
-description and build records. There is no new PyPI source distribution; use
-the fixed tag if you require source installation. See the
-[publication record](releasing.md#pypi-200-build-1).
+`sharelint-3.0.0-1-py3-none-any.whl` is package version `3.0.0`, wheel build `1`.
+The `1` is a packaging build identifier, not an extra software version. There
+is no PyPI source distribution for this release; use the fixed tag if you require
+source installation. See the
+[historical 2.0 publication record](releasing.md#historical-pypi-200-build-1).
 
 ## Standard virtual environment
 
@@ -78,7 +77,7 @@ On Linux or macOS:
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install 'sharelint==2.0.0'
+python -m pip install 'sharelint==3.0.0'
 sharelint --version
 sharelint demo
 ```
@@ -89,7 +88,7 @@ On Windows PowerShell:
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install 'sharelint==2.0.0'
+python -m pip install 'sharelint==3.0.0'
 sharelint --version
 sharelint demo
 ```
@@ -99,7 +98,7 @@ Call the environment's executables directly:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install 'sharelint==2.0.0'
+.\.venv\Scripts\python.exe -m pip install 'sharelint==3.0.0'
 .\.venv\Scripts\sharelint.exe demo
 ```
 

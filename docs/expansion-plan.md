@@ -1,13 +1,12 @@
-# Historical development checkpoints through 2.0
+# Historical development checkpoints through 3.0
 
 This record preserves the development checkpoints originally recorded in
 September 2026. It is not a current installation guide or a promise that the
 intermediate releases remain downloadable. As of the 2026-09-14 republication,
-the public upgrade path is 1.0 to 2.0: the original 2.0 source and native assets
-are restored, while intermediate GitHub tags/releases remain removed.
-The separate 2026-09-21 PyPI publication provides 2.0.0 as a new wheel build `1`
-with unchanged runtime code; this does not restore deleted files or
-intermediate releases.
+the public upgrade path is 2.0 to 3.0: the 3.0.0 feature line is now published
+from the reviewed `v3.0.0` tag on GitHub and as a personal PyPI upload. The 3.0
+release currently provides the Python wheel and does not claim new native
+standalone archives; the verified native archives remain attached to 2.0.0.
 
 | Historical checkpoint | Included work | Current disposition |
 | --- | --- | --- |
@@ -16,9 +15,16 @@ intermediate releases.
 | 1.2.1 | Cancellation, closed-pipe, and rollback regressions | Included in 2.0; historical record only |
 | 1.3.0 | Validated report comparison and coverage-change review | Included in 2.0; historical record only |
 | 2.0.0 | Reviewable handoff plans and privacy-minimized receipt migration | Original tag and native assets restored |
+| 2.1.0 | Bounded batch scanning with per-target results | Included in 3.0; no separate public release |
+| 3.0.0 | Reviewable text-redaction plans and rescanned new outputs | Published on GitHub and PyPI; Python wheel only |
+| 3.1.0 | Bounded encoded-content inspection with explicit provenance | Planned |
+| 4.0.0 | Private local review workspace and auditable decisions | Planned |
+| 4.1.0 | Exact Git staged-content scanning and hook integration | Planned |
+| 5.0.0 | Safe local detector packs with deterministic rule identities | Planned |
+| 5.1.0 | Integrated first-run workflow, documentation, and hardening | Planned |
 
 Current behavior and compatibility are described in the
-[2.0 release notes](releases/v2.0.0.md) and [migration guide](migration-2.md).
+[3.0 release notes](releases/v3.0.0.md) and [migration guide](migration-3.md).
 Publication now follows the [manual release policy](releasing.md); the
 automated publishing workflow remains disabled. Historical workflow links and
 test counts below are evidence recorded during development, not a claim that
@@ -62,3 +68,22 @@ the workflows were rerun or their old release pages are available today.
   source/installed-wheel planning, packing, and verification checks passed.
   New v2 receipts remove filename repetition demonstrated by a synthetic
   non-blocking filename regression. No native/public release is claimed yet.
+- 2.0.0 source `2dc9f29`: all 17 [native checks](https://github.com/jasonzhang06-source/sharelint/actions/runs/34046899303)
+  and the [release pipeline](https://github.com/jasonzhang06-source/sharelint/actions/runs/34047190134)
+  passed in release order.
+- 2.1.0 local gates: 188 tests passed, two platform skips, 83.65% branch coverage;
+  lint/format/types and fresh Python 3.11 wheel installation passed, including
+  batch checks of both a source directory and a packed archive. Python 3.11
+  batch unit tests also passed; native publication is not yet claimed.
+- 2.0.0 public-PyPI reinstall and exact-tag Python 3.11 installed smoke passed,
+  including planned packing, v2 receipts, and offline verification.
+- 2.1.0 source `5df14e9`: all 17 [native checks](https://github.com/jasonzhang06-source/sharelint/actions/runs/34047524808)
+  and [publication](https://github.com/jasonzhang06-source/sharelint/actions/runs/34047826495)
+  passed. A cache-free public PyPI reinstall passed the exact-tag isolated
+  Python 3.11 smoke, including both targets in batch preflight.
+- 3.0.0 local gates: 216 tests passed, two platform skips, 85.59% branch coverage;
+  text-plan and publication modules reached 99% and 97%. Lint/format/types,
+  Python 3.11 redaction regressions, package metadata, and isolated installed
+  wheel plan/apply/verify checks passed. Original preservation, source changes,
+  cancellation, non-overwrite, long token tails, malformed documents, and
+  forged-checksum/fresh-scan separation have synthetic regression coverage.

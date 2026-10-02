@@ -79,12 +79,30 @@ the original runtime code; it is not a new feature release. Previous build
 attestations were removed and are not restored by copying the original assets.
 See [release details](releases/v2.0.0.md) and [receipt migration](migration-2.md).
 
+## Shipped in 3.0: reviewable text derivatives
+
+[Version 3.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v3.0.0)
+adds a bounded, explicit text-redaction workflow on top of the 2.0 contracts:
+
+- `redact plan`, `inspect`, `apply`, and `verify` commands plus typed Python APIs.
+- UTF-8 span plans that do not store source text, filenames, previews, or fingerprints.
+- Source/policy/producer/output-name bindings and deterministic regenerated edits.
+- New-output publication only after source rechecks, output rescanning, complete
+  coverage, and zero remaining known findings.
+- Separate redaction schemas and receipts; existing scan, batch, handoff, and
+  ZIP-receipt contracts remain supported.
+
+The current 3.0.0 public release is a Python wheel. The verified native
+standalone archives remain attached to 2.0.0 until a separate native build is
+reviewed and published.
+
 ## Next P0 workflow gaps
 
 ### Auditable policy exceptions
 
-Named policy profiles are included in 2.0. Narrowly scoped exceptions remain
-future work and would need a reason, owner, creation time, and expiry. A report must
+Named profiles, handoff plans, batch preflight, and text-derivative review are
+included in the 2.0/3.0 feature line. Narrowly scoped exceptions remain future
+work and would need a reason, owner, creation time, and expiry. A report must
 show the resolved policy and every exception applied; an expired or malformed
 exception must fail closed. This replaces ad-hoc suppression without making a
 profile a compliance certificate.
@@ -100,12 +118,12 @@ working tree.
 
 ### Reviewable cleaning into a new output
 
-Design `sharelint clean --plan` before enabling transformations. The plan must
-list proposed operations without changing source bytes. An apply mode must
-write a distinct output, never modify the original, rescan the completed
-output, and issue a transformation receipt binding input, plan, output, policy,
-and measured coverage. Early transforms should be narrow and format-specific;
-ShareLint must not claim to remove all metadata.
+Implemented in 3.0 as `sharelint redact plan`, `inspect`, `apply`, and `verify`.
+The initial surface is bounded UTF-8 text, not general document cleanup.
+Plans omit source text, application preserves originals and rechecks source,
+and new output must be rescanned with complete coverage and no known findings.
+A distinct receipt binds plan/output/report/policy. Private-key blocks, document
+containers, metadata removal, and format-aware cleaning remain unsupported.
 
 ## P1 coverage and review gaps
 

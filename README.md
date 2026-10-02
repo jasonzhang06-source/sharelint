@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml"><img src="https://github.com/jasonzhang06-source/sharelint/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/jasonzhang06-source/sharelint/actions/workflows/codeql.yml"><img src="https://github.com/jasonzhang06-source/sharelint/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
-  <a href="https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0"><img src="https://img.shields.io/badge/release-2.0.0-38F2C2" alt="ShareLint 2.0.0"></a>
+  <a href="https://github.com/jasonzhang06-source/sharelint/releases/tag/v3.0.0"><img src="https://img.shields.io/badge/release-3.0.0-38F2C2" alt="ShareLint 3.0.0"></a>
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Python_package_dependencies-0-38F2C2" alt="No third-party Python package dependencies">
   <a href="https://github.com/jasonzhang06-source/sharelint/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-54A9FF" alt="MIT license"></a>
@@ -27,17 +27,19 @@
 
 ## Quick start
 
-The current GitHub and PyPI release is **2.0.0**. This branch contains the original 2.0.0
-source and maintained documentation. The 2026-09-14 republication restores the
-original tag and standalone assets; see [what changed since 1.0](docs/releases/v2.0.0.md).
+The current GitHub and PyPI release is **3.0.0**. The 3.0 release adds a reviewed,
+local text-derivative workflow while retaining the 2.0 scan, pack, and receipt
+contracts. See the [3.0 compatibility review](docs/migration-3.md) and
+[release notes](docs/releases/v3.0.0.md).
 
 ### No Python: standalone archive
 
 Download a matching archive from a completed
 [GitHub Release](https://github.com/jasonzhang06-source/sharelint/releases). Standalone archives
 include ShareLint and its Python runtime, so they do not require Python, pip, uv, or pipx on the
-destination computer. **[ShareLint 2.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0)
-is available** for four native targets:
+destination computer. The current 3.0.0 GitHub release provides the Python wheel.
+The verified native standalone archives remain available from **[ShareLint 2.0.0](https://github.com/jasonzhang06-source/sharelint/releases/tag/v2.0.0)**
+for four native targets:
 
 | Computer | Release target |
 | --- | --- |
@@ -56,19 +58,19 @@ file, then follow the
 With Python 3.11+ and [pipx](https://pipx.pypa.io/stable/) installed:
 
 ```bash
-pipx install 'sharelint==2.0.0'
+pipx install 'sharelint==3.0.0'
 sharelint --version
 sharelint demo
 ```
 
-Alternatively, use `uv tool install 'sharelint==2.0.0'`. To replace an existing
-pipx installation with exactly 2.0.0, run `pipx install --force 'sharelint==2.0.0'`.
-For an existing uv installation, use `uv tool install --force 'sharelint==2.0.0'`.
+Alternatively, use `uv tool install 'sharelint==3.0.0'`. To replace an existing
+pipx installation with exactly 3.0.0, run `pipx install --force 'sharelint==3.0.0'`.
+For an existing uv installation, use `uv tool install --force 'sharelint==3.0.0'`.
 Choose one installation method. Installation uses the network; scanning stays local.
 
-The [PyPI 2.0.0 wheel](https://pypi.org/project/sharelint/2.0.0/) uses build tag `1`
-with unchanged runtime code. See the [publication record](docs/releasing.md#pypi-200-build-1)
-for the packaging-only changes and deleted-file history.
+The [PyPI 3.0.0 wheel](https://pypi.org/project/sharelint/3.0.0/) uses build tag `1`.
+Publication was performed manually from the maintainer's account; the GitHub
+publishing workflow remains disabled.
 
 Preview the same synthetic scan as a self-contained local HTML report:
 
@@ -77,7 +79,7 @@ sharelint demo --format html --report sharelint-demo.html
 ```
 
 A standard virtual environment and `pip` can install the same pinned package.
-With Git installed, `pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v2.0.0'`
+With Git installed, `pipx install 'git+https://github.com/jasonzhang06-source/sharelint.git@v3.0.0'`
 remains a source-installation alternative. See the
 [installation and troubleshooting](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/troubleshooting.md)
 guide for standalone archive verification, Python installation, PATH fixes, and
@@ -109,9 +111,9 @@ the destination filesystem so ShareLint can preserve its no-overwrite contract.
 See [platform support](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/platform-support.md)
 for the validation matrix, Windows notes, and filesystem limitations.
 
-> **ShareLint 2.0.** Create a reviewable handoff plan, then pack only if source and policy still match.
-> New receipt schema 2.0.0 replaces filenames with ZIP entry indices; native scan reports remain 1.0.0.
-> Read the [migration guide](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/migration-2.md).
+> **ShareLint 3.0.** Review a text-redaction plan, then create a new, rescanned derivative without changing the original.
+> Native reports remain schema 1.0.0 and ZIP receipts remain 2.0.0; redaction has separate plan/receipt contracts.
+> Read the [compatibility review](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/migration-3.md).
 > PDF pages and image pixels are not OCR-scanned; incomplete coverage still blocks `pack`.
 
 You are about to send a ZIP. The code is clean, but the deck still has speaker notes, the workbook
@@ -148,7 +150,7 @@ explicit PDF coverage gap without touching your files. Abridged Linux output
 SYNTHETIC DEMO · generated sample only
 No personal files were read; this run scanned only files created by ShareLint.
 
-ShareLint 2.0.0 · local privacy preflight
+ShareLint 3.0.0 · local privacy preflight
 INCOMPLETE · 5 policy-blocking finding(s) · 9 total · 14 surface(s)
 Coverage · 13 scanned · 1 partial · 0 skipped · 0 error(s)
 
@@ -308,7 +310,7 @@ on the surfaces listed in that report under that policy.
 
 - It cannot guarantee that a bundle is safe, anonymous, compliant, or free of sensitive data.
 - It does not currently OCR PDF pages or image pixels.
-- It does not sanitize or modify originals; fix issues in a share-specific copy, then rescan.
+- It never modifies originals. Text redaction creates a separately reviewed derivative; other formats need manual fixes in a copy.
 - It cannot determine whether a detected credential is live or whether personal data was intended.
 - Unsupported, encrypted, malformed, or budget-limited content remains a visible coverage gap.
 
@@ -355,10 +357,34 @@ Packing repeats all strict checks and rejects changed source, policy, or scan
 snapshots. A plan is a private review record, not approval or a signature.
 See [handoff plans](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/handoff-plans.md).
 
+## Check several handoffs
+
+```bash
+sharelint batch ./handoff-a ./handoff-b --format html -o batch.html
+```
+
+Each input has a separate result and shares a finite inspection-byte budget.
+Failures and unattempted targets remain visible; aggregate output uses input-order
+IDs, not filenames. See [batch preflight](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/batch.md).
+
+## Create a reviewed text derivative
+
+```bash
+sharelint redact plan private.log --name public.log -o redaction.plan.json
+sharelint redact inspect redaction.plan.json
+sharelint redact apply private.log --plan redaction.plan.json -o public.log
+```
+
+UTF-8 text only, bounded to 4 MiB. Plans contain positions and rules, not original
+text. The source is rechecked and a reopened output rescan must have complete
+coverage and no known findings before publication. Private-key blocks and
+document/image containers are not automatically cleaned. See
+[text derivatives](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/redaction.md).
+
 ## Project status and direction
 
 ShareLint adds explicit policy profiles, offline receipt verification, report
-comparison, and reviewable handoff plans to the scanning/packaging workflow. The maintenance priority
+comparison, batch checks, handoff plans, and reviewed UTF-8 text derivatives to the scanning/packaging workflow. The maintenance priority
 is synthetic regression tests, conservative coverage, and compatibility. Local OCR, policy exceptions,
 pre-send hooks, and a desktop interface remain future work. See the
 [roadmap](https://github.com/jasonzhang06-source/sharelint/blob/main/docs/roadmap.md).

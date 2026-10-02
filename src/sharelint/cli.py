@@ -12,6 +12,7 @@ from contextlib import suppress
 from pathlib import Path
 
 from . import __version__
+from .batch import BatchLimits, read_batch_manifest, resolve_targets, scan_batch
 from .comparison import compare_reports
 from .config import CONFIG_TEMPLATE, ConfigurationError, resolve_settings
 from .demo import create_demo_bundle, render_demo_console
@@ -19,6 +20,8 @@ from .input_io import DocumentInputError
 from .models import Severity
 from .packing import PackBlocked, PackError, pack
 from .planning import create_plan, read_plan
+from .redaction import RedactionBlocked, create_redaction_plan, read_redaction_plan
+from .redaction_export import apply_redaction_plan, verify_redaction
 from .reporters import render, render_console
 from .rules import RULES
 from .scanner import ScanInputError, scan
@@ -241,6 +244,61 @@ def _parser() -> argparse.ArgumentParser:
     )
     plan_inspect.add_argument("plan", type=Path)
     plan_inspect.add_argument("--format", choices=("console", "json"), default="console")
+    batch_parser = subparsers.add_parser(
+        "batch", help="scan multiple explicit targets with a shared budget"
+    )
+    batch_parser.add_argument("targets", nargs="*", type=Path)
+    batch_parser.add_argument(
+        "--manifest", type=Path, help="explicit TOML list instead of positional targets"
+    )
+    batch_parser.add_argument("--max-targets", type=int, default=100)
+    batch_parser.add_argument("--max-total-bytes", type=int, default=1024 * 1024 * 1024)
+    batch_parser.add_argument("--format", choices=("console", "json", "html"), default="console")
+    batch_parser.add_argument(
+        "-o", "--output", type=Path, help="new aggregate report; required for HTML"
+    )
+    _policy_arguments(batch_parser, include_strict=False)
+    redact_parser = subparsers.add_parser(
+        "redact", help="plan, review, and publish a rescanned text derivative"
+    )
+    redact_commands = redact_parser.add_subparsers(dest="redact_command", required=True)
+    redact_plan = redact_commands.add_parser(
+        "plan", help="write an explicit UTF-8 edit plan; originals unchanged"
+    )
+    redact_plan.add_argument("target", type=Path)
+    redact_plan.add_argument("-o", "--output", type=Path, required=True)
+    redact_plan.add_argument(
+        "--name", default="redacted.txt", help="intended derivative filename, not a path"
+    )
+    redact_plan.add_argument(
+        "--rule", action="append", help="select a supported rule; repeat as needed"
+    )
+    _policy_arguments(redact_plan, include_strict=False)
+    redact_inspect = redact_commands.add_parser(
+        "inspect", help="show edit positions and counts, never source text"
+    )
+    redact_inspect.add_argument("plan", type=Path)
+    redact_inspect.add_argument("--format", choices=("console", "json"), default="console")
+    redact_apply = redact_commands.add_parser(
+        "apply", help="apply a matching reviewed plan to a new file only"
+    )
+    redact_apply.add_argument("target", type=Path)
+    redact_apply.add_argument("--plan", type=Path, required=True)
+    redact_apply.add_argument("-o", "--output", type=Path, required=True)
+    redact_apply.add_argument("--receipt", type=Path)
+    redact_apply.add_argument("--report", type=Path)
+    _policy_arguments(redact_apply, include_strict=False)
+    redact_verify = redact_commands.add_parser(
+        "verify", help="verify derivative, plan, receipt, and report bindings offline"
+    )
+    redact_verify.add_argument("target", type=Path)
+    redact_verify.add_argument("--plan", type=Path, required=True)
+    redact_verify.add_argument("--receipt", type=Path, required=True)
+    redact_verify.add_argument("--report", type=Path, required=True)
+    redact_verify.add_argument("--config", type=Path)
+    redact_verify.add_argument("--profile")
+    redact_verify.add_argument("--expected-receipt-sha256")
+    redact_verify.add_argument("--format", choices=("console", "json"), default="console")
     return parser
 
 
@@ -249,8 +307,11 @@ def _validate_scan_output(target: Path, output: Path | None) -> None:
         return
     if output.exists() or output.is_symlink():
         raise ScanInputError("refusing to overwrite an existing report output")
-    target_resolved = target.resolve()
-    output_resolved = output.resolve()
+    try:
+        target_resolved = target.resolve()
+        output_resolved = output.resolve()
+    except (OSError, RuntimeError) as exc:
+        raise ScanInputError("report output boundary could not be resolved safely") from exc
     if output_resolved == target_resolved:
         raise ScanInputError("report output must differ from the scan target")
     if target.is_dir() and not target.is_symlink():
@@ -548,6 +609,104 @@ def _plan_command(arguments: argparse.Namespace) -> int:
     return 0 if plan.ready else 1
 
 
+def _batch_command(arguments: argparse.Namespace) -> int:
+    if bool(arguments.targets) == bool(arguments.manifest):
+        raise DocumentInputError("supply either positional batch targets or --manifest")
+    if arguments.format == "html" and arguments.output is None:
+        raise DocumentInputError("HTML batch reports require an explicit --output file")
+    budget = BatchLimits(arguments.max_targets, arguments.max_total_bytes)
+    targets = (
+        read_batch_manifest(arguments.manifest, maximum=budget.max_targets)
+        if arguments.manifest
+        else resolve_targets(arguments.targets, maximum=budget.max_targets)
+    )
+    for target in targets:
+        _validate_scan_output(target, arguments.output)
+    if arguments.manifest:
+        _validate_scan_output(arguments.manifest, arguments.output)
+    settings = resolve_settings(
+        config=arguments.config, profile=arguments.profile, fail_on=arguments.fail_on
+    )
+    result = scan_batch(
+        targets, limits=settings.limits, batch_limits=budget, fail_on=settings.fail_on
+    )
+    _write_or_print(result.render(arguments.format), arguments.output)
+    return result.exit_code
+
+
+def _redact_command(arguments: argparse.Namespace) -> int:
+    if arguments.redact_command == "inspect":
+        plan = read_redaction_plan(arguments.plan)
+        summary = plan.summary()
+        if arguments.format == "json":
+            sys.stdout.write(json.dumps(summary, sort_keys=True, indent=2) + "\n")
+        else:
+            sys.stdout.write(
+                f"REDACTION PLAN {'READY' if plan.ready else 'BLOCKED'} · {summary['edit_count']} edit(s)\n"
+            )
+            for edit in summary["edits"][:20]:
+                sys.stdout.write(
+                    f"line {edit['line']} · characters [{edit['start']}, {edit['end']}) · {', '.join(edit['rules'])}\n"
+                )
+            if summary["edit_count"] > 20:
+                sys.stdout.write(
+                    "Additional edits omitted here; use --format json to review every edit.\n"
+                )
+            sys.stdout.write(summary["claim"] + "\n")
+        return 0 if plan.ready else 1
+    if arguments.redact_command == "verify":
+        settings = resolve_settings(config=arguments.config, profile=arguments.profile)
+        try:
+            result = verify_redaction(
+                arguments.target,
+                arguments.receipt,
+                arguments.report,
+                arguments.plan,
+                limits=settings.limits,
+                expected_receipt_sha256=arguments.expected_receipt_sha256,
+            )
+        except VerificationError as exc:
+            sys.stderr.write(f"INTEGRITY NOT VERIFIED: {exc}\n")
+            return 1
+        document = result.to_dict()
+        sys.stdout.write(
+            json.dumps(document, sort_keys=True, indent=2) + "\n"
+            if arguments.format == "json"
+            else "REDACTION INTEGRITY VERIFIED\n" + document["claim"] + "\n"
+        )
+        return 0
+    settings = resolve_settings(
+        config=arguments.config, profile=arguments.profile, fail_on=arguments.fail_on
+    )
+    if arguments.redact_command == "plan":
+        _validate_scan_output(arguments.target, arguments.output)
+        plan = create_redaction_plan(
+            arguments.target,
+            output_name=arguments.name,
+            rules=arguments.rule,
+            limits=settings.limits,
+            fail_on=settings.fail_on,
+        )
+        _write_or_print(plan.payload.decode("utf-8"), arguments.output)
+        sys.stdout.write(
+            f"REDACTION PLAN {'READY' if plan.ready else 'BLOCKED'} · {len(plan.document['edits'])} edit(s)\nPlan only; no derivative created. Review before applying.\n"
+        )
+        return 0 if plan.ready else 1
+    artifact = apply_redaction_plan(
+        arguments.target,
+        arguments.plan,
+        arguments.output,
+        receipt=arguments.receipt,
+        report_output=arguments.report,
+        limits=settings.limits,
+        fail_on=settings.fail_on,
+    )
+    sys.stdout.write(
+        f"TEXT DERIVATIVE CREATED · {artifact.edit_count} edit(s) · sha256:{artifact.output_sha256}\nOriginal unchanged. Review the derivative before sharing; this is not a safety guarantee.\n"
+    )
+    return 0
+
+
 def _main(argv: Sequence[str] | None = None) -> int:
     _configure_standard_streams()
     parser = _parser()
@@ -571,6 +730,13 @@ def _main(argv: Sequence[str] | None = None) -> int:
             return _diff_command(arguments)
         if arguments.command == "plan":
             return _plan_command(arguments)
+        if arguments.command == "batch":
+            return _batch_command(arguments)
+        if arguments.command == "redact":
+            return _redact_command(arguments)
+    except RedactionBlocked as exc:
+        sys.stderr.write(f"REDACTION BLOCKED: {exc}\n")
+        return 1
     except BrokenPipeError:
         raise
     except (ScanInputError, PackError, ConfigurationError, DocumentInputError, OSError) as exc:
